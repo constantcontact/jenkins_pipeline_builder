@@ -1,0 +1,15 @@
+- defaults:
+    name: global
+    description: 'Do not edit this job through the web!'
+    hipchat_room: HipChat Room Name
+    os_username: admin
+    os_priv_key: /home/user/qa-oskey.priv
+    os_password: some_encrypted_password
+
+- project:
+    name: Generate
+    jobs:
+      - Job-{{name}}-From-Template:
+          command: run.sh
+      - Job-DSL1
+      - Job-DSL2

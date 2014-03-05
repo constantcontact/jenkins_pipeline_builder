@@ -1,0 +1,41 @@
+- job:
+    name: 'Job-Gem-Build'
+    job_type: free_style
+    scm_provider: git
+    scm_url: git@github.com:devops/repo.git
+    scm_branch: master
+    scm_params:
+      excuded_users: user
+    shell_command: 'run.sh'
+    triggers:
+      - scm_polling: 'H/5 * * * *'
+    wrappers:
+      - ansicolor: true
+      - artifactory:
+          url: 'https://artifactory.com/artifactory'
+          artifactory-name: 'key'
+          target-repo: gems-local
+          publish: 'pkg/*.gem'
+          publish-build-info: true
+      - inject_env_var: >
+          VAR1 = value_1
+      - inject_passwords:
+        - name: OS_PASSWORD
+          value: some_encrypted_password
+      - rvm: "`cat .ruby-version`@`cat .ruby-gemset`"
+    publishers:
+      - junit_result:
+          test_results: 'out/**/*.xml'
+      - git:
+          push-merge: true
+          push-only-if-success: false
+      - coverage_result:
+          report_dir: out/coverage/rcov
+          total:
+            healthy: 80
+            unhealthy: 0
+            unstable: 0
+          code:
+            healthy: 80
+            unhealthy: 0
+            unstable: 0

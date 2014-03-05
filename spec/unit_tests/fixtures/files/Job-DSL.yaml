@@ -1,0 +1,14 @@
+---
+- job:
+    name: Job-DSL1
+    job_type: job_dsl
+    job_dsl: |
+        job {
+           name 'DSL-Job'
+        }
+
+- job:
+    name: Job-DSL2
+    job_type: job_dsl
+    job_dsl_targets: |
+        **/*.groovy
