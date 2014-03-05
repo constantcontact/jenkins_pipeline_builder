@@ -4,6 +4,14 @@ jenkins-pipeline-builder
 YAML driven CI Jenkins Pipeline Builder enabling to version your artifact pipelines alongside with the artifact source itself.
 
 
+# Background
+
+This project is inspired by a great work done by Arangamani with [jenkins_api_client](https://github.com/arangamani/jenkins_api_client) and
+amazing progress done by the Open Stack community with their [jenkins-job-builder](http://ci.openstack.org/jenkins-job-builder/)
+
+The YAML structure very closely resembles the OpenStack Job Builder, but, in comparison to Python version, is 100%
+pure Ruby and uses Jenkins API Client and has additional functionlity of building different types of Jenkins views.
+
 # JenkinsPipeline::Generator
 
 TODO: Write a gem description
