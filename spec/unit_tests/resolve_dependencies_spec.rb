@@ -208,7 +208,7 @@ describe 'Templates resolver' do
   end
 
   it 'shoult resolve job template into a job' do
-    file = 'project_simple'
+    file = 'project_with_jobs'
     path = File.expand_path('../fixtures/templates/' + file, __FILE__)
     project = YAML.load_file(path + '.yaml')
 

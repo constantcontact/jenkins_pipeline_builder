@@ -1,0 +1,4 @@
+- job:
+    name: foo-test
+    builders:
+      - shell: 'make test'
