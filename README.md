@@ -1,8 +1,11 @@
 jenkins-pipeline-builder
 ========================
 
-YAML driven CI Jenkins Pipeline Builder enabling to version your artifact pipelines alongside with the artifact source itself.
+YAML driven CI Jenkins Pipeline Builder enabling to version your artifact pipelines alongside with the artifact source
+itself.
 
+This Gem uses this methodolody by itself. Notice the 'pipeline' folder where we have a declaration of the Gem's build
+pipeline.
 
 # Background
 
