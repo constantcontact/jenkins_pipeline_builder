@@ -3,7 +3,7 @@
     description: 'Do not edit this job through the web!'
     hipchat_room: HipChat Room Name
     os_username: admin
-    os_priv_key: /home/user/qa-oskey.priv
+    os_priv_key: /home/user/key.priv
     os_password: some_encrypted_password
 
 - project:

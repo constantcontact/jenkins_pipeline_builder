@@ -14,13 +14,10 @@ pure Ruby and uses Jenkins API Client and has additional functionlity of buildin
 
 # JenkinsPipeline::Generator
 
-TODO: Write a gem description
+USAGE:
+------
 
-This is how you can bootstrap a pipeline:
-
-    generate pipeline -d -c config/login.yml bootstrap ./pipeline-archetype
-
-## Installation
+### Installation
 
 Add this line to your application's Gemfile:
 
@@ -38,17 +35,43 @@ Or install it yourself as:
     [optional] brew link libxml2 libxslt
     gem install nokogiri
 
-## Usage
+### Authentication
 
-TODO: Write usage instructions here
+For more info see [jenkins_api_client](https://github.com/arangamani/jenkins_api_client).
+Supplying credentials to the client is optional, as not all Jenkins instances
+require authentication. This project supports two types of password-based
+authentication. You can just you the plain password by using <tt>password</tt>
+parameter. If you don't prefer leaving plain passwords in the credentials file,
+you can encode your password in base64 format and use <tt>password_base64</tt>
+parameter to specify the password either in the arguments or in the credentials
+file. To use the client without credentials, just leave out the
+<tt>username</tt> and <tt>password</tt> parameters. The <tt>password</tt>
+parameter is only required if <tt>username</tt> is specified.
 
-## Contributing
+#### Using with Open ID
 
-1. Fork it
-2. Create your feature branch (`git checkout -b my-new-feature`)
-3. Commit your changes (`git commit -am 'Add some feature'`)
-4. Push to the branch (`git push origin my-new-feature`)
-5. Create new Pull Request
+For more info see [jenkins_api_client](https://github.com/arangamani/jenkins_api_client).
+It is very simple to authenticate with your Jenkins server that has Open ID
+authentication enabled. You will have to obtain your API token and use the API
+token as the password. For obtaining the API token, go to your user configuration
+page and click 'Show API Token'. Use this token for the `password` parameter when
+initializing the client.
+
+### Basic usage
+
+Create all your Job description files in a folder (Ex.: ./pipeline). Follow the Job/View/Project DSL.
+Try to extract the reusable values out of jobs into the project.
+
+Put the right information about the location of your Jenkins server and the appropriate credentials
+in a config file (ex: config.login.yml)
+
+Now you ready to bootstrap a pipeline:
+
+    generate pipeline -d -c config/login.yml bootstrap ./pipeline
+
+
+DSL:
+----
 
 ## Job DSL
 Here's a high level overview of what's available:
@@ -142,3 +165,60 @@ Here's a high level overview of what's available:
         build("job_name2", param1: build21.environment.get("some_var"))
       }
 ```
+
+### View DSL
+```yaml
+- view:
+    name: 'view name'
+    type: 'listview' # Optional: listview [default], myview, nestedView, categorizedView, dashboardView, multijobView
+    description: 'description'
+    regex: '.*'
+    groupingRules:
+      - groupRegex: "1.*"
+        namingRule: "sub view"
+```
+
+### Project DSL
+```yaml
+- project:
+    name: Your project name
+    jobs:
+      - Job1
+      - Job2
+          param1: value1
+      - JobTemplate1
+```
+
+### Default Settings Section
+
+The defaults section mimics behavior of [jenkins-job-builder Defaults](http://ci.openstack.org/jenkins-job-builder/configuration.html#defaults)
+If a set of Defaults is specified with the name global, that will be used by all Job (and Job Template) definitions.
+
+```yaml
+- defaults:
+    name: global
+    param1: 'value 1'
+```
+
+
+CONTRIBUTING:
+----------------
+
+If you would like to contribute to this project, just do the following:
+
+1. Fork the repo on Github.
+2. Add your features and make commits to your forked repo.
+3. Make a pull request to this repo.
+4. Review will be done and changes will be requested.
+5. Once changes are done or no changes are required, pull request will be merged.
+6. The next release will have your changes in it.
+
+Please take a look at the issues page if you want to get started.
+
+FEATURE REQUEST:
+----------------
+
+If you use this gem for your project and you think it would be nice to have a
+particular feature that is presently not implemented, I would love to hear that
+and consider working on it. Just open an issue in Github as a feature request.
+
