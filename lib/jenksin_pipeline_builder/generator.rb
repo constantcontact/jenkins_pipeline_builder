@@ -110,7 +110,7 @@ module JenkinsPipelineBuilder
     def load_collection_from_path(path, recursively = false)
       if File.directory?(path)
         @logger.info "Generating from folder #{path}"
-        Dir.glob(File.join(path, '/*.yaml')).each do |file|
+        Dir[File.join(path, '/*.yaml'), File.join(path, '/*.yml')].each do |file|
           if File.directory?(file)
             if recursively
               load_collection_from_path(File.join(path, file), recursively)
@@ -194,30 +194,46 @@ module JenkinsPipelineBuilder
       return result
     end
 
+    def jobs
+      result = []
+      @job_collection.values.each do |item|
+        result << item if item[:type] == :job
+      end
+      return result
+    end
+
     def bootstrap(path)
       @logger.info "Bootstrapping pipeline from path #{path}"
       load_collection_from_path(path)
 
-      projects.each do |project|
-        compiled_project = resolve_project(project)
-        pp compiled_project
-
-        if compiled_project[:value][:jobs]
-          compiled_project[:value][:jobs].each do |i|
-            job = i[:result]
-            xml = compile_job_to_xml(job)
-            create_or_update(job, xml)
-          end
+      # Publish all the jobs if the projects are not found
+      if projects.count == 0
+        jobs.each do |i|
+          job = i[:value]
+          xml = compile_job_to_xml(job)
+          create_or_update(job, xml)
         end
+      else
+        projects.each do |project|
+          compiled_project = resolve_project(project)
+          #pp compiled_project
 
-        if compiled_project[:value][:views]
-          compiled_project[:value][:views].each do |v|
-            _view = v[:result]
-            view.create(_view)
+          if compiled_project[:value][:jobs]
+            compiled_project[:value][:jobs].each do |i|
+              job = i[:result]
+              xml = compile_job_to_xml(job)
+              create_or_update(job, xml)
+            end
+          end
+
+          if compiled_project[:value][:views]
+            compiled_project[:value][:views].each do |v|
+              _view = v[:result]
+              view.create(_view)
+            end
           end
         end
       end
-
     end
 
     def dump(job_name)

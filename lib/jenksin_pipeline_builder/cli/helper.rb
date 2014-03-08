@@ -41,8 +41,9 @@ module JenkinsPipelineBuilder
           creds = options
         elsif options[:creds_file]
           creds = YAML.load_file(
+              File.expand_path(options[:creds_file])
               #File.expand_path(options[:creds_file], __FILE__)
-              options[:creds_file]
+              #options[:creds_file]
           )
         elsif File.exist?("#{ENV['HOME']}/.jenkins_api_client/login.yml")
           creds = YAML.load_file(
