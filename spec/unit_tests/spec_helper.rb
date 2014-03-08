@@ -5,7 +5,7 @@ require 'simplecov'
 require 'simplecov-rcov'
 
 SimpleCov.profiles.define 'spec' do
-  add_group 'jenksin_pipeline_builder', '/lib/'
+  add_group 'jenkins_pipeline_builder', '/lib/'
   coverage_dir 'out/coverage'
   formatter SimpleCov::Formatter::MultiFormatter[
                 SimpleCov::Formatter::Console,
@@ -21,7 +21,7 @@ end
 
 SimpleCov.start 'spec' #if ENV["COVERAGE"]
 
-require File.expand_path('../../../lib/jenksin_pipeline_builder', __FILE__)
+require File.expand_path('../../../lib/jenkins_pipeline_builder', __FILE__)
 
 RSpec.configure do |config|
   config.before(:each) do

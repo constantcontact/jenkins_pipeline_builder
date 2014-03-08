@@ -1,7 +1,7 @@
 # coding: utf-8
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'jenksin_pipeline_builder/version'
+require 'jenkins_pipeline_builder/version'
 
 Gem::Specification.new do |spec|
   spec.name          = 'jenkins_pipeline_builder'

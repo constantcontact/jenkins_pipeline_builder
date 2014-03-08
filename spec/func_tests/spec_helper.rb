@@ -6,7 +6,7 @@ require 'simplecov-rcov'
 
 SimpleCov.start if ENV["COVERAGE"]
 
-require File.expand_path('../../../lib/jenksin_pipeline_builder', __FILE__)
+require File.expand_path('../../../lib/jenkins_pipeline_builder', __FILE__)
 
 RSpec.configure do |config|
   config.treat_symbols_as_metadata_keys_with_true_values = true
