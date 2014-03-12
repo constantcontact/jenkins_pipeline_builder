@@ -85,7 +85,7 @@ module JenkinsPipelineBuilder
         return
       end
 
-      view_path = parent_view_name.nil? ? '' : "/view/#{path_encode parent_view_name}"
+      view_path = parent_view_name.nil? ? '' : "/view/#{parent_view_name}"
       view_path += '/createView'
 
       @client.api_post_request(view_path, initial_post_params)
@@ -156,8 +156,8 @@ module JenkinsPipelineBuilder
         return
       end
 
-      view_path = params[:parent_view].nil? ? '' : "/view/#{path_encode params[:parent_view]}"
-      view_path += "/view/#{path_encode params[:name]}/configSubmit"
+      view_path = params[:parent_view].nil? ? '' : "/view/#{params[:parent_view]}"
+      view_path += "/view/#{params[:name]}/configSubmit"
 
       @client.api_post_request(view_path, post_params)
     end
@@ -233,7 +233,7 @@ module JenkinsPipelineBuilder
     def list_children(parent_view = nil, filter = "", ignorecase = true)
       @logger.info "Obtaining children views of parent #{parent_view} based on filter '#{filter}'"
       view_names = []
-      path = parent_view.nil? ? '' : "/view/#{path_encode parent_view}"
+      path = parent_view.nil? ? '' : "/view/#{parent_view}"
       response_json = @client.api_get_request(path)
       response_json["views"].each { |view|
         if ignorecase
@@ -251,8 +251,8 @@ module JenkinsPipelineBuilder
     #
     def delete(view_name, parent_view = nil)
       @logger.info "Deleting view '#{view_name}'"
-      path = parent_view.nil? ? '' : "/view/#{path_encode parent_view}"
-      path += "/view/#{path_encode view_name}/doDelete"
+      path = parent_view.nil? ? '' : "/view/#{parent_view}"
+      path += "/view/#{view_name}/doDelete"
       @client.api_post_request(path)
     end
   end

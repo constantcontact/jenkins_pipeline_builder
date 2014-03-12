@@ -51,14 +51,14 @@ describe JenkinsPipelineBuilder::View do
 
         it 'creates a Nested view with a child' do
           params_parent = {
-              name: 'test_nested_view',
+              name: 'My Test Parent View',
               type: 'nestedView'
           }
 
           create_and_validate(params_parent)
 
           params_child = {
-              name: 'test_list_view',
+              name: 'Test List View',
               parent_view: params_parent[:name]
           }
 
