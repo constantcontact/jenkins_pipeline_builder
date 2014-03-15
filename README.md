@@ -70,8 +70,11 @@ in a config file (ex: config.login.yml)
 
 Now you ready to bootstrap a pipeline:
 
-    generate pipeline -d -c config/login.yml bootstrap ./pipeline
+    generate pipeline -c config/login.yml bootstrap ./pipeline
 
+NOTE: you can run the pipeline in NOOP (debug-only) mode by addind -d parameter, like:
+
+    generate pipeline -d -c config/login.yml bootstrap ./pipeline
 
 DSL:
 ----
@@ -175,8 +178,9 @@ Here's a high level overview of what's available:
     name: 'view name'
     type: 'listview' # Optional: listview [default], myview, nestedView, categorizedView, dashboardView, multijobView
     description: 'description'
+    parent_view: 'Parent View Name' # Optional, when you're using tested views
     regex: '.*'
-    groupingRules:
+    groupingRules: # Optional, when you are using Categorized view
       - groupRegex: "1.*"
         namingRule: "sub view"
 ```
