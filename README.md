@@ -115,15 +115,23 @@ Here's a high level overview of what's available:
           run command1
       - maven3:
           goals: -B clean
+          mavenName: maven-name # Optional
     wrappers:
       - timestamp: true
       - ansicolor: true
       - artifactory:
           url: 'https://url.com/path'
           artifactory-name: 'key'
-          target-repo: gems-local
+          release-repo: release
+          snapshot-repo: snapshot
           publish: 'pkg/*.gem'
-          publish-build-info: true
+          publish-build-info: true # Optional
+      - maven3artifactory:
+          url: https://artifactory.com/artifactory
+          artifactory-name: name
+          release-repo: release
+          snapshot-repo: snapshot
+          publish-build-info: true # Optional
       - inject_env_var: |
           VAR1 = value_1
           VAR2 = value_2

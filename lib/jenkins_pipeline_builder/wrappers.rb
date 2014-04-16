@@ -71,8 +71,8 @@ module JenkinsPipelineBuilder
         xml.details {
           xml.artifactoryUrl wrapper[:url]
           xml.artifactoryName wrapper[:'artifactory-name']
-          xml.repositoryKey wrapper[:'target-repo']
-          xml.snapshotsRepositoryKey wrapper[:'target-repo']
+          xml.repositoryKey wrapper[:'release-repo']
+          xml.snapshotsRepositoryKey wrapper.fetch(:'snapshot-repo', wrapper[:'release-repo'])
         }
         xml.deployPattern wrapper[:publish]
         xml.resolvePattern
@@ -85,6 +85,48 @@ module JenkinsPipelineBuilder
         }
         xml.discardOldBuilds false
         xml.discardBuildArtifacts true
+      }
+    end
+
+    def self.artifactory_maven3_configurator(wrapper, xml)
+      xml.send('org.jfrog.hudson.maven3.ArtifactoryMaven3Configurator') { # plugin="artifactory@2.2.1"
+        xml.details {
+          xml.artifactoryUrl wrapper[:url]
+          xml.artifactoryName wrapper[:'artifactory-name']
+          xml.repositoryKey wrapper[:'release-repo']
+          xml.snapshotsRepositoryKey wrapper.fetch(:'snapshot-repo', wrapper[:'release-repo'])
+        }
+        xml.deployArtifacts wrapper.fetch(:'deploy', true)
+        xml.artifactDeploymentPatterns {
+          xml.includePatterns
+          xml.excludePatterns
+        }
+        xml.includeEnvVars false
+        xml.deployBuildInfo wrapper.fetch(:'publish-build-info', true)
+        xml.envVarsPatterns {
+          xml.includePatterns
+          xml.excludePatterns '*password*,*secret*'
+        }
+        xml.runChecks false
+        xml.violationRecipients
+        xml.includePublishArtifacts false
+        xml.scopes
+        xml.licenseAutoDiscovery true
+        xml.disableLicenseAutoDiscovery false
+        xml.discardOldBuilds false
+        xml.discardBuildArtifacts true
+        xml.matrixParams
+        xml.enableIssueTrackerIntegration false
+        xml.aggregateBuildIssues false
+        xml.blackDuckRunChecks false
+        xml.blackDuckAppName
+        xml.blackDuckAppVersion
+        xml.blackDuckReportRecipients
+        xml.blackDuckScopes
+        xml.blackDuckIncludePublishedArtifacts false
+        xml.autoCreateMissingComponentRequests true
+        xml.autoDiscardStaleComponentRequests true
+        xml.filterExcludedArtifactsFromBuild false
       }
     end
   end

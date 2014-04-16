@@ -76,7 +76,8 @@ module JenkinsPipelineBuilder
                       artifactory: Wrappers.method(:publish_to_artifactory),
                       rvm: Wrappers.method(:run_with_rvm),
                       inject_env_var: Wrappers.method(:inject_env_vars),
-                      inject_passwords: Wrappers.method(:inject_passwords)
+                      inject_passwords: Wrappers.method(:inject_passwords),
+                      maven3artifactory: Wrappers.method(:artifactory_maven3_configurator)
                   },
                   method:
                     lambda { |registry, params, n_xml| @module_registry.run_registry_on_path('//buildWrappers', registry, params, n_xml) }

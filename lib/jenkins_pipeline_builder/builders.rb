@@ -48,7 +48,7 @@ module JenkinsPipelineBuilder
 
     def self.build_maven3(params, xml)
       xml.send('org.jfrog.hudson.maven3.Maven3Builder') {
-        xml.mavenName 'tools-maven-3.0.3'
+        xml.mavenName params[:mavenName] || 'tools-maven-3.0.3'
         xml.rootPom params[:rootPom]
         xml.goals params[:goals]
         xml.mavenOpts params[:options]

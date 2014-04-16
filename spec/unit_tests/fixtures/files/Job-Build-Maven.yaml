@@ -24,3 +24,8 @@
             - params: VM_NAME=${VM_NAME}
     wrappers:
       - timestamp: true
+      - maven3artifactory:
+          url: https://artifactory.com/artifactory
+          artifactory-name: name
+          release-repo: release
+          snapshot-repo: snapshot

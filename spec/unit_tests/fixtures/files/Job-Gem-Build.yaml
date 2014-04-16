@@ -14,7 +14,7 @@
       - artifactory:
           url: 'https://artifactory.com/artifactory'
           artifactory-name: 'key'
-          target-repo: gems-local
+          release-repo: gems-local
           publish: 'pkg/*.gem'
           publish-build-info: true
       - inject_env_var: >

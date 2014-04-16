@@ -86,5 +86,44 @@
   </publishers>
   <buildWrappers>
     <hudson.plugins.timestamper.TimestamperBuildWrapper/>
+    <org.jfrog.hudson.maven3.ArtifactoryMaven3Configurator>
+      <details>
+        <artifactoryUrl>https://artifactory.com/artifactory</artifactoryUrl>
+        <artifactoryName>name</artifactoryName>
+        <repositoryKey>release</repositoryKey>
+        <snapshotsRepositoryKey>snapshot</snapshotsRepositoryKey>
+      </details>
+      <deployArtifacts>true</deployArtifacts>
+      <artifactDeploymentPatterns>
+        <includePatterns></includePatterns>
+        <excludePatterns></excludePatterns>
+      </artifactDeploymentPatterns>
+      <includeEnvVars>false</includeEnvVars>
+      <deployBuildInfo>true</deployBuildInfo>
+      <envVarsPatterns>
+        <includePatterns></includePatterns>
+        <excludePatterns>*password*,*secret*</excludePatterns>
+      </envVarsPatterns>
+      <runChecks>false</runChecks>
+      <violationRecipients></violationRecipients>
+      <includePublishArtifacts>false</includePublishArtifacts>
+      <scopes></scopes>
+      <licenseAutoDiscovery>true</licenseAutoDiscovery>
+      <disableLicenseAutoDiscovery>false</disableLicenseAutoDiscovery>
+      <discardOldBuilds>false</discardOldBuilds>
+      <discardBuildArtifacts>true</discardBuildArtifacts>
+      <matrixParams></matrixParams>
+      <enableIssueTrackerIntegration>false</enableIssueTrackerIntegration>
+      <aggregateBuildIssues>false</aggregateBuildIssues>
+      <blackDuckRunChecks>false</blackDuckRunChecks>
+      <blackDuckAppName></blackDuckAppName>
+      <blackDuckAppVersion></blackDuckAppVersion>
+      <blackDuckReportRecipients></blackDuckReportRecipients>
+      <blackDuckScopes></blackDuckScopes>
+      <blackDuckIncludePublishedArtifacts>false</blackDuckIncludePublishedArtifacts>
+      <autoCreateMissingComponentRequests>true</autoCreateMissingComponentRequests>
+      <autoDiscardStaleComponentRequests>true</autoDiscardStaleComponentRequests>
+      <filterExcludedArtifactsFromBuild>false</filterExcludedArtifactsFromBuild>
+    </org.jfrog.hudson.maven3.ArtifactoryMaven3Configurator>
   </buildWrappers>
 </project>
