@@ -115,6 +115,7 @@ Here's a high level overview of what's available:
           run command1
       - maven3:
           goals: -B clean
+          rootPom: path_to_pom
           mavenName: maven-name # Optional
     wrappers:
       - timestamp: true
