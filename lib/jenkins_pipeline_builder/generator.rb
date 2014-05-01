@@ -38,6 +38,7 @@ module JenkinsPipelineBuilder
     def initialize(args, client)
       @client        = client
       @logger        = @client.logger
+      #@logger.level = (@debug) ? Logger::DEBUG : Logger::INFO;
       @job_templates = {}
       @job_collection = {}
 
@@ -95,7 +96,14 @@ module JenkinsPipelineBuilder
     end
 
     attr_accessor :client
-    attr_accessor :debug
+    #attr_accessor :debug
+    def debug=(value)
+      @debug = value
+      @logger.level = (value) ? Logger::DEBUG : Logger::INFO;
+    end
+    def debug
+      @debug
+    end
     # TODO: WTF?
     attr_accessor :no_files
     attr_accessor :job_collection
@@ -109,6 +117,7 @@ module JenkinsPipelineBuilder
     end
 
     def load_collection_from_path(path, recursively = false)
+      path = File.expand_path(path, relative_to=Dir.getwd)
       if File.directory?(path)
         @logger.info "Generating from folder #{path}"
         Dir[File.join(path, '/*.yaml'), File.join(path, '/*.yml')].each do |file|
@@ -183,6 +192,7 @@ module JenkinsPipelineBuilder
       job = get_item(name)
       raise "Failed to locate job by name '#{name}'" if job.nil?
       job_value = job[:value]
+      @logger.debug "Compiling job #{name}"
       compiled_job =  Compiler.compile(job_value, settings)
       return compiled_job
     end
