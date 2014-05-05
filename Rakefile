@@ -66,3 +66,5 @@ namespace :doc do
     `dot jenkins_api_client.dot -Tpng -o jenkins_api_client_class_diagram.png`
   end
 end
+
+task default: :unit_tests

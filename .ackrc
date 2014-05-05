@@ -1,0 +1,4 @@
+--ignore-dir=docs
+--ignore-dir=doc
+--ignore-dir=out
+--ignore-dir=coverage
