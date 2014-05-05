@@ -22,28 +22,31 @@
 
 module JenkinsPipelineBuilder
   class Builders
-    def self.build_multijob_builder(params, xml)
-      xml.send('com.tikal.jenkins.plugins.multijob.MultiJobBuilder') {
-        xml.phaseName 'Child Jobs'
-        xml.phaseJobs {
-          proc = lambda do |xml, name|
-            xml.send('com.tikal.jenkins.plugins.multijob.PhaseJobsConfig') {
-              xml.jobName name
-              xml.currParams false
-              xml.exposedSCM false
-              xml.configs {
-                xml.send('hudson.plugins.parameterizedtrigger.PredefinedBuildParameters') {
-                  xml.properties 'PARENT_WORKSPACE=${WORKSPACE}'
-                }
+    def self.build_multijob(params, xml)
+      params[:phases].each do |name, content|
+        xml.send('com.tikal.jenkins.plugins.multijob.MultiJobBuilder') {
+          xml.phaseName name
+          xml.phaseJobs {
+            content[:jobs].each do |job|
+              xml.send('com.tikal.jenkins.plugins.multijob.PhaseJobsConfig') {
+                xml.jobName job[:name]
+                xml.currParams job[:current_params] || false
+                xml.exposedSCM job[:exposed_scm] || false
+                if job[:config]
+                  xml.configs {
+                    if job[:config].has_key? :predefined_build_parameters
+                      xml.send('hudson.plugins.parameterizedtrigger.PredefinedBuildParameters') {
+                        xml.properties job[:config][:predefined_build_parameters].join ' '
+                      }
+                    end
+                  }
+                end
               }
-            }
-          end
-          params[:child_jobs].each do |name|
-            proc.call xml, name
-          end
+            end
+          }
+          xml.continuationCondition content[:continue_condition] || 'SUCCESSFUL'
         }
-        xml.continuationCondition params[:mark_phase]
-      }
+      end
     end
 
     def self.build_maven3(params, xml)

@@ -19,10 +19,21 @@
       - git_push: true
       - scm_polling: "H/5 * * * *"
     builders:
-      - job_builder:
-          child_jobs:
-            - Child-Job
-          mark_phase: SUCCESSFUL
+      - multi_job:
+          phases:
+            "Phase One":
+              jobs:
+                - name: first
+                  exposed_scm: true
+                  current_params: true
+                  config:
+                    predefined_build_parameters:
+                      - "PARENT_WORKSPACE=${WORKSPACE}"
+                - name: second
+              continue_condition: COMPLETED
+            "Phase Two":
+              jobs:
+                - name: third
       - inject_vars_file: build_job_info
     publishers:
       - downstream:

@@ -23,16 +23,16 @@ describe JenkinsPipelineBuilder::View do
         def create_and_validate(params)
           name = params[:name]
           @valid_post_responses.should include(
-                                           @generator.view.create(params).to_i
-                                       )
+            @generator.view.create(params).to_i
+          )
           @generator.view.list_children(params[:parent_view], name).include?(name).should be_true
         end
 
         def destroy_and_validate(params)
           name = params[:name]
           @valid_post_responses.should include(
-                                           @generator.view.delete(name, params[:parent_view]).to_i
-                                       )
+            @generator.view.delete(name, params[:parent_view]).to_i
+          )
           @generator.view.list_children(params[:parent_view], name).include?(name).should be_false
         end
 
@@ -43,7 +43,7 @@ describe JenkinsPipelineBuilder::View do
 
         it 'accepts the name of the view and creates the view' do
           params = {
-              :name => 'test_list_view'
+            :name => 'test_list_view'
           }
 
           test_and_validate(params)
@@ -51,15 +51,15 @@ describe JenkinsPipelineBuilder::View do
 
         it 'creates a Nested view with a child' do
           params_parent = {
-              name: 'My Test Parent View',
-              type: 'nestedView'
+            name: 'My Test Parent View',
+            type: 'nestedView'
           }
 
           create_and_validate(params_parent)
 
           params_child = {
-              name: 'Test List View',
-              parent_view: params_parent[:name]
+            name: 'Test List View',
+            parent_view: params_parent[:name]
           }
 
           test_and_validate(params_child)
@@ -69,20 +69,20 @@ describe JenkinsPipelineBuilder::View do
 
         it 'creates a categorized view with columns' do
           params = {
-              name: 'test_category_view',
-              type: 'categorizedView',
-              description: 'Blah blah',
-              regex: 'Job-.*',
-              groupingRules: [{
-                                  groupRegex: 'Step-1.*',
-                                  namingRule: '1. Commit'
-                              },{
-                                  groupRegex: 'Step-2.*',
-                                  namingRule: '2. Acceptance'
-                              },{
-                                  groupRegex: 'Step-3.*',
-                                  namingRule: '3. Release'
-                              }]
+            name: 'test_category_view',
+            type: 'categorizedView',
+            description: 'Blah blah',
+            regex: 'Job-.*',
+            groupingRules: [{
+              groupRegex: 'Step-1.*',
+              namingRule: '1. Commit'
+            },{
+              groupRegex: 'Step-2.*',
+              namingRule: '2. Acceptance'
+            },{
+              groupRegex: 'Step-3.*',
+              namingRule: '3. Release'
+            }]
           }
 
           test_and_validate(params)

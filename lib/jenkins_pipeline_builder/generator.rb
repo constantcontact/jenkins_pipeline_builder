@@ -50,7 +50,7 @@ module JenkinsPipelineBuilder
               parameters: JobBuilder.method(:build_parameters),
               builders: {
                   registry: {
-                      job_builder: Builders.method(:build_multijob_builder),
+                      multi_job: Builders.method(:build_multijob),
                       inject_vars_file: Builders.method(:build_environment_vars_injector),
                       shell_command: Builders.method(:build_shell_command),
                       maven3: Builders.method(:build_maven3)

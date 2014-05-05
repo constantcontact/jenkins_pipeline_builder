@@ -104,11 +104,21 @@ Here's a high level overview of what's available:
       room: room name here
       start-notify: true
     builders:
-      - job_builder:
-          child_jobs:
-            - job-name-1
-            - job-name-2
-          mark_phase: SUCCESSFUL
+      - multi_job:
+          phases:
+            "Phase One":
+              jobs:
+                - name: first
+                  exposed_scm: true
+                  current_params: true
+                  config:
+                    predefined_build_parameters:
+                      - "PARENT_WORKSPACE=${WORKSPACE}"
+                - name: second
+              continue_condition: COMPLETED
+            "Phase Two":
+              jobs:
+                - name: third
       - inject_vars_file: build_job_info
       - shell_command: |
           echo 'Doing some work'

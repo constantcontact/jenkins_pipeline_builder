@@ -1,5 +1,4 @@
-require File.expand_path('../spec_helper', __FILE__)
-require 'equivalent-xml'
+require 'unit_tests/spec_helper'
 
 describe 'Test YAML jobs conversion to XML' do
   context 'Loading YAML files' do
