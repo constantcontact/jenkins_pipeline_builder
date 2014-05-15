@@ -76,7 +76,8 @@
           <exposedSCM>true</exposedSCM>
           <configs>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-              <properties>PARENT_WORKSPACE=${WORKSPACE}</properties>
+              <properties>GIT_COMMIT=123
+                PARENT_WORKSPACE=${WORKSPACE}</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
         </com.tikal.jenkins.plugins.multijob.PhaseJobsConfig>
