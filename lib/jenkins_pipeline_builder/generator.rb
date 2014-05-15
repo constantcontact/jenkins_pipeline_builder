@@ -238,12 +238,17 @@ module JenkinsPipelineBuilder
       @logger.info "Bootstrapping pipeline from path #{path}"
       load_collection_from_path(path)
 
+      errors = {}
       # Publish all the jobs if the projects are not found
       if projects.count == 0
         jobs.each do |i|
           job = i[:value]
-          xml = compile_job_to_xml(job)
-          create_or_update(job, xml)
+          success, payload = compile_job_to_xml(job)
+          if success
+            create_or_update(job, payload)
+          else
+            errors[job[:name]] = payload
+          end
         end
       else
         projects.each do |project|
@@ -261,8 +266,12 @@ module JenkinsPipelineBuilder
               puts "Processing #{i}"
               job = i[:result]
               fail "Result is empty for #{i}" if job.nil?
-              xml = compile_job_to_xml(job)
-              create_or_update(job, xml)
+              success, payload = compile_job_to_xml(job)
+              if success
+                create_or_update(job, payload)
+              else
+                errors[job[:name]] = payload
+              end
             end
           end
 
@@ -273,6 +282,10 @@ module JenkinsPipelineBuilder
             end
           end
         end
+      end
+      errors.each do |k,v|
+        @logger.error "Encountered errors compiling: #{k}:"
+        @logger.error v
       end
     end
 
@@ -307,20 +320,20 @@ module JenkinsPipelineBuilder
       case job[:job_type]
         when 'job_dsl'
           xml = compile_freestyle_job_to_xml(job)
-          update_job_dsl(job, xml)
+          payload = update_job_dsl(job, xml)
         when 'multi_project'
           xml = compile_freestyle_job_to_xml(job)
-          adjust_multi_project xml
+          payload = adjust_multi_project xml
         when 'build_flow'
           xml = compile_freestyle_job_to_xml(job)
-          add_job_dsl(job, xml)
+          payload = add_job_dsl(job, xml)
         when 'free_style'
-          compile_freestyle_job_to_xml job
+          payload = compile_freestyle_job_to_xml job
         else
-          @logger.info 'Unknown job type'
-          ''
+          return false, "Job type: #{job[:job_type]} is not one of job_dsl, multi_project, build_flow or free_style"
       end
 
+      return true, payload
     end
 
     def adjust_multi_project(xml)

@@ -16,7 +16,8 @@ describe 'Test YAML jobs conversion to XML' do
     end
 
     def compare_jobs(job, path)
-      xml = @generator.compile_job_to_xml(job)
+      success, xml = @generator.compile_job_to_xml(job)
+      expect(success).to be_true
       doc1 = Nokogiri::XML(xml)
 
       sample_job_xml = File.read(path + '.xml')
