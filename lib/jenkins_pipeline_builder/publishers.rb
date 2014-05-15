@@ -115,13 +115,13 @@ module JenkinsPipelineBuilder
         xml.buildSteps {
           if params[:shell_command]
             xml.send('hudson.tasks.Shell') {
-              xml.command params[:shell_command].join('\n')
+              xml.command params[:shell_command].join("\n")
             }
           end
         }
         xml.scriptOnlyIfSuccess params[:on_success]
         xml.scriptOnlyIfFailure params[:on_failure]
-        xml.executeOn params[:execute_on]
+        xml.executeOn params[:execute_on] || 'BOTH'
       }
     end
   end

@@ -16,7 +16,7 @@
     <org.jenkinsci.plugins.postbuildscript.PostBuildScript>
       <buildSteps>
         <hudson.tasks.Shell>
-          <command>echo "line one"\necho "line two"</command>
+          <command>echo "line one" echo "line two"</command>
         </hudson.tasks.Shell>
       </buildSteps>
       <scriptOnlyIfSuccess>true</scriptOnlyIfSuccess>
