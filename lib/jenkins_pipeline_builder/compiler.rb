@@ -23,10 +23,11 @@
 module JenkinsPipelineBuilder
   class Compiler
     def self.resolve_value(value, settings)
+      settings = settings.with_indifferent_access
       value_s = value.to_s.clone
-      vars = value_s.scan(/{{([^}]+)}}/).flatten
+      vars = value_s.scan(/{{([^{}]+)}}/).flatten
       vars.select! do |var|
-        var_val = settings[var.to_sym]
+        var_val = settings[var]
         value_s.gsub!("{{#{var.to_s}}}", var_val) unless var_val.nil?
         var_val.nil?
       end
@@ -51,31 +52,63 @@ module JenkinsPipelineBuilder
     end
 
     def self.compile(item, settings = {})
+      errors = {}
       case item
         when String
           new_value = resolve_value(item, settings)
-          puts "Failed to resolve #{item}" if new_value.nil?
-          return new_value
+          if new_value.nil?
+            errors[item] =  "Failed to resolve #{item}"
+          end
+          unless errors.empty?
+            return false, errors
+          end
+          return true, new_value
         when Hash
           result = {}
           item.each do |key, value|
-            new_value = compile(value, settings)
-            puts "Failed to resolve #{value}" if new_value.nil?
-            return nil if new_value.nil?
-            result[key] = new_value
+            if value.nil?
+              errors[key] = "key: #{key} has a nil value, this is likely a yaml syntax error. Skipping children and siblings"
+              break
+            end
+            success, payload = compile(value, settings)
+            unless success
+              errors.merge!(payload)
+              next
+            end
+            if payload.nil?
+              errors[key] = "Failed to resolve:\n===>key: #{key}\n\n===>value: #{value}\n\n===>of: #{item}"
+              next
+            end
+            result[key] = payload
           end
-          return result
+          unless errors.empty?
+            return false, errors
+          end
+          return true, result
         when Array
           result = []
           item.each do |value|
-            new_value = compile(value, settings)
-            puts "Failed to resolve #{value}" if new_value.nil?
-            return nil if new_value.nil?
-            result << new_value
+            if value.nil?
+              errors[item] = "found a nil value when processing following array:\n #{item.inspect}"
+              break
+            end
+            success, payload = compile(value, settings)
+            unless success
+              errors.merge!(payload)
+              next
+            end
+            if payload.nil?
+              errors[value] = "Failed to resolve:\n===>item #{value}\n\n===>of list: #{item}"
+              next
+            end
+            result << payload
           end
-          return result
+          unless errors.empty?
+            return false, errors
+          end
+          return true, result
       end
-      return item
+      return true, item
     end
   end
 end

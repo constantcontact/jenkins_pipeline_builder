@@ -57,10 +57,11 @@ module JenkinsPipelineBuilder
       }
     end
 
-    def self.inject_env_vars(wrapper, xml)
+    def self.inject_env_vars(params, xml)
       xml.EnvInjectBuildWrapper {
         xml.info {
-          xml.propertiesContent wrapper
+          xml.propertiesFilePath params[:file] if params[:file]
+          xml.propertiesContent params[:content] if params[:content]
           xml.loadFilesFromMaster false
         }
       }

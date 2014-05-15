@@ -1,0 +1,11 @@
+---
+- job:
+    name: post_build_script
+    publishers:
+      - post_build_script:
+          shell_command:
+            - 'echo "line one"'
+            - 'echo "line two"'
+          on_success: true
+          on_failure: false
+          execute_on: BOTH

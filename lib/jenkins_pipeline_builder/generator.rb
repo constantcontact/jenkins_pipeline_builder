@@ -65,7 +65,8 @@ module JenkinsPipelineBuilder
                       description_setter: Publishers.method(:description_setter),
                       downstream: Publishers.method(:push_to_projects),
                       junit_result: Publishers.method(:publish_junit),
-                      coverage_result: Publishers.method(:publish_rcov)
+                      coverage_result: Publishers.method(:publish_rcov),
+                      post_build_script: Publishers.method(:post_build_script)
                   },
                   method:
                     lambda { |registry, params, n_xml| @module_registry.run_registry_on_path('//publishers', registry, params, n_xml) }
@@ -96,7 +97,6 @@ module JenkinsPipelineBuilder
     end
 
     attr_accessor :client
-    #attr_accessor :debug
     def debug=(value)
       @debug = value
       @logger.level = (value) ? Logger::DEBUG : Logger::INFO;
@@ -166,11 +166,17 @@ module JenkinsPipelineBuilder
       jobs.map! do |job|
         job.kind_of?(String) ? { job.to_sym => {} } : job
       end
+      errors = {}
       @logger.info project
       jobs.each do |job|
         job_id = job.keys.first
         settings = project[:settings].clone.merge(job[job_id])
-        job[:result] = resolve_job_by_name(job_id, settings)
+        success, payload = resolve_job_by_name(job_id, settings)
+        if success
+          job[:result] = payload
+        else
+          errors[job_id] = payload
+        end
       end
 
       # Process views
@@ -182,10 +188,24 @@ module JenkinsPipelineBuilder
         view_id = view.keys.first
         settings = project[:settings].clone.merge(view[view_id])
         # TODO: rename resolve_job_by_name properly
-        view[:result] = resolve_job_by_name(view_id, settings)
+        success, payload = resolve_job_by_name(view_id, settings)
+        if success
+          view[:result] = payload
+        else
+          errors[view_id] = payload
+        end
       end
 
-      project
+      errors.each do |k,v|
+        puts "Encountered errors processing: #{k}:"
+        v.each do |key, error|
+          puts "  key: #{key} had the following error:"
+          puts "  #{error.inspect}"
+        end
+      end
+      return false, "Encountered errors exiting" unless errors.empty?
+
+      return true, project
     end
 
     def resolve_job_by_name(name, settings = {})
@@ -193,8 +213,9 @@ module JenkinsPipelineBuilder
       raise "Failed to locate job by name '#{name}'" if job.nil?
       job_value = job[:value]
       @logger.debug "Compiling job #{name}"
-      compiled_job =  Compiler.compile(job_value, settings)
-      return compiled_job
+
+      success, payload = Compiler.compile(job_value, settings)
+      return success, payload
     end
 
     def projects
@@ -226,12 +247,20 @@ module JenkinsPipelineBuilder
         end
       else
         projects.each do |project|
-          compiled_project = resolve_project(project)
-          #pp compiled_project
+          success, payload = resolve_project(project)
+          if success
+            puts 'successfully resolved project'
+            compiled_project = payload
+          else
+            puts payload
+            return false
+          end
 
           if compiled_project[:value][:jobs]
             compiled_project[:value][:jobs].each do |i|
+              puts "Processing #{i}"
               job = i[:result]
+              fail "Result is empty for #{i}" if job.nil?
               xml = compile_job_to_xml(job)
               create_or_update(job, xml)
             end

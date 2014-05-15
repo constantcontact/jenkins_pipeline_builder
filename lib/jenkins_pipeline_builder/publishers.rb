@@ -53,8 +53,8 @@ module JenkinsPipelineBuilder
               end
             }
             xml.projects params[:project]
-            xml.condition 'SUCCESS'
-            xml.triggerWithNoParameters false
+            xml.condition params[:condition] || 'SUCCESS'
+            xml.triggerWithNoParameters params[:trigger_with_no_parameters] || false
           }
         }
       }
@@ -107,6 +107,21 @@ module JenkinsPipelineBuilder
           coverage_metric('TOTAL_COVERAGE', params[:total], xml)
           coverage_metric('CODE_COVERAGE', params[:code], xml)
         }
+      }
+    end
+
+    def self.post_build_script(params, xml)
+      xml.send('org.jenkinsci.plugins.postbuildscript.PostBuildScript') {
+        xml.buildSteps {
+          if params[:shell_command]
+            xml.send('hudson.tasks.Shell') {
+              xml.command params[:shell_command].join('\n')
+            }
+          end
+        }
+        xml.scriptOnlyIfSuccess params[:on_success]
+        xml.scriptOnlyIfFailure params[:on_failure]
+        xml.executeOn params[:execute_on]
       }
     end
   end

@@ -12,8 +12,9 @@ describe 'Compiler' do
         z: false
     }
 
-    result = JenkinsPipelineBuilder::Compiler.compile(hash)
+    success, result = JenkinsPipelineBuilder::Compiler.compile(hash)
 
+    expect(success).to be_true
     result.should == hash
   end
 end
