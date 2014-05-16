@@ -7,7 +7,7 @@
     scm_params:
       local_branch: release
       wipe_workspace: true
-      excuded_users: user
+      excluded_users: user
     builders:
       - shell_command: |
           echo 'Doing some work'
