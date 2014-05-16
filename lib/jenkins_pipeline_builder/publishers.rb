@@ -115,7 +115,7 @@ module JenkinsPipelineBuilder
         xml.buildSteps {
           if params[:shell_command]
             xml.send('hudson.tasks.Shell') {
-              xml.command params[:shell_command].join("\n")
+              xml.command params[:shell_command]
             }
           end
         }

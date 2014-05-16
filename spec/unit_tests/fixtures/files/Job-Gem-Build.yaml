@@ -18,7 +18,8 @@
           publish: 'pkg/*.gem'
           publish-build-info: true
       - inject_env_var:
-          content: VAR1 = value_1
+          content: |
+            VAR1 = value_1
       - inject_passwords:
         - name: OS_PASSWORD
           value: some_encrypted_password
