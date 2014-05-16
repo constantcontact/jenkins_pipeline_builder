@@ -63,8 +63,10 @@ describe 'Templates resolver' do
     project = YAML.load(str)
     @generator.load_job_collection project
 
-    @generator.resolve_project(@generator.get_item('project-name')).should ==
-        {:name=>"project-name",
+    success, project = @generator.resolve_project(@generator.get_item('project-name'))
+
+    expect(success).to be_true
+    expect(project).to eq({:name=>"project-name",
          :type=>:project,
          :value=>
              {:name=>"project-name",
@@ -78,7 +80,7 @@ describe 'Templates resolver' do
          :settings=>
              {:name=>"project-name",
               :description=>"Do not edit this job through the web!",
-              :db=>"my_own_db"}}
+              :db=>"my_own_db"}})
   end
 
   it 'should build project collection from jobs templates' do
@@ -112,8 +114,9 @@ describe 'Templates resolver' do
     project = YAML.load(str)
     @generator.load_job_collection project
 
-    @generator.resolve_project(@generator.get_item('project-name')).should ==
-        {:name=>"project-name",
+    success, project = @generator.resolve_project(@generator.get_item('project-name'))
+    expect(success).to be_true
+    expect(project).to eq( {:name=>"project-name",
          :type=>:project,
          :value=>
              {:name=>"project-name",
@@ -129,7 +132,7 @@ describe 'Templates resolver' do
                         {:name=>"project-name-perf-tests",
                          :builders=>[{:shell=>"perftest"}],
                          :publishers=>[{:email=>{:recipients=>"projmanager@nowhere.net"}}]}}]},
-         :settings=>{:name=>"project-name", :db=>"my_own_db"}}
+         :settings=>{:name=>"project-name", :db=>"my_own_db"}})
   end
 
   it 'should build project collection from jobs and jobs templates' do
@@ -159,7 +162,9 @@ describe 'Templates resolver' do
     project = YAML.load(str)
     @generator.load_job_collection project
 
-    @generator.resolve_project(@generator.get_item('project-name')).should ==
+    success, project = @generator.resolve_project(@generator.get_item('project-name'))
+      expect(success).to be_true
+    expect(project).to eq(
         {:name=>"project-name",
          :type=>:project,
          :value=>
@@ -175,23 +180,27 @@ describe 'Templates resolver' do
                         {:name=>"project-name-unit-tests",
                          :builders=>[{:shell=>"unittest"}],
                          :publishers=>[{:email=>{:recipients=>"projmanager@nowhere.net"}}]}}]},
-         :settings=>{:name=>"project-name", :db=>"my_own_db"}}
+         :settings=>{:name=>"project-name", :db=>"my_own_db"}})
   end
 
 
   describe 'compilation of templates' do
     it 'compiles String' do
-      JenkinsPipelineBuilder::Compiler.compile('blah', { item1: 'data1'}).should == 'blah'
+      success, string = JenkinsPipelineBuilder::Compiler.compile('blah', { item1: 'data1'})
+      expect(success).to be_true
+      expect(string).to eq 'blah'
     end
 
     it 'compiles simple Hash' do
-      JenkinsPipelineBuilder::Compiler.compile({ name: 'item-{{item1}}', value: 'item1-data'}, { item1: 'data1'}).should ==
-          { name: 'item-data1', value: 'item1-data'}
+      success, hash = JenkinsPipelineBuilder::Compiler.compile({ name: 'item-{{item1}}', value: 'item1-data'}, { item1: 'data1'})
+      expect(success).to be_true
+      expect(hash).to eq({ name: 'item-data1', value: 'item1-data'})
     end
 
     it 'compiles nested Hash' do
-      JenkinsPipelineBuilder::Compiler.compile({ name: 'item-{{item1}}', value: { house: 'house-{{item1}}'}}, { item1: 'data1'}).should ==
-          { name: 'item-data1', value: { house: 'house-data1'}}
+      success, hash = JenkinsPipelineBuilder::Compiler.compile({ name: 'item-{{item1}}', value: { house: 'house-{{item1}}'}}, { item1: 'data1'})
+      expect(success).to be_true
+      expect(hash).to eq( { name: 'item-data1', value: { house: 'house-data1'}} )
     end
 
     it 'compiles complex Hash' do
@@ -200,10 +209,12 @@ describe 'Templates resolver' do
                   :publishers=>[{:email=>{:recipients=>"{{mail-to}}"}}]}
       settings = {:name=>"project-name", :db=>"my_own_db", :'mail-to' => 'developer@nowhere.net'}
 
-      JenkinsPipelineBuilder::Compiler.compile(template, settings).should ==
+      success, hash = JenkinsPipelineBuilder::Compiler.compile(template, settings)
+      expect(success).to be_true
+      expect(hash).to eq(
           {:name=>"project-name-unit-tests",
            :builders=>[{:shell=>"unittest"}],
-           :publishers=>[{:email=>{:recipients=>"developer@nowhere.net"}}]}
+           :publishers=>[{:email=>{:recipients=>"developer@nowhere.net"}}]})
     end
   end
 
@@ -214,10 +225,12 @@ describe 'Templates resolver' do
 
     @generator.load_job_collection project
 
-    @generator.resolve_job_by_name('{{name}}-unit-tests', { name: 'project-name', db: 'my_own_db', :'mail-to' => 'developer@nowhere.net' }).should ==
+    success, job = @generator.resolve_job_by_name('{{name}}-unit-tests', { name: 'project-name', db: 'my_own_db', :'mail-to' => 'developer@nowhere.net' })
+    expect(success).to be_true
+    expect(job).to eq(
         {:name=>"project-name-unit-tests",
          :builders=>[{:shell=>"unittest"}],
-         :publishers=>[{:email=>{:recipients=>"developer@nowhere.net"}}]}
+         :publishers=>[{:email=>{:recipients=>"developer@nowhere.net"}}]})
   end
 
   it 'should load from folder' do

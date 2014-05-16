@@ -1,0 +1,13 @@
+---
+- job:
+    name: downstream
+    publishers:
+      - downstream:
+          project: downstream
+          data:
+            - params: |
+                param1
+                param2
+            - file: props.file
+          condition: FAILURE
+          trigger_with_no_parameters: false

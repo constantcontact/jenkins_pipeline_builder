@@ -36,7 +36,7 @@ module JenkinsPipelineBuilder
                   xml.configs {
                     if job[:config].has_key? :predefined_build_parameters
                       xml.send('hudson.plugins.parameterizedtrigger.PredefinedBuildParameters') {
-                        xml.properties job[:config][:predefined_build_parameters].join ' '
+                        xml.properties job[:config][:predefined_build_parameters].join "\n"
                       }
                     end
                   }

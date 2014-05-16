@@ -16,7 +16,8 @@ describe 'Test YAML jobs conversion to XML' do
     end
 
     def compare_jobs(job, path)
-      xml = @generator.compile_job_to_xml(job)
+      success, xml = @generator.compile_job_to_xml(job)
+      expect(success).to be_true
       doc1 = Nokogiri::XML(xml)
 
       sample_job_xml = File.read(path + '.xml')
@@ -26,19 +27,25 @@ describe 'Test YAML jobs conversion to XML' do
       doc1.should be_equivalent_to(doc2)
     end
 
-    [
+    files = [
       'Job-Multi-Project',
       'Job-Build-Maven',
       'Job-Build-Flow',
-      'Job-Gem-Build'
-    ].each do |file|
+      'Job-Gem-Build',
+      'post_build_script',
+      'properties_file',
+      'downstream'
+    ]
+
+    files.each do |file|
       it "should create expected XML from YAML '#{file}'" do
         path = File.expand_path('../fixtures/files/' + file, __FILE__)
 
         @generator.load_collection_from_path path + '.yaml'
         job_name = @generator.job_collection.keys.first
-        job = @generator.resolve_job_by_name(job_name)
+        success, job = @generator.resolve_job_by_name(job_name)
 
+        expect(success).to be_true
         compare_jobs job, path
       end
     end
@@ -50,7 +57,9 @@ describe 'Test YAML jobs conversion to XML' do
 
       project_name = @generator.projects.first[:name]
 
-      project = @generator.resolve_project(@generator.get_item(project_name))
+      success, project = @generator.resolve_project(@generator.get_item(project_name))
+
+      expect(success).to be_true
 
       project[:value][:jobs].should_not be_nil
 

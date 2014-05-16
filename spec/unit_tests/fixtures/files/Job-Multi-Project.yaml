@@ -28,6 +28,7 @@
                   current_params: true
                   config:
                     predefined_build_parameters:
+                      - 'GIT_COMMIT=123'
                       - "PARENT_WORKSPACE=${WORKSPACE}"
                 - name: second
               continue_condition: COMPLETED

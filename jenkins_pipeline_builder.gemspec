@@ -24,6 +24,7 @@ automating Job & Pipeline creation from the YAML files checked-in with your appl
   spec.add_dependency 'nokogiri', '~> 1.5.0'
   spec.add_dependency 'jenkins_api_client', '~> 0.14.1'
   spec.add_dependency 'thor', '>= 0.18.0'
+  spec.add_dependency 'activesupport'
 
   spec.add_development_dependency 'bundler', '~> 1.3'
   spec.add_development_dependency 'rake'
