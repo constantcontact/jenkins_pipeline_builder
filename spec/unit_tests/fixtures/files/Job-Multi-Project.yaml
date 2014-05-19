@@ -14,7 +14,7 @@
       local_branch: ${GIT_BRANCH}
       recursive_update: true
       wipe_workspace: true
-      excuded_users: user
+      excluded_users: user
     triggers:
       - git_push: true
       - scm_polling: "H/5 * * * *"
