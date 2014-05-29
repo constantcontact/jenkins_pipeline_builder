@@ -32,6 +32,16 @@ module JenkinsPipelineBuilder
       xml.send('hudson.plugins.timestamper.TimestamperBuildWrapper')
     end
 
+    def self.run_with_rvm05(wrapper, xml)
+      xml.send('ruby-proxy-object') {
+        xml.send('ruby-object', 'ruby-class' => 'Jenkins::Tasks::BuildWrapperProxy', 'pluginid' => 'rvm') {
+          xml.object('ruby-class' => 'RvmWrapper', 'pluginid' => 'rvm') {
+            xml.impl('pluginid' => "rvm", 'ruby-class' => 'String') { xml.text wrapper }
+          }
+          xml.pluginid(:pluginid => 'rvm', 'ruby-class' => 'String') { xml.text 'rvm' }
+        }
+      }
+    end
     def self.run_with_rvm(wrapper, xml)
       xml.send('ruby-proxy-object') {
         xml.send('ruby-object', 'ruby-class' => 'Jenkins::Plugin::Proxies::BuildWrapper', 'pluginid' => 'rvm') {

@@ -77,6 +77,7 @@ module JenkinsPipelineBuilder
                       ansicolor: Wrappers.method(:ansicolor),
                       artifactory: Wrappers.method(:publish_to_artifactory),
                       rvm: Wrappers.method(:run_with_rvm),
+                      rvm05: Wrappers.method(:run_with_rvm05),
                       inject_env_var: Wrappers.method(:inject_env_vars),
                       inject_passwords: Wrappers.method(:inject_passwords),
                       maven3artifactory: Wrappers.method(:artifactory_maven3_configurator)
