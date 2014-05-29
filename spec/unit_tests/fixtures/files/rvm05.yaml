@@ -1,0 +1,5 @@
+---
+- job:
+    name: rvm05
+    wrappers:
+      - rvm05: 'foo@bar'

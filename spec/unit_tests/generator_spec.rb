@@ -34,7 +34,8 @@ describe 'Test YAML jobs conversion to XML' do
       'Job-Gem-Build',
       'post_build_script',
       'properties_file',
-      'downstream'
+      'downstream',
+      'rvm05'
     ]
 
     files.each do |file|
