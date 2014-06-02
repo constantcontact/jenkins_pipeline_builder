@@ -52,7 +52,7 @@ module JenkinsPipelineBuilder
       Nokogiri::XML::Builder.with(n_builders) do |xml|
         xml.send('hudson.model.ParametersDefinitionProperty') {
           xml.parameterDefinitions {
-            param_proc = lambda do |xml, params, type|#, default, description|
+            param_proc = lambda do |xml, params, type|
               xml.send(type) {
                 xml.name params[:name]
                 xml.description params[:description]
