@@ -1,0 +1,14 @@
+---
+- job:
+    name: choice
+    parameters:
+      - name: Param1
+        type: string
+        default: release
+        description: The git branch to be used when building application
+      - name: choice
+        type: choice
+        values:
+          - one
+          - two
+          - three

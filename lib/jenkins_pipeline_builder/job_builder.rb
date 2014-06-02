@@ -52,11 +52,22 @@ module JenkinsPipelineBuilder
       Nokogiri::XML::Builder.with(n_builders) do |xml|
         xml.send('hudson.model.ParametersDefinitionProperty') {
           xml.parameterDefinitions {
-            param_proc = lambda do |xml, name, type, default, description|
+            param_proc = lambda do |xml, params, type|#, default, description|
               xml.send(type) {
-                xml.name name
-                xml.description description
-                xml.defaultValue default
+                xml.name params[:name]
+                xml.description params[:description]
+                xml.defaultValue params[:default]
+                if params[:type] == 'choice'
+                  puts 'choice'
+                  puts params
+                  xml.choices('class' => 'java.util.Arrays$ArrayList') {
+                    xml.a('class' => 'string-array') {
+                      params[:values].each do |value|
+                        xml.string value
+                      end
+                    }
+                  }
+                end
               }
             end
             params.each do |param|
@@ -69,11 +80,13 @@ module JenkinsPipelineBuilder
                   paramType = 'hudson.model.TextParameterDefinition'
                 when 'password'
                   paramType = 'hudson.model.PasswordParameterDefinition'
+                when 'choice'
+                  paramType = 'hudson.model.ChoiceParameterDefinition'
                 else
                   paramType = 'hudson.model.StringParameterDefinition'
-              end
+                end
 
-              param_proc.call xml, param[:name], paramType, param[:default], param[:description]
+              param_proc.call xml, param, paramType
             end
           }
         }
