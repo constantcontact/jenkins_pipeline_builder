@@ -1,7 +1,7 @@
 ---
 - job:
     name: discard
-    discard:
+    discard_old:
       days: 1
       number: 2
       artifact_days: 3
