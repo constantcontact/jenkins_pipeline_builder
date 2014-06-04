@@ -1,0 +1,8 @@
+---
+- job:
+    name: discard
+    discard:
+      days: 1
+      number: 2
+      artifact_days: 3
+      artifact_number: 4

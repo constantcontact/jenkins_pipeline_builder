@@ -48,6 +48,7 @@ module JenkinsPipelineBuilder
               scm_params: JobBuilder.method(:apply_scm_params),
               hipchat: JobBuilder.method(:hipchat_notifier),
               parameters: JobBuilder.method(:build_parameters),
+              discard: JobBuilder.method(:discard_param),
               builders: {
                   registry: {
                       multi_job: Builders.method(:build_multijob),
