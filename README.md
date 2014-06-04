@@ -143,9 +143,11 @@ Here's a high level overview of what's available:
           release-repo: release
           snapshot-repo: snapshot
           publish-build-info: true # Optional
-      - inject_env_var: |
-          VAR1 = value_1
-          VAR2 = value_2
+      - inject_env_var: 
+          file: 'foo.prop'
+          content: |
+            VAR1 = value_1
+            VAR2 = value_2
       - inject_passwords:
         - name: pwd_name
           value: some_encrypted_password
@@ -183,6 +185,7 @@ Here's a high level overview of what's available:
     triggers:
       - git_push: true
       - scm_polling: 'H/5 * * * *'
+      - periodic_build: 'H/15 * * * *'
     build_flow: |
       guard {
         build("job_name1", param1: params["param1"]);

@@ -1,0 +1,5 @@
+---
+- job:
+    name: periodic_trigger
+    triggers:
+        - periodic_build: 'H/15 * * * *'

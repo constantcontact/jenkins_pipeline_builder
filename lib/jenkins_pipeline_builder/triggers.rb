@@ -34,5 +34,12 @@ module JenkinsPipelineBuilder
         xml.ignorePostCommitHooks false
       }
     end
+
+    def self.enable_periodic_build(periodic_build, xml)
+      xml.send('hudson.triggers.TimerTrigger') {
+        xml.spec periodic_build
+      }
+    end
+
   end
 end

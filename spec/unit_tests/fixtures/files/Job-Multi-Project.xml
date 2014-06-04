@@ -129,6 +129,6 @@
     </hudson.plugins.parameterizedtrigger.BuildTrigger>
   </publishers>
   <buildWrappers>
-    <hudson.plugins.timestamper.TimestamperBuildWrapper/>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper"/>
   </buildWrappers>
 </com.tikal.jenkins.plugins.multijob.MultiJobProject>

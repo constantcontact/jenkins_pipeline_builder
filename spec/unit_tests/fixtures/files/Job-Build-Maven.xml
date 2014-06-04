@@ -85,7 +85,7 @@
     </hudson.plugins.parameterizedtrigger.BuildTrigger>
   </publishers>
   <buildWrappers>
-    <hudson.plugins.timestamper.TimestamperBuildWrapper/>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper"/>
     <org.jfrog.hudson.maven3.ArtifactoryMaven3Configurator>
       <details>
         <artifactoryUrl>https://artifactory.com/artifactory</artifactoryUrl>
