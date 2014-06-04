@@ -86,6 +86,11 @@ Here's a high level overview of what's available:
 - job:
     name: nameStr # Name of your Job
     job_type: free_style # Optional  [free_style|multi_project]
+    discard: # Discard old builds after:
+      days: 1 # Optional, number of days after which the build is deleted
+      number: 2 # Optional, number of builds after which the build is deleted
+      artifact_days: 3 # Optional, number of days after which the artifact is deleted
+      artifact_number: 4 # Optional, number of builds after which the artifact is deleted
     parameters:
       - name: param_name
         type: string

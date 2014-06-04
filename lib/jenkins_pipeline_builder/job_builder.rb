@@ -79,5 +79,17 @@ module JenkinsPipelineBuilder
         }
       end
     end
+
+    def self.discard_param(params, n_xml)
+      properties = n_xml.child
+      Nokogiri::XML::Builder.with(properties) do |xml|
+        xml.send('logRotator', 'class' => 'hudson.tasks.LogRotator') {
+          xml.daysToKeep params[:days] if params[:days]
+          xml.numToKeep params[:number] || -1
+          xml.artifactDaysToKeep params[:artifact_days] || -1
+          xml.artifactNumToKeep params[:artifact_number] || -1
+        }
+      end
+    end
   end
 end
