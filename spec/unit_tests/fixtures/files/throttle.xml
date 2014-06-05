@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+  <actions/>
+  <description/>
+  <keepDependencies>false</keepDependencies>
+  <properties><hudson.plugins.throttleconcurrents.ThrottleJobProperty plugin="throttle-concurrents"><maxConcurrentPerNode>10</maxConcurrentPerNode><maxConcurrentTotal>30</maxConcurrentTotal><throttleEnabled>true</throttleEnabled><throttleOption>category</throttleOption><categories><string>test</string></categories></hudson.plugins.throttleconcurrents.ThrottleJobProperty></properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers class="vector"/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders/>
+  <publishers/>
+  <buildWrappers/>
+</project>

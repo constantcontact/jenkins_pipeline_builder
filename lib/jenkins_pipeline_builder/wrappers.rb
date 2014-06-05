@@ -29,7 +29,7 @@ module JenkinsPipelineBuilder
     end
 
     def self.console_timestamp(wrapper, xml)
-      xml.send('hudson.plugins.timestamper.TimestamperBuildWrapper')
+      xml.send('hudson.plugins.timestamper.TimestamperBuildWrapper', 'plugin' => 'timestamper')
     end
 
     def self.run_with_rvm05(wrapper, xml)

@@ -33,6 +33,7 @@ module JenkinsPipelineBuilder
       XmlHelper.update_node_text(n_xml, '//scm/wipeOutWorkspace', params[:wipe_workspace]) if params[:wipe_workspace]
       XmlHelper.update_node_text(n_xml, '//scm/excludedUsers', params[:excluded_users]) if params[:excluded_users]
       XmlHelper.update_node_text(n_xml, '//scm/userRemoteConfigs/hudson.plugins.git.UserRemoteConfig/name', params[:remote_name]) if params[:remote_name]
+      XmlHelper.update_node_text(n_xml, '//scm/skipTag', params[:skip_tag]) if params[:skip_tag]
     end
 
     def self.hipchat_notifier(params, n_xml)
@@ -43,6 +44,16 @@ module JenkinsPipelineBuilder
         xml.send('jenkins.plugins.hipchat.HipChatNotifier_-HipChatJobProperty') {
           xml.room params[:room]
           xml.startNotification params[:'start-notify'] || false
+        }
+      end
+    end
+
+    def self.use_specific_priority(params, n_xml)
+      n_builders = n_xml.xpath('//properties').first
+      Nokogiri::XML::Builder.with(n_builders) do |xml|
+        xml.send('jenkins.advancedqueue.AdvancedQueueSorterJobProperty', 'plugin' => 'PrioritySorter') {
+          xml.useJobPriority params[:use_priority]
+          xml.priority params[:job_priority] || -1
         }
       end
     end
@@ -92,5 +103,49 @@ module JenkinsPipelineBuilder
         }
       end
     end
+
+    def self.discard_old_param(params, n_xml)
+      properties = n_xml.child
+      Nokogiri::XML::Builder.with(properties) do |xml|
+        xml.send('logRotator', 'class' => 'hudson.tasks.LogRotator') {
+          xml.daysToKeep params[:days] if params[:days]
+          xml.numToKeep params[:number] || -1
+          xml.artifactDaysToKeep params[:artifact_days] || -1
+          xml.artifactNumToKeep params[:artifact_number] || -1
+        }
+      end
+    end
+
+    def self.throttle_job(params, n_xml)
+      properties = n_xml.xpath('//properties').first
+      cat_set = params[:option]=="category"
+      Nokogiri::XML::Builder.with(properties) do |xml|
+        xml.send('hudson.plugins.throttleconcurrents.ThrottleJobProperty', 'plugin' => 'throttle-concurrents') {
+          xml.maxConcurrentPerNode params[:max_per_node] || 0
+          xml.maxConcurrentTotal params[:max_total] || 0
+          xml.throttleEnabled true
+          xml.throttleOption params[:option] || "alone"
+          xml.categories {
+            xml.string params[:category] if cat_set
+          }
+        }
+      end
+    end
+
+    def self.prepare_environment(params, n_xml)
+      properties = n_xml.xpath('//properties').first
+      Nokogiri::XML::Builder.with(properties) do |xml|
+        xml.send('EnvInjectJobProperty') {
+          xml.info{
+            xml.propertiesContent params[:properties_content] if params[:properties_content]
+            xml.loadFilesFromMaster params[:load_from_master] if params[:load_from_master]
+          }
+          xml.on true
+          xml.keepJenkinsSystemVariables params[:keep_environment] if params[:keep_environment]
+          xml.keepBuildVariables params[:keep_build] if params[:keep_build]
+        }
+      end
+    end
+
   end
 end

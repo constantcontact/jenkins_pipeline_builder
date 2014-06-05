@@ -86,6 +86,20 @@ Here's a high level overview of what's available:
 - job:
     name: nameStr # Name of your Job
     job_type: free_style # Optional  [free_style|multi_project]
+    discard_old: # Discard old builds after:
+      days: 1 # Optional, number of days after which the build is deleted
+      number: 2 # Optional, number of builds after which the build is deleted
+      artifact_days: 3 # Optional, number of days after which the artifact is deleted
+      artifact_number: 4 # Optional, number of builds after which the artifact is deleted
+    throttle: # Optional, throttles concurrent jobs
+      max_per_node: int
+      max_total: int
+      option: category or alone
+      category: string # Only used if option == category
+    prepare_environment:
+        properties_content: string
+        keep_environment: true
+        keep_build: true
     parameters:
       - name: param_name
         type: string
@@ -99,10 +113,14 @@ Here's a high level overview of what's available:
       local_branch: branch_name
       recursive_update: true
       wipe_workspace: true
+      skip_tag: true # Optional, defaults to false
     shell_command: '. commit_build.sh'
     hipchat:
       room: room name here
       start-notify: true
+    priority: # Optional
+        use_priority: true # true OR false
+        job_priority: 1 # Default value is -1
     builders:
       - multi_job:
           phases:
@@ -143,9 +161,11 @@ Here's a high level overview of what's available:
           release-repo: release
           snapshot-repo: snapshot
           publish-build-info: true # Optional
-      - inject_env_var: |
-          VAR1 = value_1
-          VAR2 = value_2
+      - inject_env_var: 
+          file: 'foo.prop'
+          content: |
+            VAR1 = value_1
+            VAR2 = value_2
       - inject_passwords:
         - name: pwd_name
           value: some_encrypted_password
@@ -183,6 +203,7 @@ Here's a high level overview of what's available:
     triggers:
       - git_push: true
       - scm_polling: 'H/5 * * * *'
+      - periodic_build: 'H/15 * * * *'
     build_flow: |
       guard {
         build("job_name1", param1: params["param1"]);
