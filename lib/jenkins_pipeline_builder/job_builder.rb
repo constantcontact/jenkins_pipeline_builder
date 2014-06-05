@@ -48,6 +48,16 @@ module JenkinsPipelineBuilder
       end
     end
 
+    def self.use_specific_priority(params, n_xml)
+      n_builders = n_xml.xpath('//properties').first
+      Nokogiri::XML::Builder.with(n_builders) do |xml|
+        xml.send('jenkins.advancedqueue.AdvancedQueueSorterJobProperty', 'plugin' => 'PrioritySorter') {
+          xml.useJobPriority params[:use_priority]
+          xml.priority params[:job_priority] || -1
+        }
+      end
+    end
+
     def self.build_parameters(params, n_xml)
       n_builders = n_xml.xpath('//properties').first
       Nokogiri::XML::Builder.with(n_builders) do |xml|

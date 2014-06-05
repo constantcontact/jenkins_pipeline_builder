@@ -1,0 +1,6 @@
+---
+- job:
+    name: specific_priority
+    priority:
+        use_priority: true
+        job_priority: 1
