@@ -37,7 +37,7 @@ describe 'Test YAML jobs conversion to XML' do
       'downstream',
       'rvm05',
       'periodic_build',
-      'discard'
+      'discard_old'
     ]
 
     files.each do |file|
