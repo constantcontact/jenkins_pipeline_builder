@@ -204,6 +204,9 @@ Here's a high level overview of what's available:
       - git_push: true
       - scm_polling: 'H/5 * * * *'
       - periodic_build: 'H/15 * * * *'
+      - upstream: # Trigger this build after another build has completed
+          projects: project-name-here
+          status: failed, unstable, stable # Optional, stable by default
     build_flow: |
       guard {
         build("job_name1", param1: params["param1"]);
