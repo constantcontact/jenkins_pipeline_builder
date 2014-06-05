@@ -96,6 +96,10 @@ Here's a high level overview of what's available:
       max_total: int
       option: category or alone
       category: string # Only used if option == category
+    prepare_environment:
+        properties_content: string
+        keep_environment: true
+        keep_build: true
     parameters:
       - name: param_name
         type: string

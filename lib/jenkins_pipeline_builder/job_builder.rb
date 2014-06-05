@@ -107,5 +107,21 @@ module JenkinsPipelineBuilder
         }
       end
     end
+
+    def self.prepare_environment(params, n_xml)
+      properties = n_xml.xpath('//properties').first
+      Nokogiri::XML::Builder.with(properties) do |xml|
+        xml.send('EnvInjectJobProperty') {
+          xml.info{
+            xml.propertiesContent params[:properties_content] if params[:properties_content]
+            xml.loadFilesFromMaster params[:load_from_master] if params[:load_from_master]
+          }
+          xml.on true
+          xml.keepJenkinsSystemVariables params[:keep_environment] if params[:keep_environment]
+          xml.keepBuildVariables params[:keep_build] if params[:keep_build]
+        }
+      end
+    end
+
   end
 end
