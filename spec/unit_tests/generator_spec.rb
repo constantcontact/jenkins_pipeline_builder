@@ -38,6 +38,7 @@ describe 'Test YAML jobs conversion to XML' do
       'rvm05',
       'prepare_environment',
       'throttle',
+      'specific_priority',
       'periodic_build',
       'discard_old'
     ]

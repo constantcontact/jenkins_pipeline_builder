@@ -48,6 +48,7 @@ module JenkinsPipelineBuilder
               scm_params: JobBuilder.method(:apply_scm_params),
               hipchat: JobBuilder.method(:hipchat_notifier),
               parameters: JobBuilder.method(:build_parameters),
+              priority: JobBuilder.method(:use_specific_priority),
               discard_old: JobBuilder.method(:discard_old_param),
               throttle: JobBuilder.method(:throttle_job),
               prepare_environment: JobBuilder.method(:prepare_environment),

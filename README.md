@@ -113,10 +113,14 @@ Here's a high level overview of what's available:
       local_branch: branch_name
       recursive_update: true
       wipe_workspace: true
+      skip_tag: true # Optional, defaults to false
     shell_command: '. commit_build.sh'
     hipchat:
       room: room name here
       start-notify: true
+    priority: # Optional
+        use_priority: true # true OR false
+        job_priority: 1 # Default value is -1
     builders:
       - multi_job:
           phases:
