@@ -47,7 +47,7 @@
     <excludedUsers>user</excludedUsers>
     <gitConfigName/>
     <gitConfigEmail/>
-    <skipTag>false</skipTag>
+    <skipTag>true</skipTag>
     <includedRegions/>
     <scmName/>
     <localBranch>${GIT_BRANCH}</localBranch>

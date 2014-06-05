@@ -15,6 +15,7 @@
       recursive_update: true
       wipe_workspace: true
       excluded_users: user
+      skip_tag: true
     triggers:
       - git_push: true
       - scm_polling: "H/5 * * * *"
