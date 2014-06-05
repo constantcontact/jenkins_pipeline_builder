@@ -36,6 +36,8 @@ describe 'Test YAML jobs conversion to XML' do
       'properties_file',
       'downstream',
       'rvm05',
+      'prepare_environment',
+      'throttle',
       'periodic_build',
       'discard_old'
     ]

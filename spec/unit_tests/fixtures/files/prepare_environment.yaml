@@ -1,0 +1,7 @@
+---
+- job:
+    name: prepare_environment_test
+    prepare_environment :
+      properties_content: 'test'
+      keep_build: true
+      keep_environment: true
