@@ -40,7 +40,8 @@ describe 'Test YAML jobs conversion to XML' do
       'throttle',
       'specific_priority',
       'periodic_build',
-      'discard_old'
+      'discard_old',
+      'choice_parameter'
     ]
 
     files.each do |file|
