@@ -91,6 +91,11 @@ Here's a high level overview of what's available:
       number: 2 # Optional, number of builds after which the build is deleted
       artifact_days: 3 # Optional, number of days after which the artifact is deleted
       artifact_number: 4 # Optional, number of builds after which the artifact is deleted
+    throttle: # Optional, throttles concurrent jobs
+      max_per_node: int
+      max_total: int
+      option: category or alone
+      category: string # Only used if option == category
     parameters:
       - name: param_name
         type: string

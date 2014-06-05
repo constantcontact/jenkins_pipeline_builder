@@ -49,6 +49,7 @@ module JenkinsPipelineBuilder
               hipchat: JobBuilder.method(:hipchat_notifier),
               parameters: JobBuilder.method(:build_parameters),
               discard_old: JobBuilder.method(:discard_old_param),
+              throttle: JobBuilder.method(:throttle_job),
               builders: {
                   registry: {
                       multi_job: Builders.method(:build_multijob),

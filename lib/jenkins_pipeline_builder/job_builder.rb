@@ -91,5 +91,21 @@ module JenkinsPipelineBuilder
         }
       end
     end
+
+    def self.throttle_job(params, n_xml)
+      properties = n_xml.xpath('//properties').first
+      cat_set = params[:option]=="category"
+      Nokogiri::XML::Builder.with(properties) do |xml|
+        xml.send('hudson.plugins.throttleconcurrents.ThrottleJobProperty', 'plugin' => 'throttle-concurrents') {
+          xml.maxConcurrentPerNode params[:max_per_node] || 0
+          xml.maxConcurrentTotal params[:max_total] || 0
+          xml.throttleEnabled true
+          xml.throttleOption params[:option] || "alone"
+          xml.categories {
+            xml.string params[:category] if cat_set
+          }
+        }
+      end
+    end
   end
 end
