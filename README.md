@@ -247,6 +247,24 @@ If a set of Defaults is specified with the name global, that will be used by all
     param1: 'value 1'
 ```
 
+PLUGINS:
+--------
+
+A number of the DSL options rely on Jenkins plugins, including:
+
+* ansicolor - "AnsiColor"    
+* (view) type: 'categorizedView' - "categorized-view"
+* hipchat - "HipChat Plugin"    
+* inject_env_vars - "Environment Injector Plugin"    
+* priority - "Priority Sorter plugin"    
+* downstream - "Parameterized Trigger plugin"    
+* rvm - "Rvm"    
+* throttle - "Throttle Concurrent Builds Plug-in"    
+* timestamp - "Timestamper"    
+
+Just about every plugin above can be installed through Jenkins (Manage Jenkins > Manage Plugins > Available)
+
+Exceptions:
 
 CONTRIBUTING:
 ----------------
