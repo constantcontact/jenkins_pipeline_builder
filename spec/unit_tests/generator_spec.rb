@@ -38,6 +38,7 @@ describe 'Test YAML jobs conversion to XML' do
       'upstream',
       'rvm05',
       'prepare_environment',
+      'remote_job',
       'throttle',
       'specific_priority',
       'periodic_build',
