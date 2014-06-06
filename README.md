@@ -145,6 +145,21 @@ Here's a high level overview of what's available:
           goals: -B clean
           rootPom: path_to_pom
           mavenName: maven-name # Optional
+      - remote_job:
+          server: 'Name of Server' # Name of the Remote Jenkins Server
+          job_name: name_of_remote_build 
+          blocking: true # Block current job until remote job finishes
+          polling_interval: 10 # Optional, number of seconds between polls, defaults to 10
+          continue_on_remote_failure: false
+          parameters: # Optional, if both are specified only the file is used
+            file: 'foo.prop'
+            content: |
+              VAR1 = value_1
+              VAR2 = value_2
+          credentials: # Optional, if you want to override the server credentials
+            type: api_token or none
+            username: name_of_user
+            api_token: APITOKEN
     wrappers:
       - timestamp: true
       - ansicolor: true
