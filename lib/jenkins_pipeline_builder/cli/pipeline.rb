@@ -32,8 +32,8 @@ module JenkinsPipelineBuilder
       end
 
       desc 'bootstrap Path', 'Generates pipeline from folder or a file'
-      def bootstrap(path)
-        Helper.setup(parent_options).bootstrap(path)
+      def bootstrap(path, project_name = nil)
+        Helper.setup(parent_options).bootstrap(path, project_name)
       end
     end
   end

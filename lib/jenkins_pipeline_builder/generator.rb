@@ -242,7 +242,7 @@ module JenkinsPipelineBuilder
       return result
     end
 
-    def bootstrap(path)
+    def bootstrap(path, project_name)
       @logger.info "Bootstrapping pipeline from path #{path}"
       load_collection_from_path(path)
 
@@ -261,32 +261,34 @@ module JenkinsPipelineBuilder
       else
         projects.each do |project|
           success, payload = resolve_project(project)
-          if success
-            puts 'successfully resolved project'
-            compiled_project = payload
-          else
-            puts payload
-            return false
-          end
+          if payload[:value][:name] == project_name || project_name == nil # If we specify a project name, only use that project
+            if success
+              puts 'successfully resolved project'
+              compiled_project = payload
+            else
+              puts payload
+              return false
+            end
 
-          if compiled_project[:value][:jobs]
-            compiled_project[:value][:jobs].each do |i|
-              puts "Processing #{i}"
-              job = i[:result]
-              fail "Result is empty for #{i}" if job.nil?
-              success, payload = compile_job_to_xml(job)
-              if success
-                create_or_update(job, payload)
-              else
-                errors[job[:name]] = payload
+            if compiled_project[:value][:jobs]
+              compiled_project[:value][:jobs].each do |i|
+                puts "Processing #{i}"
+                job = i[:result]
+                fail "Result is empty for #{i}" if job.nil?
+                success, payload = compile_job_to_xml(job)
+                if success
+                  create_or_update(job, payload)
+                else
+                  errors[job[:name]] = payload
+                end
               end
             end
-          end
 
-          if compiled_project[:value][:views]
-            compiled_project[:value][:views].each do |v|
-              _view = v[:result]
-              view.create(_view)
+            if compiled_project[:value][:views]
+              compiled_project[:value][:views].each do |v|
+                _view = v[:result]
+                view.create(_view)
+              end
             end
           end
         end
