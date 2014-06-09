@@ -79,7 +79,7 @@ module JenkinsPipelineBuilder
         xml.job params[:job_name]
         xml.shouldNotFailBuild params[:continue_on_remote_failure] if params[:continue_on_remote_failure]
         xml.pollInterval params[:polling_interval] if params[:polling_interval]
-        xml.blockUntilComplete params[:blocking] if params[:blocking]
+        xml.blockBuildUntilComplete params[:blocking] if params[:blocking]
         if params[:parameters] && params[:parameters][:content]
           xml.parameters parameters.join("\n")
           xml.parameterList{
