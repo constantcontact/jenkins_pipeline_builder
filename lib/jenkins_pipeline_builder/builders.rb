@@ -73,14 +73,14 @@ module JenkinsPipelineBuilder
     end
 
     def self.start_remote_job(params, xml)
-      parameters = params[:parameters][:content].split("\n") if params[:parameters][:content]
+      parameters = params[:parameters][:content].split("\n") if params[:parameters] && params[:parameters][:content]
       xml.send('org.jenkinsci.plugins.ParameterizedRemoteTrigger.RemoteBuildConfiguration', 'plugin'=>'Parameterized-Remote-Trigger'){
         xml.remoteJenkinsName params[:server]
         xml.job params[:job_name]
         xml.shouldNotFailBuild params[:continue_on_remote_failure] if params[:continue_on_remote_failure]
         xml.pollInterval params[:polling_interval] if params[:polling_interval]
         xml.blockUntilComplete params[:blocking] if params[:blocking]
-        if params[:parameters][:content]
+        if params[:parameters] && params[:parameters][:content]
           xml.parameters parameters.join("\n")
           xml.parameterList{
             parameters.each do |p|
@@ -88,11 +88,11 @@ module JenkinsPipelineBuilder
             end
           }
         end
-        if params[:parameters][:file]
+        if params[:parameters] && params[:parameters][:file]
           xml.loadParamsFromFile 'true' 
           xml.parameterFile params[:parameters][:file]
         end
-        if params[:credentials][:type]
+        if params[:credentials] && params[:credentials][:type]
           xml.overrideAuth 'true'
           xml.auth{
             xml.send('org.jenkinsci.plugins.ParameterizedRemoteTrigger.Auth'){
