@@ -80,6 +80,7 @@ module JenkinsPipelineBuilder
         xml.shouldNotFailBuild params[:continue_on_remote_failure] if params[:continue_on_remote_failure]
         xml.pollInterval params[:polling_interval] if params[:polling_interval]
         xml.blockBuildUntilComplete params[:blocking] if params[:blocking]
+        xml.token
         if params[:parameters] && params[:parameters][:content]
           xml.parameters parameters.join("\n")
           xml.parameterList{
@@ -87,10 +88,14 @@ module JenkinsPipelineBuilder
               xml.string p
             end
           }
-        end
-        if params[:parameters] && params[:parameters][:file]
+        elsif params[:parameters] && params[:parameters][:file]
           xml.loadParamsFromFile 'true' 
           xml.parameterFile params[:parameters][:file]
+        else
+          xml.parameters
+          xml.parameterList{
+            xml.string
+          }
         end
         if params[:credentials] && params[:credentials][:type]
           xml.overrideAuth 'true'
