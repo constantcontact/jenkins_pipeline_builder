@@ -11,7 +11,7 @@
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers class="vector"/>
   <concurrentBuild>false</concurrentBuild>
-  <builders><org.jenkinsci.plugins.ParameterizedRemoteTrigger.RemoteBuildConfiguration plugin="Parameterized-Remote-Trigger"><remoteJenkinsName>Server2</remoteJenkinsName><job>name_of_remote_build</job><pollInterval>10</pollInterval><blockUntilComplete>true</blockUntilComplete><parameters>VAR1 = value_1
+  <builders><org.jenkinsci.plugins.ParameterizedRemoteTrigger.RemoteBuildConfiguration plugin="Parameterized-Remote-Trigger"><remoteJenkinsName>Server2</remoteJenkinsName><job>name_of_remote_build</job><pollInterval>10</pollInterval><blockBuildUntilComplete>true</blockBuildUntilComplete><parameters>VAR1 = value_1
 VAR2 = value_2</parameters><parameterList><string>VAR1 = value_1</string><string>VAR2 = value_2</string></parameterList><loadParamsFromFile>true</loadParamsFromFile><parameterFile>foo.prop</parameterFile><overrideAuth>true</overrideAuth><auth><org.jenkinsci.plugins.ParameterizedRemoteTrigger.Auth><authType>apiToken</authType><username>user_name_here</username><API__TOKEN>RAWR123ROVING</API__TOKEN></org.jenkinsci.plugins.ParameterizedRemoteTrigger.Auth></auth></org.jenkinsci.plugins.ParameterizedRemoteTrigger.RemoteBuildConfiguration></builders>
   <publishers/>
   <buildWrappers/>
