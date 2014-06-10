@@ -41,5 +41,32 @@ module JenkinsPipelineBuilder
       }
     end
 
+    def self.enable_upstream_check(params, xml)
+      case params[:status]
+      when "unstable"
+        name = "UNSTABLE"
+        ordinal = "1"
+        color = "yellow"
+      when "failed"
+        name = "FAILURE"
+        ordinal = "2"
+        color = "RED"
+      else
+        name = "SUCCESS"
+        ordinal = "0"
+        color = "BLUE"
+      end
+      xml.send('jenkins.triggers.ReverseBuildTrigger') {
+        xml.spec
+        xml.upstreamProjects params[:projects]
+        xml.send('threshold'){
+          xml.name name
+          xml.ordinal ordinal
+          xml.color color
+          xml.completeBuild true
+        }
+      }
+    end
+
   end
 end
