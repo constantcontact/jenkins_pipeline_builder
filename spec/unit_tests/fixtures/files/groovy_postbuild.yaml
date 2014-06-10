@@ -1,0 +1,9 @@
+- job:
+    name: groovy_postbuild
+    publishers:
+        - groovy_postbuild:
+            groovy_script: 'manager.listener.logger.println "Testing Groovy Postbuild: ${manager.build.result}"'
+            behavior: 0
+            additional_classpaths:
+                - path: '/test'
+                - path: '/test2'
