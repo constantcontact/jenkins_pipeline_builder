@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+    <actions/>
+    <description/>
+    <keepDependencies>false</keepDependencies>
+    <properties/>
+    <scm class="hudson.scm.NullSCM"/>
+    <canRoam>true</canRoam>
+    <disabled>false</disabled>
+    <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+    <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+    <triggers class="vector"/>
+    <concurrentBuild>false</concurrentBuild>
+    <builders/>
+    <publishers>
+        <org.jvnet.hudson.plugins.groovypostbuild.GroovyPostbuildRecorder plugin="groovy-postbuild">
+            <groovyScript>manager.listener.logger.println "Testing Groovy Postbuild: ${manager.build.result}"</groovyScript>
+            <behavior>0</behavior>
+            <runFormMatrixParent>false</runFormMatrixParent>
+            <org.jvnet.hudson.plugins.groovypostbuild.GroovyScriptPath>
+                <path>/test</path>
+            </org.jvnet.hudson.plugins.groovypostbuild.GroovyScriptPath>
+            <org.jvnet.hudson.plugins.groovypostbuild.GroovyScriptPath>
+                <path>/test2</path>
+            </org.jvnet.hudson.plugins.groovypostbuild.GroovyScriptPath>
+        </org.jvnet.hudson.plugins.groovypostbuild.GroovyPostbuildRecorder>
+    </publishers>
+    <buildWrappers/>
+</project>

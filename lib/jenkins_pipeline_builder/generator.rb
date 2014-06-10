@@ -71,7 +71,8 @@ module JenkinsPipelineBuilder
                       downstream: Publishers.method(:push_to_projects),
                       junit_result: Publishers.method(:publish_junit),
                       coverage_result: Publishers.method(:publish_rcov),
-                      post_build_script: Publishers.method(:post_build_script)
+                      post_build_script: Publishers.method(:post_build_script),
+                      groovy_postbuild: Publishers.method(:groovy_postbuild)
                   },
                   method:
                     lambda { |registry, params, n_xml| @module_registry.run_registry_on_path('//publishers', registry, params, n_xml) }
