@@ -1,0 +1,7 @@
+---
+- job:
+    name: upstream
+    triggers: 
+      - upstream:
+          projects: UpstreamProject
+          status: failed

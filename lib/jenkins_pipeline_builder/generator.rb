@@ -57,7 +57,8 @@ module JenkinsPipelineBuilder
                       multi_job: Builders.method(:build_multijob),
                       inject_vars_file: Builders.method(:build_environment_vars_injector),
                       shell_command: Builders.method(:build_shell_command),
-                      maven3: Builders.method(:build_maven3)
+                      maven3: Builders.method(:build_maven3),
+                      remote_job: Builders.method(:start_remote_job)
                   },
                   method:
                     lambda { |registry, params, n_xml| @module_registry.run_registry_on_path('//builders', registry, params, n_xml) }
@@ -93,7 +94,8 @@ module JenkinsPipelineBuilder
                   registry: {
                       git_push: Triggers.method(:enable_git_push),
                       scm_polling: Triggers.method(:enable_scm_polling),
-                      periodic_build: Triggers.method(:enable_periodic_build)
+                      periodic_build: Triggers.method(:enable_periodic_build),
+                      upstream: Triggers.method(:enable_upstream_check)
                   }, 
                   method:
                     lambda { |registry, params, n_xml| @module_registry.run_registry_on_path('//triggers', registry, params, n_xml) }
@@ -240,7 +242,7 @@ module JenkinsPipelineBuilder
       return result
     end
 
-    def bootstrap(path)
+    def bootstrap(path, project_name)
       @logger.info "Bootstrapping pipeline from path #{path}"
       load_collection_from_path(path)
 
@@ -259,32 +261,34 @@ module JenkinsPipelineBuilder
       else
         projects.each do |project|
           success, payload = resolve_project(project)
-          if success
-            puts 'successfully resolved project'
-            compiled_project = payload
-          else
-            puts payload
-            return false
-          end
+          if payload[:value][:name] == project_name || project_name == nil # If we specify a project name, only use that project
+            if success
+              puts 'successfully resolved project'
+              compiled_project = payload
+            else
+              puts payload
+              return false
+            end
 
-          if compiled_project[:value][:jobs]
-            compiled_project[:value][:jobs].each do |i|
-              puts "Processing #{i}"
-              job = i[:result]
-              fail "Result is empty for #{i}" if job.nil?
-              success, payload = compile_job_to_xml(job)
-              if success
-                create_or_update(job, payload)
-              else
-                errors[job[:name]] = payload
+            if compiled_project[:value][:jobs]
+              compiled_project[:value][:jobs].each do |i|
+                puts "Processing #{i}"
+                job = i[:result]
+                fail "Result is empty for #{i}" if job.nil?
+                success, payload = compile_job_to_xml(job)
+                if success
+                  create_or_update(job, payload)
+                else
+                  errors[job[:name]] = payload
+                end
               end
             end
-          end
 
-          if compiled_project[:value][:views]
-            compiled_project[:value][:views].each do |v|
-              _view = v[:result]
-              view.create(_view)
+            if compiled_project[:value][:views]
+              compiled_project[:value][:views].each do |v|
+                _view = v[:result]
+                view.create(_view)
+              end
             end
           end
         end
