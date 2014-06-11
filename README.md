@@ -288,6 +288,7 @@ A number of the DSL options rely on Jenkins plugins, including:
 * inject_env_vars - "Environment Injector Plugin"    
 * priority - "Priority Sorter plugin"    
 * downstream - "Parameterized Trigger plugin"    
+* job_dsl - "Job DSL"
 * rvm - "Rvm"    
 * throttle - "Throttle Concurrent Builds Plug-in"    
 * timestamp - "Timestamper"    
