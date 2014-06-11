@@ -1,0 +1,9 @@
+---
+- job:
+    name: 'pull_request_generator'
+    job_type: pull_request_generator
+    git_repo: 'git@github'
+    git_org: 'something'
+    jobs:
+      - 'Job1'
+      - 'Job2'

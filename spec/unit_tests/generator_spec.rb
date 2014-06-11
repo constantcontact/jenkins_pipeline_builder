@@ -44,6 +44,7 @@ describe 'Test YAML jobs conversion to XML' do
       'periodic_build',
       'discard_old',
       'choice_parameter',
+      'pull_request_generator',
       'groovy_postbuild'
     ]
 

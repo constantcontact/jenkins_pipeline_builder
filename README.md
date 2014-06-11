@@ -85,7 +85,7 @@ Here's a high level overview of what's available:
 ```yaml
 - job:
     name: nameStr # Name of your Job
-    job_type: free_style # Optional  [free_style|multi_project]
+    job_type: free_style # Optional  [free_style|multi_project|job_dsl|pull_request_generator]
     discard_old: # Discard old builds after:
       days: 1 # Optional, number of days after which the build is deleted
       number: 2 # Optional, number of builds after which the build is deleted
@@ -228,6 +228,18 @@ Here's a high level overview of what's available:
       } rescue {
         build("job_name2", param1: build21.environment.get("some_var"))
       }
+```
+
+### Pull Request Generator Job DSL
+```yaml
+- job:
+    name: nameStr
+    job_type: pull_request_generator
+    git_repo: '{{git_repo}}' # Specify git_repo here unless defined in project.yaml
+    git_org: '{{git_org}}' # Specify git_org here unless defined in project.yaml
+    jobs: # The list of jobs to be generated
+      - 'Job1'
+      - 'Job2'
 ```
 
 ### View DSL
