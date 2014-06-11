@@ -43,6 +43,7 @@ describe 'Test YAML jobs conversion to XML' do
       'specific_priority',
       'periodic_build',
       'discard_old',
+      'concurrent_build',
       'choice_parameter',
       'downstream_blocking',
       'groovy_postbuild'

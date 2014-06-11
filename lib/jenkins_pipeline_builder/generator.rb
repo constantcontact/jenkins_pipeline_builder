@@ -52,6 +52,7 @@ module JenkinsPipelineBuilder
               discard_old: JobBuilder.method(:discard_old_param),
               throttle: JobBuilder.method(:throttle_job),
               prepare_environment: JobBuilder.method(:prepare_environment),
+              concurrent_build: JobBuilder.method(:concurrent_build),
               builders: {
                   registry: {
                       multi_job: Builders.method(:build_multijob),

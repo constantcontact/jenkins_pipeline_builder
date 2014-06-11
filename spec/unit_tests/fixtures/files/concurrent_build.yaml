@@ -1,0 +1,4 @@
+- job: 
+    name: concurrent_build
+    description: 'Testing concurrent build setting'
+    concurrent_build: true
