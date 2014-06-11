@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ <project>
+   <actions/>
+   <description/>
+   <keepDependencies>false</keepDependencies>
+   <properties/>
+   <scm class="hudson.scm.NullSCM"/>
+   <canRoam>true</canRoam>
+   <disabled>false</disabled>
+   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+   <triggers class="vector"/>
+   <concurrentBuild>false</concurrentBuild>
+   <builders><javaposse.jobdsl.plugin.ExecuteDslScripts><scriptText>import javax.net.ssl.HostnameVerifier
+ import javax.net.ssl.HttpsURLConnection
+ import javax.net.ssl.SSLContext
+ import javax.net.ssl.TrustManager
+ import javax.net.ssl.X509TrustManager
+ // Setup for ignoring self-signed certificate errors
+ def nullTrustManager = [
+ checkClientTrusted: { chain, authType -&gt; },
+ checkServerTrusted: { chain, authType -&gt; },
+ getAcceptedIssuers: { null }
+ ]
+ def nullHostnameVerifier = [
+ verify: { hostname, session -&gt; true }
+ ]
+ SSLContext sc = SSLContext.getInstance("SSL")
+ sc.init(null, [nullTrustManager as X509TrustManager] as TrustManager[], null)
+ HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory())
+ HttpsURLConnection.setDefaultHostnameVerifier(nullHostnameVerifier as HostnameVerifier)
+ // Get existing jobs so we know which jobs are new and can be queued
+ def jenkins_api = new URL("https://p2-sahud101.ad.prodcc.net/view/All/api/json?pretty=true")
+ def jenkins_jobs = new groovy.json.JsonSlurper().parse(jenkins_api.newReader())
+ def pullUrl = new URL("https://github.roving.com/api/v3/repos/something/git@github/pulls")
+ println "Using: pullUrl = ${pullUrl}"
+ def pulls = new groovy.json.JsonSlurper().parse(pullUrl.newReader())
+ println "Starting to process git@github"
+ // Now we create the jobs for each pull request
+ pulls.each {
+ def pullRequestNumber = it.number
+ def pullRequestTitle = it.title
+ def feature = it.head.ref
+ def gitBranch = "origin/pr/${pullRequestNumber}/head"
+ def headSha = it.head.sha
+ 
+ job {
+ using("Job1")
+ name "Job1-pr${pullRequestNumber}"
+ configure { project -&gt;
+   (project / 'scm' / 'branches' / 'hudson.plugins.git.BranchSpec' / 'name').setValue(gitBranch)
+   (project / 'scm' / 'userRemoteConfigs' / 'hudson.plugins.git.UserRemoteConfig' / 'name') &lt;&lt; {}
+   (project / 'scm' / 'userRemoteConfigs' / 'hudson.plugins.git.UserRemoteConfig' / 'refspec').setValue('+refs/pull/*:refs/remotes/origin/pr/*')
+   def pubNode = project / 'publishers'
+   def gitNode = pubNode / 'hudson.plugins.git.GitPublisher'
+   pubNode.remove(gitNode)
+   (project / 'publishers' / 'jenkins.plugins.github__pull__request__notifier.GithubPullRequestNotifier' / 'pullRequestNumber' ).setValue("${pullRequestNumber}")
+   (project / 'publishers' / 'jenkins.plugins.github__pull__request__notifier.GithubPullRequestNotifier' / 'groupRepo' ).setValue("something/git@github")
+   }
+ }
+ 
+ job {
+ using("Job2")
+ name "Job2-pr${pullRequestNumber}"
+ configure { project -&gt;
+   (project / 'scm' / 'branches' / 'hudson.plugins.git.BranchSpec' / 'name').setValue(gitBranch)
+   (project / 'scm' / 'userRemoteConfigs' / 'hudson.plugins.git.UserRemoteConfig' / 'name') &lt;&lt; {}
+   (project / 'scm' / 'userRemoteConfigs' / 'hudson.plugins.git.UserRemoteConfig' / 'refspec').setValue('+refs/pull/*:refs/remotes/origin/pr/*')
+   def pubNode = project / 'publishers'
+   def gitNode = pubNode / 'hudson.plugins.git.GitPublisher'
+   pubNode.remove(gitNode)
+   (project / 'publishers' / 'jenkins.plugins.github__pull__request__notifier.GithubPullRequestNotifier' / 'pullRequestNumber' ).setValue("${pullRequestNumber}")
+   (project / 'publishers' / 'jenkins.plugins.github__pull__request__notifier.GithubPullRequestNotifier' / 'groupRepo' ).setValue("something/git@github")
+   }
+ }
+ 
+ }</scriptText><usingScriptText>true</usingScriptText><ignoreExisting>false</ignoreExisting><removedJobAction>IGNORE</removedJobAction></javaposse.jobdsl.plugin.ExecuteDslScripts></builders>
+   <publishers/>
+   <buildWrappers/>
+ </project>
