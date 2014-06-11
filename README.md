@@ -291,7 +291,8 @@ A number of the DSL options rely on Jenkins plugins, including:
 * job_dsl - "Job DSL"
 * rvm - "Rvm"    
 * throttle - "Throttle Concurrent Builds Plug-in"    
-* timestamp - "Timestamper"    
+* timestamp - "Timestamper"  
+* groovy_postbuild - "Groovy Postbuild"  
 
 Just about every plugin above can be installed through Jenkins (Manage Jenkins > Manage Plugins > Available)
 
