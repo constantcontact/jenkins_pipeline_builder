@@ -147,5 +147,10 @@ module JenkinsPipelineBuilder
       end
     end
 
+    def self.concurrent_build(params, n_xml)
+      concurrentBuild = n_xml.xpath('//concurrentBuild').first
+      concurrentBuild.content = (params == true) ? 'true' : 'false'
+    end
+
   end
 end
