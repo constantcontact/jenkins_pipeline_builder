@@ -72,6 +72,63 @@ module JenkinsPipelineBuilder
       }
     end
 
+    def self.blocking_downstream(params, xml)
+      colors = {"SUCCESS" => {:ordinal => 0, :color => 'BLUE'},"FAILURE" => {:ordinal => 2, :color => 'RED'},"UNSTABLE" => {:ordinal => 1, :color => 'YELLOW'}}
+      xml.send('hudson.plugins.parameterizedtrigger.TriggerBuilder', 'plugin' => "parameterized-trigger"){
+        xml.configs{
+          xml.send('hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig'){
+
+            xml.configs {
+              params[:data] = [ { params: "" } ] unless params[:data]
+              params[:data].each do |config|
+                if config[:params]
+                  xml.send('hudson.plugins.parameterizedtrigger.PredefinedBuildParameters') {
+                    xml.properties config[:params]
+                  }
+                end
+                if config[:file]
+                  xml.send('hudson.plugins.parameterizedtrigger.FileBuildParameters') {
+                    xml.propertiesFile config[:file]
+                    xml.failTriggerOnMissing false
+                  }
+                end
+              end
+            }
+            xml.projects params[:project]
+            xml.condition params[:condition] || 'SUCCESS'
+            xml.triggerWithNoParameters params[:trigger_with_no_parameters] || false
+            xml.block{
+              if params[:fail] && params[:fail] != "never"
+                xml.buildStepFailureThreshold{
+                  xml.name params[:fail]
+                  xml.ordinal colors[params[:fail]][:ordinal]
+                  xml.color colors[params[:fail]][:color]
+                  xml.completeBuild 'true'
+                }
+              end
+              if params[:mark_fail] && params[:mark_fail] != "never"
+                xml.unstableThreshold{
+                  xml.name params[:mark_fail]
+                  xml.ordinal colors[params[:mark_fail]][:ordinal]
+                  xml.color colors[params[:mark_fail]][:color]
+                  xml.completeBuild 'true'
+                }
+              end
+              if params[:mark_unstable] && params[:mark_unstable] != "never"
+                xml.failureThreshold{
+                  xml.name params[:mark_unstable]
+                  xml.ordinal colors[params[:mark_unstable]][:ordinal]
+                  xml.color colors[params[:mark_unstable]][:color]
+                  xml.completeBuild 'true'
+                }
+              end
+            }
+            xml.buildAllNodesWithLabel false
+          }
+        }
+      }
+    end
+
     def self.start_remote_job(params, xml)
       parameters = params[:parameters][:content].split("\n") if params[:parameters] && params[:parameters][:content]
       xml.send('org.jenkinsci.plugins.ParameterizedRemoteTrigger.RemoteBuildConfiguration', 'plugin'=>'Parameterized-Remote-Trigger'){

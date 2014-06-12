@@ -59,6 +59,7 @@ module JenkinsPipelineBuilder
                       inject_vars_file: Builders.method(:build_environment_vars_injector),
                       shell_command: Builders.method(:build_shell_command),
                       maven3: Builders.method(:build_maven3),
+                      blocking_downstream: Builders.method(:blocking_downstream),
                       remote_job: Builders.method(:start_remote_job)
                   },
                   method:

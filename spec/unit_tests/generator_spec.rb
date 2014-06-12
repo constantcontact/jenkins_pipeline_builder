@@ -46,6 +46,7 @@ describe 'Test YAML jobs conversion to XML' do
       'concurrent_build',
       'choice_parameter',
       'pull_request_generator',
+      'downstream_blocking',
       'groovy_postbuild'
     ]
 

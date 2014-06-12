@@ -1,0 +1,15 @@
+---
+- job:
+    name: downstream_blocking
+    builders:
+      - blocking_downstream:
+          project: downstream
+          data:
+            - params: |
+                param1
+                param2
+          condition: FAILURE
+          trigger_with_no_parameters: false
+          fail: FAILURE
+          mark_fail: SUCCESS
+          mark_unstable: UNSTABLE
