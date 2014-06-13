@@ -116,16 +116,7 @@ module JenkinsPipelineBuilder
         @number = number
         @jobs = jobs.clone
         @generator = generator.clone
-
-        # Debug
-        #puts "===Project==="
-        #puts @project
-        #puts "===Number==="
-        #puts @number
-        #puts "===Jobs==="
-        #puts @jobs
-        #puts "===Generator==="
-        #puts @generator
+        
         # Run
         run!
     end
@@ -134,12 +125,6 @@ module JenkinsPipelineBuilder
 
     # Apply all changes
     def run!
-        # Debug
-        puts "===NUMBER=========================================="
-        puts @number
-        change_name!
-        puts "===Project==="
-        puts @project
         update_jobs!
         change_git!
     end
