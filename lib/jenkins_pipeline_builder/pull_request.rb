@@ -55,7 +55,7 @@ module JenkinsPipelineBuilder
     def purge_old(pull_requests, project)
       @logger.info "Current pull requests: #{pull_requests}"
       # Read File
-      old_requests = File.new('pull_requests.csv', 'r').read.split(',')
+      old_requests = File.new('pull_requests.csv', 'a+').read.split(',')
       
       # Pop off current pull requests
       old_requests.delete_if { |req| pull_requests.include?(req.to_i)}
@@ -78,11 +78,17 @@ module JenkinsPipelineBuilder
       git_args = {}
       pull_requests = check_for_pull generator_job[:value]
       purge_old(pull_requests, project)
+      main_collection = job_collection
       pull_requests.each do |number|
-        req = JenkinsPipelineBuilder::PullRequest.new(project, number, job_collection, generator_job)
-        @generator.job_collection = req.job_collection
-        t_project = req.project
+        # Manipulate the YAML
+        req = JenkinsPipelineBuilder::PullRequest.new(project, number, main_collection, generator_job)
+        @generator.job_collection.merge req.jobs
+        project = req.project
+
+        # Overwrite the jobs from the generator to the project
         project[:value][:jobs] = generator_job[:value][:jobs]
+        
+        # Build the jobs
         success, compiled_project = @generator.resolve_project(project)
         compiled_project[:value][:jobs].each do |i|
           job = i[:result]
@@ -97,5 +103,113 @@ module JenkinsPipelineBuilder
   end
   class PullRequest
 
-  end
-end
+    # Accessors
+    attr_reader :project    # The root project YAML as a hash
+    attr_reader :number     # The pull request number
+    attr_reader :jobs       # The jobs in the pull request as an array of hashes
+    attr_reader :generator  # The generator job YAML as a hash
+
+    # Initialize
+    def initialize(project, number, jobs, generator)
+        # Set instance vars
+        @project = project.clone 
+        @number = number
+        @jobs = jobs.clone
+        @generator = generator.clone
+
+        # Debug
+        #puts "===Project==="
+        #puts @project
+        #puts "===Number==="
+        #puts @number
+        #puts "===Jobs==="
+        #puts @jobs
+        #puts "===Generator==="
+        #puts @generator
+        # Run
+        run!
+    end
+
+    private
+
+    # Apply all changes
+    def run!
+        # Debug
+        puts "===NUMBER=========================================="
+        puts @number
+        change_name!
+        puts "===Project==="
+        puts @project
+        update_jobs!
+        change_git!
+    end
+
+    # Change the git branch for each job
+    def change_git!
+        @jobs.each_value do |job|
+            job[:value][:scm_branch] = "origin/pr/#{@number}/head"
+        end
+    end
+
+    # Change the name of the pull request project
+    def change_name!
+        @project[:name] = "#{@project[:name]}-PR#{@number}" if @project[:name]
+        @project[:value][:name] = "#{@project[:value][:name]}-PR#{@number}" if @project[:value][:name]
+    end
+
+    # Apply any specified changes to each job
+    def update_jobs!
+        @jobs.each_value do |job|
+              name = job[:name]
+              changes = nil
+              # Search the generator for changes
+              @generator[:value][:jobs].each do |gen|
+                if gen.is_a? Hash
+                  if gen.keys[0] == name.to_sym
+                    changes = gen[name.to_sym]
+                  end
+                end
+              end
+              # Apply changes
+              if changes != nil
+                  apply_changes!(job[:value], changes)
+              end
+        end
+    end
+
+    # Apply changes to a single job
+    def apply_changes!(original, changes)
+      # Apply the specified changes
+      changes.each do |cK, cV|
+        # The change doesn't already exist in the original
+        unless original.include? cK
+          original[cK] = cV
+          # The change does exists, so we need to replace!
+        else
+          # Loop through the original job
+          original.each do |oK, oV|
+            if oK == cK
+              # The change is a hash
+              if cV.is_a? Hash and oV.is_a? Hash
+                apply_changes!(oV, cV)
+                # The change is an array
+              elsif cV.is_a? Array and oV.is_a? Array 
+                # Add changes
+                # cV.each do |elem|
+                #     unless oV.include? elem
+                #         original[oK].push elem
+                #     end
+                # end
+                # Replace entire array
+                original[oK] = cV
+                # The change is a string, etc
+              else 
+                original[oK] = cV
+              end
+            end
+          end
+        end
+      end
+    end
+  end # class
+end # module
