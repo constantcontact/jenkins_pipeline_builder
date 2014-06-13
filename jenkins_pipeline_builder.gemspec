@@ -30,6 +30,7 @@ automating Job & Pipeline creation from the YAML files checked-in with your appl
   spec.add_development_dependency 'rake'
   spec.add_development_dependency 'rspec', '~> 2.14'
   spec.add_development_dependency 'bump'
+  spec.add_development_dependency 'json'
   spec.add_development_dependency 'gem-release'
   spec.add_development_dependency 'pry'
   spec.add_development_dependency 'simplecov'

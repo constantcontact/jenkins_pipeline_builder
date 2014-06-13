@@ -30,6 +30,7 @@ require 'jenkins_pipeline_builder/builders'
 require 'jenkins_pipeline_builder/wrappers'
 require 'jenkins_pipeline_builder/triggers'
 require 'jenkins_pipeline_builder/publishers'
+require 'jenkins_pipeline_builder/pull_request'
 require 'jenkins_pipeline_builder/view'
 require 'jenkins_pipeline_builder/generator'
 

@@ -22,6 +22,7 @@
 
 require 'fileutils'
 require 'yaml'
+require 'json'
 require 'jenkins_api_client'
 
 module JenkinsPipelineBuilder
