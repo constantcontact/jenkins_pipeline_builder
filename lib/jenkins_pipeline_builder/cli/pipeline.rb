@@ -35,6 +35,11 @@ module JenkinsPipelineBuilder
       def bootstrap(path, project_name = nil)
         Helper.setup(parent_options).bootstrap(path, project_name)
       end
+
+      desc 'pull_request Path', 'Generates jenkins jobs based on a git pull request.'
+      def pull_request(path, project_name = nil)
+        Helper.setup(parent_options).pull_request(path, project_name)
+      end
     end
   end
 end

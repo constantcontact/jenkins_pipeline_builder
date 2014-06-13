@@ -302,6 +302,31 @@ module JenkinsPipelineBuilder
       end
     end
 
+    def pull_request(path, project_name)
+      @logger.info "Pull Request Generator Running from path #{path}"
+      load_collection_from_path(path)
+      jobs = []
+      projects.each do |project|
+        if project[:name] == project_name || project_name == nil
+          project_body = project[:value]
+          project_jobs = project_body[:jobs] || []
+          @logger.info "Using Project #{project}"
+          pull_job = nil
+          project_jobs.each do |job|
+            job = @job_collection[job.to_s]
+            pull_job = job if job[:value][:job_type] == "pull_request_generator"
+          end
+          raise "No Pull Request Found for Project" unless pull_job
+          pull_jobs = pull_job[:value][:jobs] || []
+          pull_jobs.each do |job|
+            jobs << @job_collection[job.to_s]
+          end
+          pull = JenkinsPipelineBuilder::PullRequestGenerator.new(self)
+          pull.run(project, jobs, pull_job)
+        end
+      end
+    end
+
     def dump(job_name)
       @logger.info "Debug #{@debug}"
       @logger.info "Dumping #{job_name} into #{job_name}.xml"
