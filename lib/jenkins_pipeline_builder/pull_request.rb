@@ -78,8 +78,8 @@ module JenkinsPipelineBuilder
       git_args = {}
       pull_requests = check_for_pull generator_job[:value]
       purge_old(pull_requests, project)
-      pull_requests.each do |pr|
-        req = JenkinsPipelineBuilder::PullRequest.new(project, pr.to_i, job_collection)
+      pull_requests.each do |number|
+        req = JenkinsPipelineBuilder::PullRequest.new(project, number, job_collection, generator_job)
         req.run
       end
     end
