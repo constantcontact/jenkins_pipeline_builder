@@ -80,7 +80,17 @@ module JenkinsPipelineBuilder
       purge_old(pull_requests, project)
       pull_requests.each do |number|
         req = JenkinsPipelineBuilder::PullRequest.new(project, number, job_collection, generator_job)
-        req.run
+        @generator.job_collection = req.job_collection
+        t_project = req.project
+        project[:value][:jobs] = generator_job[:value][:jobs]
+        success, compiled_project = @generator.resolve_project(project)
+        compiled_project[:value][:jobs].each do |i|
+          job = i[:result]
+          success, payload = @generator.compile_job_to_xml(job)
+          if success
+            @generator.create_or_update(job, payload)
+          end
+        end
       end
     end
 
