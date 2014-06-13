@@ -148,6 +148,7 @@ module JenkinsPipelineBuilder
     def change_git!
         @jobs.each_value do |job|
             job[:value][:scm_branch] = "origin/pr/#{@number}/head"
+            job[:value][:scm_refspec] = "refs/pull/*:refs/remotes/origin/pr/*"
         end
     end
 
