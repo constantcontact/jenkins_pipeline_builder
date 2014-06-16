@@ -243,6 +243,35 @@ Here's a high level overview of what's available:
       }
 ```
 
+### Pull Request Generator
+
+The pull request generator will generate pipelines for pull requests that are noticed on your repo. It will also remove old pipelines from Jenkins if the pull_request is closed.
+If you need to modify job parameters please just specify that in the jobs section like the example below.
+
+When running a project through this module, the project {{name}} is appended with "-PR##" where ## is the number of the pull request.
+
+```yaml
+- job:
+    name: '{{name}}-ReqGen'
+    job_type: pull_request_generator
+    git_url: 'https://www.github.com/'
+    git_repo: 'jenkins_pipeline_builder'
+    git_org: 'IgorShare'
+    jobs:
+      - '{{name}}-Job1':
+          publishers:
+            - downstream:
+                project: '{{name}}-Job2'
+      - '{{name}}-Job2':
+          discard_old:
+            number: '100'
+      - '{{name}}-Job3'
+    builders:
+        - shell_command: |
+            generate -v || gem install jenkins_pipeline_builder
+            generate pipeline pull_request pipeline/ {{name}}
+```
+
 ### View DSL
 ```yaml
 - view:

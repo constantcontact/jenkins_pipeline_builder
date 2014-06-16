@@ -305,7 +305,7 @@ module JenkinsPipelineBuilder
     def pull_request(path, project_name)
       @logger.info "Pull Request Generator Running from path #{path}"
       load_collection_from_path(path)
-      jobs = []
+      jobs = {}
       projects.each do |project|
         if project[:name] == project_name || project_name == nil
           project_body = project[:value]
@@ -319,7 +319,11 @@ module JenkinsPipelineBuilder
           raise "No Pull Request Found for Project" unless pull_job
           pull_jobs = pull_job[:value][:jobs] || []
           pull_jobs.each do |job|
-            jobs << @job_collection[job.to_s]
+            if job.is_a? String
+              jobs[job.to_s] = @job_collection[job.to_s]
+            else
+              jobs[job.keys[0].to_s] = @job_collection[job.keys[0].to_s]
+            end
           end
           pull = JenkinsPipelineBuilder::PullRequestGenerator.new(self)
           pull.run(project, jobs, pull_job)
@@ -365,7 +369,7 @@ module JenkinsPipelineBuilder
         when 'build_flow'
           xml = compile_freestyle_job_to_xml(job)
           payload = add_job_dsl(job, xml)
-        when 'free_style'
+        when 'free_style', 'pull_request_generator'
           payload = compile_freestyle_job_to_xml job
         else
           return false, "Job type: #{job[:job_type]} is not one of job_dsl, multi_project, build_flow or free_style"
