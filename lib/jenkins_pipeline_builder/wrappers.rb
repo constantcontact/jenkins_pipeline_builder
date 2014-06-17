@@ -87,7 +87,7 @@ module JenkinsPipelineBuilder
         }
         xml.deployPattern wrapper[:publish]
         xml.resolvePattern
-        xml.matrixParams
+        xml.matrixParams wrapper[:properties]
         xml.deployBuildInfo wrapper[:'publish-build-info']
         xml.includeEnvVars false
         xml.envVarsPatterns {

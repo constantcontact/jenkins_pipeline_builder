@@ -105,7 +105,7 @@
       </details>
       <deployPattern>pkg/*.gem</deployPattern>
       <resolvePattern/>
-      <matrixParams/>
+      <matrixParams>foo=bar</matrixParams>
       <deployBuildInfo>true</deployBuildInfo>
       <includeEnvVars>false</includeEnvVars>
       <envVarsPatterns>
