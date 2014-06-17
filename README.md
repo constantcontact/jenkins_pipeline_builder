@@ -307,6 +307,21 @@ If a set of Defaults is specified with the name global, that will be used by all
     param1: 'value 1'
 ```
 
+EXTENSIONS:
+--------
+
+You do have the ability to build your own extensions for the jenkins pipelinebuilder. To do so create an extensions directory within your pipeline folder and add yaml files matching the below format. You can even overwrite existing features 
+
+```yaml
+- extension:
+    name: periodic_build # Name of the YAML property to use
+    type: trigger # Optional, trigger, builder, wrapper or publisher. Leave blank to have it at the root of the module registry
+    function: | # This must be ruby code, you will recieve two variables: params, xml
+      xml.send('hudson.triggers.TimerTrigger') {
+        xml.spec params
+      }
+```
+
 PLUGINS:
 --------
 

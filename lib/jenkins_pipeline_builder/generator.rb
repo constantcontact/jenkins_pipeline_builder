@@ -109,6 +109,7 @@ module JenkinsPipelineBuilder
     end
 
     def load_extensions(path)
+      path = "#{path}/extensions"
       path = File.expand_path(path, relative_to=Dir.getwd)
       if File.directory?(path)
         @logger.info "Loading extensions from folder #{path}"
