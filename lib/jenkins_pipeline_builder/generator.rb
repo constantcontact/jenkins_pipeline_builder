@@ -209,11 +209,13 @@ module JenkinsPipelineBuilder
 
     def load_template(path, template)
       path = File.join(path, template[:name])
+
+      # If we are looking for the newest version
       if template[:version] && template[:version]=='newest' && File.directory?(path)
-        @logger.info "LIKE RIGHT HERE!"
         folders = Dir.entries(path)
-        folders.compact!
-        highest = 1
+        highest = 1 # Default to v1
+
+        # Note: to_i returns any integers in the folder name
         folders.each do |f|
           highest = f.to_i if f.to_i > highest
         end
