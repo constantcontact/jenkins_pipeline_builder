@@ -160,7 +160,7 @@ module JenkinsPipelineBuilder
       JenkinsPipelineBuilder::View.new(self)
     end
 
-    def load_collection_from_path(path, recursively = false)
+    def load_collection_from_path(path, recursively = false, remote=false)
       path = File.expand_path(path, relative_to=Dir.getwd)
       if File.directory?(path)
         @logger.info "Generating from folder #{path}"
@@ -174,23 +174,30 @@ module JenkinsPipelineBuilder
           end
           @logger.info "Loading file #{file}"
           yaml = YAML.load_file(file)
-          load_job_collection(yaml)
+          load_job_collection(yaml, remote)
         end
       else
         @logger.info "Loading file #{path}"
         yaml = YAML.load_file(path)
-        load_job_collection(yaml)
+        load_job_collection(yaml, remote)
       end
     end
 
-    def load_job_collection(yaml)
+    def load_job_collection(yaml, remote=false)
       yaml.each do |section|
         Utils.symbolize_keys_deep!(section)
         key = section.keys.first
         value = section[key]
         name = value[:name]
-        raise "Duplicate item with name '#{name}' was detected." if @job_collection.has_key?(name)
-        @job_collection[name.to_s] = { name: name.to_s, type: key, value: value }
+        if @job_collection.has_key?(name)
+          if remote
+            @logger.info "Duplicate item with name '#{name}' was detected from the remote folder."
+          else
+            raise "Duplicate item with name '#{name}' was detected."
+          end
+        else
+          @job_collection[name.to_s] = { name: name.to_s, type: key, value: value }
+        end
       end
     end
 
@@ -198,12 +205,70 @@ module JenkinsPipelineBuilder
       @job_collection[name.to_s]
     end
 
+
+
+    def load_template(path, template)
+      path = File.join(path, template, 'pipeline')
+      @logger.info "Trying to load from #{path}"
+      if File.directory?(path)
+        @logger.info "Loading from #{path}"
+        load_collection_from_path(path, false, true)
+        true
+      else
+        false
+      end
+    end
+
+
     def resolve_project(project)
       defaults = get_item('global')
       settings = defaults.nil? ? {} : defaults[:value] || {}
 
       project[:settings] = Compiler.get_settings_bag(project, settings) unless project[:settings]
       project_body = project[:value]
+
+
+
+      ### Load remote YAML
+      # Download Tar.gz
+      if project[:settings] && project[:settings][:template_repo]
+        url = project[:settings][:template_repo][:source]
+        @logger.info "Downloading #{url}"
+        open('remote.tar', 'w') do |local_file|
+          open(url) do |remote_file|
+            local_file.write(Zlib::GzipReader.new(remote_file).read)
+          end
+        end
+
+        # Extract Tar.gz to 'remote' folder
+        @logger.info "Unpacking remote.tar to remote folder"
+        Archive::Tar::Minitar.unpack('remote.tar', 'remote')
+        
+        # Load templates recursively
+        if project[:settings][:template_repo][:templates]
+          project[:settings][:template_repo][:templates].each do |template|
+            # Move into the remote folder and look for the template folder
+            path = "remote"
+            path = File.expand_path(path, relative_to=Dir.getwd)
+            remote = Dir.entries(path)
+            if remote.include? template[:name]
+              # We found the template name, load this path
+              @logger.info "We found the tempalte!"
+              load_template(path, template[:name])
+            else
+              # Many cases we must dig one layer deep
+              @logger.info "We didn't find it at the root, go one layer deep"
+              remote.each do |file|
+                load_template(File.join(path, file), template[:name])
+              end
+            end
+          end
+        else
+          # If no templates load everything recursively
+          load_collection_from_path(path, true)
+        end
+      end
+      ### End Load remote YAML
 
       # Process jobs
       jobs = project_body[:jobs] || []
