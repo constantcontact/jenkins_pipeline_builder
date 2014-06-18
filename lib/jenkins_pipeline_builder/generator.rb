@@ -42,6 +42,7 @@ module JenkinsPipelineBuilder
       @job_templates = {}
       @job_collection = {}
       @extensions = {}
+      @remote_depends = 1 # Count of remote dependancies
 
       @module_registry = ModuleRegistry.new ({
           job: {
@@ -189,9 +190,19 @@ module JenkinsPipelineBuilder
         key = section.keys.first
         value = section[key]
         name = value[:name]
+        # If the collection already has this key
         if @job_collection.has_key?(name)
+          # If this file came from a remote server
           if remote
-            @logger.info "Duplicate item with name '#{name}' was detected from the remote folder."
+            if name == "global" && value[:template_repo]
+              # Resolve dependancies
+              @logger.info "Resolving Dependancies for remote project"
+              project = {}
+              project[:settings] = value
+              load_remote_yaml(project)
+            else
+              @logger.info "Duplicate item with name '#{name}' was detected from the remote folder."
+            end
           else
             raise "Duplicate item with name '#{name}' was detected."
           end
@@ -209,9 +220,8 @@ module JenkinsPipelineBuilder
 
     def load_template(path, template)
       path = File.join(path, template[:name])
-
-      # If we are looking for the newest version
-      if template[:version] && template[:version]=='newest' && File.directory?(path)
+      # If we are looking for the newest version or no version was set
+      if (template[:version].nil? || template[:version]=='newest') && File.directory?(path)
         folders = Dir.entries(path)
         highest = 1 # Default to v1
         folders.each do |f|
@@ -239,23 +249,24 @@ module JenkinsPipelineBuilder
         sources.each do |source|
           source = source[:source]
           url = source[:url]
-          @logger.info "Downloading #{url}"
-          open('remote.tar', 'w') do |local_file|
+          @remote_depends += 1
+          file = "remote#{@remote_depends}"
+          @logger.info "Downloading #{url} to #{file}.tar"
+          open("#{file}.tar", 'w') do |local_file|
             open(url) do |remote_file|
               local_file.write(Zlib::GzipReader.new(remote_file).read)
             end
           end
 
           # Extract Tar.gz to 'remote' folder
-          @logger.info "Unpacking remote.tar to remote folder"
-          Archive::Tar::Minitar.unpack('remote.tar', 'remote')
+          @logger.info "Unpacking #{file}.tar to #{file} folder"
+          Archive::Tar::Minitar.unpack("#{file}.tar", file)
           
           # Load templates recursively
           if source[:templates]
             source[:templates].each do |template|
               # Move into the remote folder and look for the template folder
-              path = "remote"
-              path = File.expand_path(path, relative_to=Dir.getwd)
+              path = File.expand_path(file, relative_to=Dir.getwd)
               remote = Dir.entries(path)
               if remote.include? template[:name]
                 # We found the template name, load this path
@@ -273,6 +284,9 @@ module JenkinsPipelineBuilder
             # If no templates load everything recursively
             load_collection_from_path(path, true)
           end
+          # Cleanup temp files
+          FileUtils.rm_r file
+          FileUtils.rm_r "#{file}.tar"
         end # End sources.each loop
       end
       ### End Load remote YAML
