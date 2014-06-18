@@ -214,10 +214,8 @@ module JenkinsPipelineBuilder
       if template[:version] && template[:version]=='newest' && File.directory?(path)
         folders = Dir.entries(path)
         highest = 1 # Default to v1
-
-        # Note: to_i returns any integers in the folder name
         folders.each do |f|
-          highest = f.to_i if f.to_i > highest
+          highest = f.to_i if f.to_i > highest # Note: to_i returns any integers in the folder name
         end
         template[:version] = highest
       end
@@ -233,6 +231,54 @@ module JenkinsPipelineBuilder
     end
 
 
+    def load_remote_yaml(project)
+      ### Load remote YAML
+      # Download Tar.gz
+      if project[:settings] && project[:settings][:template_repo]
+        sources = project[:settings][:template_repo]
+        sources.each do |source|
+          source = source[:source]
+          url = source[:url]
+          @logger.info "Downloading #{url}"
+          open('remote.tar', 'w') do |local_file|
+            open(url) do |remote_file|
+              local_file.write(Zlib::GzipReader.new(remote_file).read)
+            end
+          end
+
+          # Extract Tar.gz to 'remote' folder
+          @logger.info "Unpacking remote.tar to remote folder"
+          Archive::Tar::Minitar.unpack('remote.tar', 'remote')
+          
+          # Load templates recursively
+          if source[:templates]
+            source[:templates].each do |template|
+              # Move into the remote folder and look for the template folder
+              path = "remote"
+              path = File.expand_path(path, relative_to=Dir.getwd)
+              remote = Dir.entries(path)
+              if remote.include? template[:name]
+                # We found the template name, load this path
+                @logger.info "We found the tempalte!"
+                load_template(path, template)
+              else
+                # Many cases we must dig one layer deep
+                @logger.info "We didn't find it at the root, go one layer deep"
+                remote.each do |file|
+                  load_template(File.join(path, file), template)
+                end
+              end
+            end
+          else
+            # If no templates load everything recursively
+            load_collection_from_path(path, true)
+          end
+        end # End sources.each loop
+      end
+      ### End Load remote YAML
+    end
+
+
     def resolve_project(project)
       defaults = get_item('global')
       settings = defaults.nil? ? {} : defaults[:value] || {}
@@ -240,48 +286,7 @@ module JenkinsPipelineBuilder
       project[:settings] = Compiler.get_settings_bag(project, settings) unless project[:settings]
       project_body = project[:value]
 
-
-
-      ### Load remote YAML
-      # Download Tar.gz
-      if project[:settings] && project[:settings][:template_repo]
-        url = project[:settings][:template_repo][:source]
-        @logger.info "Downloading #{url}"
-        open('remote.tar', 'w') do |local_file|
-          open(url) do |remote_file|
-            local_file.write(Zlib::GzipReader.new(remote_file).read)
-          end
-        end
-
-        # Extract Tar.gz to 'remote' folder
-        @logger.info "Unpacking remote.tar to remote folder"
-        Archive::Tar::Minitar.unpack('remote.tar', 'remote')
-        
-        # Load templates recursively
-        if project[:settings][:template_repo][:templates]
-          project[:settings][:template_repo][:templates].each do |template|
-            # Move into the remote folder and look for the template folder
-            path = "remote"
-            path = File.expand_path(path, relative_to=Dir.getwd)
-            remote = Dir.entries(path)
-            if remote.include? template[:name]
-              # We found the template name, load this path
-              @logger.info "We found the tempalte!"
-              load_template(path, template)
-            else
-              # Many cases we must dig one layer deep
-              @logger.info "We didn't find it at the root, go one layer deep"
-              remote.each do |file|
-                load_template(File.join(path, file), template)
-              end
-            end
-          end
-        else
-          # If no templates load everything recursively
-          load_collection_from_path(path, true)
-        end
-      end
-      ### End Load remote YAML
+      load_remote_yaml(project)
 
       # Process jobs
       jobs = project_body[:jobs] || []
@@ -374,8 +379,8 @@ module JenkinsPipelineBuilder
         end
       else
         projects.each do |project|
-          success, payload = resolve_project(project)
-          if payload[:value][:name] == project_name || project_name == nil # If we specify a project name, only use that project
+          if project[:name] == project_name || project_name == nil # If we specify a project name, only use that project
+            success, payload = resolve_project(project)
             if success
               puts 'successfully resolved project'
               compiled_project = payload
