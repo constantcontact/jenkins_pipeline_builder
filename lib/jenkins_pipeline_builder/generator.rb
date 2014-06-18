@@ -41,6 +41,7 @@ module JenkinsPipelineBuilder
       #@logger.level = (@debug) ? Logger::DEBUG : Logger::INFO;
       @job_templates = {}
       @job_collection = {}
+      @extensions = {}
 
       @module_registry = ModuleRegistry.new ({
           job: {
@@ -105,6 +106,38 @@ module JenkinsPipelineBuilder
               }
           }
       })
+    end
+
+    def load_extensions(path)
+      path = "#{path}/extensions"
+      path = File.expand_path(path, relative_to=Dir.getwd)
+      if File.directory?(path)
+        @logger.info "Loading extensions from folder #{path}"
+        Dir[File.join(path, '/*.yaml'), File.join(path, '/*.yml')].each do |file|
+          @logger.info "Loading file #{file}"
+          yaml = YAML.load_file(file)
+          yaml.each do |ext|
+            Utils.symbolize_keys_deep!(ext)
+            ext = ext[:extension]
+            name = ext[:name]
+            type = ext[:type]
+            function = ext[:function]
+            raise "Duplicate extension with name '#{name}' was detected." if @extensions.has_key?(name)
+            @extensions[name.to_s] = { name: name.to_s, type: type, function: function }
+          end
+        end
+      end
+      @extensions.each_value do |ext|
+        name = ext[:name].to_sym
+        registry = @module_registry.registry[:job]
+        function = eval "Proc.new {|params,xml| #{ext[:function]} }"
+        type = ext[:type].downcase.pluralize.to_sym if ext[:type]
+        if type
+          registry[type][:registry][name] = function
+        else
+          registry[name] = function
+        end
+      end
     end
 
     attr_accessor :client
@@ -248,7 +281,7 @@ module JenkinsPipelineBuilder
     def bootstrap(path, project_name)
       @logger.info "Bootstrapping pipeline from path #{path}"
       load_collection_from_path(path)
-
+      load_extensions(path)
       errors = {}
       # Publish all the jobs if the projects are not found
       if projects.count == 0
@@ -305,6 +338,7 @@ module JenkinsPipelineBuilder
     def pull_request(path, project_name)
       @logger.info "Pull Request Generator Running from path #{path}"
       load_collection_from_path(path)
+      load_extensions(path)
       jobs = {}
       projects.each do |project|
         if project[:name] == project_name || project_name == nil

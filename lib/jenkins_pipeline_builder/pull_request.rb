@@ -53,15 +53,15 @@ module JenkinsPipelineBuilder
 
     # Purge old builds
     def purge_old(pull_requests, project)
-      @logger.info "Current pull requests: #{pull_requests}"
+      reqs = pull_requests.clone.map {|req| "#{project[:name]}-PR#{req}" }
+      @logger.info "Current pull requests: #{reqs}"
       # Read File
       old_requests = File.new('pull_requests.csv', 'a+').read.split(',')
       
       # Pop off current pull requests
-      old_requests.delete_if { |req| pull_requests.include?(req.to_i)}
+      old_requests.delete_if { |req| reqs.include?("#{req}")}
 
       # Delete the old requests from jenkins
-      old_requests.map! { |pr| "#{project[:name]}-PR#{pr}" }
       @logger.info "Purging old requests: #{old_requests}"
       old_requests.each do |req|
         jobs = @client.job.list "#{req}.*"
@@ -70,7 +70,7 @@ module JenkinsPipelineBuilder
         end
       end
       # Write File
-      File.open('pull_requests.csv', 'w+') { |file| file.write pull_requests.join(",")}
+      File.open('pull_requests.csv', 'w+') { |file| file.write reqs.join(",") }
     end
 
     def run(project, job_collection, generator_job)
@@ -79,6 +79,7 @@ module JenkinsPipelineBuilder
       pull_requests = check_for_pull generator_job[:value]
       purge_old(pull_requests, project)
       main_collection = job_collection
+      @logger.info pull_requests
       pull_requests.each do |number|
         # Manipulate the YAML
         req = JenkinsPipelineBuilder::PullRequest.new(project, number, main_collection, generator_job)
@@ -126,13 +127,14 @@ module JenkinsPipelineBuilder
     def run!
         update_jobs!
         change_git!
+        change_name!
     end
 
     # Change the git branch for each job
     def change_git!
         @jobs.each_value do |job|
             job[:value][:scm_branch] = "origin/pr/#{@number}/head"
-            job[:value][:scm_refspec] = "refs/pull/*:refs/remotes/origin/pr/*"
+            job[:value][:scm_params][:refspec] = "refs/pull/*:refs/remotes/origin/pr/*"
         end
     end
 

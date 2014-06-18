@@ -67,7 +67,7 @@ module JenkinsPipelineBuilder
         sub_registry = registry_item[:registry]
         method = registry_item[:method]
         method.call(sub_registry, value, n_xml)
-      elsif registry_item.kind_of?(Method)
+      elsif registry_item.kind_of?(Method) || registry_item.kind_of?(Proc)
         registry_item.call(value, n_xml) unless registry_item.nil?
       end
     end
