@@ -208,8 +208,19 @@ module JenkinsPipelineBuilder
 
 
     def load_template(path, template)
-      path = File.join(path, template, 'pipeline')
-      @logger.info "Trying to load from #{path}"
+      path = File.join(path, template[:name])
+      if template[:version] && template[:version]=='newest' && File.directory?(path)
+        @logger.info "LIKE RIGHT HERE!"
+        folders = Dir.entries(path)
+        folders.compact!
+        highest = 1
+        folders.each do |f|
+          highest = f.to_i if f.to_i > highest
+        end
+        template[:version] = highest
+      end
+      path = File.join(path, template[:version].to_s) if template[:version]
+      path = File.join(path, 'pipeline')
       if File.directory?(path)
         @logger.info "Loading from #{path}"
         load_collection_from_path(path, false, true)
@@ -254,12 +265,12 @@ module JenkinsPipelineBuilder
             if remote.include? template[:name]
               # We found the template name, load this path
               @logger.info "We found the tempalte!"
-              load_template(path, template[:name])
+              load_template(path, template)
             else
               # Many cases we must dig one layer deep
               @logger.info "We didn't find it at the root, go one layer deep"
               remote.each do |file|
-                load_template(File.join(path, file), template[:name])
+                load_template(File.join(path, file), template)
               end
             end
           end
