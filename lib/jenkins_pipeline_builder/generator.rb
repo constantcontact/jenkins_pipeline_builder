@@ -42,7 +42,7 @@ module JenkinsPipelineBuilder
       @job_templates = {}
       @job_collection = {}
       @extensions = {}
-      @remote_depends = 1 # Count of remote dependancies
+      @remote_depends = {}
 
       @module_registry = ModuleRegistry.new ({
           job: {
@@ -249,19 +249,23 @@ module JenkinsPipelineBuilder
         sources.each do |source|
           source = source[:source]
           url = source[:url]
-          @remote_depends += 1
-          file = "remote#{@remote_depends}"
-          @logger.info "Downloading #{url} to #{file}.tar"
-          open("#{file}.tar", 'w') do |local_file|
-            open(url) do |remote_file|
-              local_file.write(Zlib::GzipReader.new(remote_file).read)
+          file = "remote-#{@remote_depends.length}"
+          if @remote_depends[url]
+            file = @remote_depends[url]
+          else
+            # Only download if we haven't done it yet
+            @remote_depends[url] = file
+            @logger.info "Downloading #{url} to #{file}.tar"
+            open("#{file}.tar", 'w') do |local_file|
+              open(url) do |remote_file|
+                local_file.write(Zlib::GzipReader.new(remote_file).read)
+              end
             end
-          end
 
-          # Extract Tar.gz to 'remote' folder
-          @logger.info "Unpacking #{file}.tar to #{file} folder"
-          Archive::Tar::Minitar.unpack("#{file}.tar", file)
-          
+            # Extract Tar.gz to 'remote' folder
+            @logger.info "Unpacking #{file}.tar to #{file} folder"
+            Archive::Tar::Minitar.unpack("#{file}.tar", file)
+          end # End unless remote dependancy already grabbed
           # Load templates recursively
           if source[:templates]
             source[:templates].each do |template|
@@ -284,12 +288,16 @@ module JenkinsPipelineBuilder
             # If no templates load everything recursively
             load_collection_from_path(path, true)
           end
-          # Cleanup temp files
-          FileUtils.rm_r file
-          FileUtils.rm_r "#{file}.tar"
         end # End sources.each loop
       end
       ### End Load remote YAML
+    end
+
+    def cleanup_temp_remote
+      @remote_depends.each_value do |file|
+        FileUtils.rm_r file
+        FileUtils.rm_r "#{file}.tar"
+      end
     end
 
 
@@ -301,6 +309,7 @@ module JenkinsPipelineBuilder
       project_body = project[:value]
 
       load_remote_yaml(project)
+      cleanup_temp_remote
 
       # Process jobs
       jobs = project_body[:jobs] || []
