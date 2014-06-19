@@ -166,7 +166,7 @@ module JenkinsPipelineBuilder
       if File.directory?(path)
         @logger.info "Generating from folder #{path}"
         Dir[File.join(path, '/*.yaml'), File.join(path, '/*.yml')].each do |file|
-          if File.directory?(file)
+          if File.directory?(file) # TODO: This doesn't work unless the folder contains .yml or .yaml at the end
             if recursively
               load_collection_from_path(File.join(path, file), recursively)
             else
@@ -219,18 +219,23 @@ module JenkinsPipelineBuilder
 
 
     def load_template(path, template)
-      path = File.join(path, template[:name])
-      # If we are looking for the newest version or no version was set
-      if (template[:version].nil? || template[:version]=='newest') && File.directory?(path)
-        folders = Dir.entries(path)
-        highest = 1 # Default to v1
-        folders.each do |f|
-          highest = f.to_i if f.to_i > highest # Note: to_i returns any integers in the folder name
+      # If we specify what folder the yaml is in, load thata
+      if template[:folder]
+        path = File.join(path, template[:folder])
+      else
+        path = File.join(path, template[:name]) unless template[:name] == "default"
+        # If we are looking for the newest version or no version was set
+        if (template[:version].nil? || template[:version]=='newest') && File.directory?(path)
+          folders = Dir.entries(path)
+          highest = 0 # Default to v1
+          folders.each do |f|
+            highest = f.to_i if f.to_i > highest # Note: to_i returns any integers in the folder name
+          end
+          template[:version] = highest unless highest == 0
         end
-        template[:version] = highest
+        path = File.join(path, template[:version].to_s) unless template[:version].nil?
+        path = File.join(path, 'pipeline')
       end
-      path = File.join(path, template[:version].to_s) if template[:version]
-      path = File.join(path, 'pipeline')
       if File.directory?(path)
         @logger.info "Loading from #{path}"
         load_collection_from_path(path, false, true)
@@ -266,15 +271,15 @@ module JenkinsPipelineBuilder
             @logger.info "Unpacking #{file}.tar to #{file} folder"
             Archive::Tar::Minitar.unpack("#{file}.tar", file)
           end # End unless remote dependancy already grabbed
+          path = File.expand_path(file, relative_to=Dir.getwd)
           # Load templates recursively
           if source[:templates]
             source[:templates].each do |template|
               # Move into the remote folder and look for the template folder
-              path = File.expand_path(file, relative_to=Dir.getwd)
               remote = Dir.entries(path)
               if remote.include? template[:name]
                 # We found the template name, load this path
-                @logger.info "We found the tempalte!"
+                @logger.info "We found the template!"
                 load_template(path, template)
               else
                 # Many cases we must dig one layer deep
@@ -285,8 +290,9 @@ module JenkinsPipelineBuilder
               end
             end
           else
-            # If no templates load everything recursively
-            load_collection_from_path(path, true)
+            # Try to load the folder or the pipeline folder
+            path = File.join(path, 'pipeline') if Dir.entries(path).include? 'pipeline'
+            load_collection_from_path(path)
           end
         end # End sources.each loop
       end
