@@ -189,25 +189,23 @@ module JenkinsPipelineBuilder
         Utils.symbolize_keys_deep!(section)
         key = section.keys.first
         value = section[key]
-        name = value[:name]
-        # If the collection already has this key
-        if @job_collection.has_key?(name)
-          # If this file came from a remote server
-          if remote
-            if name == "global" && value[:template_repo]
-              # Resolve dependancies
-              @logger.info "Resolving Dependancies for remote project"
-              project = {}
-              project[:settings] = value
-              load_remote_yaml(project)
-            else
+        if key == :dependencies
+          # Resolve dependencies
+          @logger.info "Resolving Dependencies for remote project"
+          load_remote_yaml(value)
+        else
+          name = value[:name]
+          # If the collection already has this key
+          if @job_collection.has_key?(name)
+            # If this file came from a remote server
+            if remote
               @logger.info "Duplicate item with name '#{name}' was detected from the remote folder."
+            else
+              raise "Duplicate item with name '#{name}' was detected."
             end
           else
-            raise "Duplicate item with name '#{name}' was detected."
+            @job_collection[name.to_s] = { name: name.to_s, type: key, value: value }
           end
-        else
-          @job_collection[name.to_s] = { name: name.to_s, type: key, value: value }
         end
       end
     end
@@ -227,13 +225,13 @@ module JenkinsPipelineBuilder
         # If we are looking for the newest version or no version was set
         if (template[:version].nil? || template[:version]=='newest') && File.directory?(path)
           folders = Dir.entries(path)
-          highest = 0 # Default to v1
+          highest = '0' # Default to v1
           folders.each do |f|
-            highest = f.to_i if f.to_i > highest # Note: to_i returns any integers in the folder name
+            highest = f if f > highest # Note: to_i returns any integers in the folder name
           end
           template[:version] = highest unless highest == 0
         end
-        path = File.join(path, template[:version].to_s) unless template[:version].nil?
+        path = File.join(path, template[:version]) unless template[:version].nil?
         path = File.join(path, 'pipeline')
       end
       if File.directory?(path)
@@ -246,56 +244,55 @@ module JenkinsPipelineBuilder
     end
 
 
-    def load_remote_yaml(project)
+    def load_remote_yaml(dependencies)
       ### Load remote YAML
       # Download Tar.gz
-      if project[:settings] && project[:settings][:template_repo]
-        sources = project[:settings][:template_repo]
-        sources.each do |source|
-          source = source[:source]
-          url = source[:url]
-          file = "remote-#{@remote_depends.length}"
-          if @remote_depends[url]
-            file = @remote_depends[url]
-          else
-            # Only download if we haven't done it yet
-            @remote_depends[url] = file
-            @logger.info "Downloading #{url} to #{file}.tar"
-            open("#{file}.tar", 'w') do |local_file|
-              open(url) do |remote_file|
-                local_file.write(Zlib::GzipReader.new(remote_file).read)
-              end
+      dependencies.each do |source|
+        source = source[:source]
+        url = source[:url]
+        file = "remote-#{@remote_depends.length}"
+        if @remote_depends[url]
+          file = @remote_depends[url]
+        else
+          # Only download if we haven't done it yet
+          @remote_depends[url] = file
+          @logger.info "Downloading #{url} to #{file}.tar"
+          open("#{file}.tar", 'w') do |local_file|
+            open(url) do |remote_file|
+              local_file.write(Zlib::GzipReader.new(remote_file).read)
             end
-
-            # Extract Tar.gz to 'remote' folder
-            @logger.info "Unpacking #{file}.tar to #{file} folder"
-            Archive::Tar::Minitar.unpack("#{file}.tar", file)
-          end # End unless remote dependancy already grabbed
-          path = File.expand_path(file, relative_to=Dir.getwd)
-          # Load templates recursively
-          if source[:templates]
-            source[:templates].each do |template|
-              # Move into the remote folder and look for the template folder
-              remote = Dir.entries(path)
-              if remote.include? template[:name]
-                # We found the template name, load this path
-                @logger.info "We found the template!"
-                load_template(path, template)
-              else
-                # Many cases we must dig one layer deep
-                @logger.info "We didn't find it at the root, go one layer deep"
-                remote.each do |file|
-                  load_template(File.join(path, file), template)
-                end
-              end
-            end
-          else
-            # Try to load the folder or the pipeline folder
-            path = File.join(path, 'pipeline') if Dir.entries(path).include? 'pipeline'
-            load_collection_from_path(path)
           end
-        end # End sources.each loop
-      end
+
+          # Extract Tar.gz to 'remote' folder
+          @logger.info "Unpacking #{file}.tar to #{file} folder"
+          Archive::Tar::Minitar.unpack("#{file}.tar", file)
+        end # End unless remote dependancy already grabbed
+        path = File.expand_path(file, relative_to=Dir.getwd)
+        # Load templates recursively
+        if source[:templates]
+          source[:templates].each do |template|
+            version = template[:version] || 'newest'
+            @logger.info "Loading #{template[:name]} at version #{version}"
+            # Move into the remote folder and look for the template folder
+            remote = Dir.entries(path)
+            if remote.include? template[:name]
+              # We found the template name, load this path
+              @logger.info "We found the template!"
+              load_template(path, template)
+            else
+              # Many cases we must dig one layer deep
+              remote.each do |file|
+                load_template(File.join(path, file), template)
+              end
+            end
+          end
+        else
+          @logger.info "No specific template specified"
+          # Try to load the folder or the pipeline folder
+          path = File.join(path, 'pipeline') if Dir.entries(path).include? 'pipeline'
+          load_collection_from_path(path)
+        end
+      end # End sources.each loop
       ### End Load remote YAML
     end
 
@@ -313,9 +310,6 @@ module JenkinsPipelineBuilder
 
       project[:settings] = Compiler.get_settings_bag(project, settings) unless project[:settings]
       project_body = project[:value]
-
-      load_remote_yaml(project)
-      cleanup_temp_remote
 
       # Process jobs
       jobs = project_body[:jobs] || []
@@ -393,6 +387,7 @@ module JenkinsPipelineBuilder
     def bootstrap(path, project_name)
       @logger.info "Bootstrapping pipeline from path #{path}"
       load_collection_from_path(path)
+      cleanup_temp_remote
       load_extensions(path)
       errors = {}
       # Publish all the jobs if the projects are not found
@@ -450,6 +445,7 @@ module JenkinsPipelineBuilder
     def pull_request(path, project_name)
       @logger.info "Pull Request Generator Running from path #{path}"
       load_collection_from_path(path)
+      cleanup_temp_remote
       load_extensions(path)
       jobs = {}
       projects.each do |project|
