@@ -17,6 +17,7 @@
           release-repo: gems-local
           publish: 'pkg/*.gem'
           publish-build-info: true
+          properties: foo=bar
       - inject_env_var:
           content: |
             VAR1 = value_1
