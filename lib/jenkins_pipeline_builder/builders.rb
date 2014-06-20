@@ -98,7 +98,7 @@ module JenkinsPipelineBuilder
             xml.condition params[:condition] || 'SUCCESS'
             xml.triggerWithNoParameters params[:trigger_with_no_parameters] || false
             xml.block{
-              if params[:fail] && params[:fail] != "never"
+              if params[:fail] && colors.include?(params[:fail])
                 xml.buildStepFailureThreshold{
                   xml.name params[:fail]
                   xml.ordinal colors[params[:fail]][:ordinal]
@@ -106,16 +106,16 @@ module JenkinsPipelineBuilder
                   xml.completeBuild 'true'
                 }
               end
-              if params[:mark_fail] && params[:mark_fail] != "never"
-                xml.unstableThreshold{
+              if params[:mark_fail] && colors.include?(params[:mark_fail])
+                xml.failureThreshold{
                   xml.name params[:mark_fail]
                   xml.ordinal colors[params[:mark_fail]][:ordinal]
                   xml.color colors[params[:mark_fail]][:color]
                   xml.completeBuild 'true'
                 }
               end
-              if params[:mark_unstable] && params[:mark_unstable] != "never"
-                xml.failureThreshold{
+              if params[:mark_unstable] && colors.include?(params[:mark_unstable])
+                xml.unstableThreshold{
                   xml.name params[:mark_unstable]
                   xml.ordinal colors[params[:mark_unstable]][:ordinal]
                   xml.color colors[params[:mark_unstable]][:color]
