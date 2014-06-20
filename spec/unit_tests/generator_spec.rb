@@ -43,7 +43,10 @@ describe 'Test YAML jobs conversion to XML' do
       'specific_priority',
       'periodic_build',
       'discard_old',
-      'choice_parameter'
+      'concurrent_build',
+      'choice_parameter',
+      'downstream_blocking',
+      'groovy_postbuild'
     ]
 
     files.each do |file|

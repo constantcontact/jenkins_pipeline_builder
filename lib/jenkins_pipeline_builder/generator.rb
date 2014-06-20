@@ -41,6 +41,7 @@ module JenkinsPipelineBuilder
       #@logger.level = (@debug) ? Logger::DEBUG : Logger::INFO;
       @job_templates = {}
       @job_collection = {}
+      @extensions = {}
 
       @module_registry = ModuleRegistry.new ({
           job: {
@@ -52,12 +53,14 @@ module JenkinsPipelineBuilder
               discard_old: JobBuilder.method(:discard_old_param),
               throttle: JobBuilder.method(:throttle_job),
               prepare_environment: JobBuilder.method(:prepare_environment),
+              concurrent_build: JobBuilder.method(:concurrent_build),
               builders: {
                   registry: {
                       multi_job: Builders.method(:build_multijob),
                       inject_vars_file: Builders.method(:build_environment_vars_injector),
                       shell_command: Builders.method(:build_shell_command),
                       maven3: Builders.method(:build_maven3),
+                      blocking_downstream: Builders.method(:blocking_downstream),
                       remote_job: Builders.method(:start_remote_job)
                   },
                   method:
@@ -71,7 +74,8 @@ module JenkinsPipelineBuilder
                       downstream: Publishers.method(:push_to_projects),
                       junit_result: Publishers.method(:publish_junit),
                       coverage_result: Publishers.method(:publish_rcov),
-                      post_build_script: Publishers.method(:post_build_script)
+                      post_build_script: Publishers.method(:post_build_script),
+                      groovy_postbuild: Publishers.method(:groovy_postbuild)
                   },
                   method:
                     lambda { |registry, params, n_xml| @module_registry.run_registry_on_path('//publishers', registry, params, n_xml) }
@@ -102,6 +106,38 @@ module JenkinsPipelineBuilder
               }
           }
       })
+    end
+
+    def load_extensions(path)
+      path = "#{path}/extensions"
+      path = File.expand_path(path, relative_to=Dir.getwd)
+      if File.directory?(path)
+        @logger.info "Loading extensions from folder #{path}"
+        Dir[File.join(path, '/*.yaml'), File.join(path, '/*.yml')].each do |file|
+          @logger.info "Loading file #{file}"
+          yaml = YAML.load_file(file)
+          yaml.each do |ext|
+            Utils.symbolize_keys_deep!(ext)
+            ext = ext[:extension]
+            name = ext[:name]
+            type = ext[:type]
+            function = ext[:function]
+            raise "Duplicate extension with name '#{name}' was detected." if @extensions.has_key?(name)
+            @extensions[name.to_s] = { name: name.to_s, type: type, function: function }
+          end
+        end
+      end
+      @extensions.each_value do |ext|
+        name = ext[:name].to_sym
+        registry = @module_registry.registry[:job]
+        function = eval "Proc.new {|params,xml| #{ext[:function]} }"
+        type = ext[:type].downcase.pluralize.to_sym if ext[:type]
+        if type
+          registry[type][:registry][name] = function
+        else
+          registry[name] = function
+        end
+      end
     end
 
     attr_accessor :client
@@ -245,7 +281,7 @@ module JenkinsPipelineBuilder
     def bootstrap(path, project_name)
       @logger.info "Bootstrapping pipeline from path #{path}"
       load_collection_from_path(path)
-
+      load_extensions(path)
       errors = {}
       # Publish all the jobs if the projects are not found
       if projects.count == 0
@@ -299,6 +335,36 @@ module JenkinsPipelineBuilder
       end
     end
 
+    def pull_request(path, project_name)
+      @logger.info "Pull Request Generator Running from path #{path}"
+      load_collection_from_path(path)
+      load_extensions(path)
+      jobs = {}
+      projects.each do |project|
+        if project[:name] == project_name || project_name == nil
+          project_body = project[:value]
+          project_jobs = project_body[:jobs] || []
+          @logger.info "Using Project #{project}"
+          pull_job = nil
+          project_jobs.each do |job|
+            job = @job_collection[job.to_s]
+            pull_job = job if job[:value][:job_type] == "pull_request_generator"
+          end
+          raise "No Pull Request Found for Project" unless pull_job
+          pull_jobs = pull_job[:value][:jobs] || []
+          pull_jobs.each do |job|
+            if job.is_a? String
+              jobs[job.to_s] = @job_collection[job.to_s]
+            else
+              jobs[job.keys[0].to_s] = @job_collection[job.keys[0].to_s]
+            end
+          end
+          pull = JenkinsPipelineBuilder::PullRequestGenerator.new(self)
+          pull.run(project, jobs, pull_job)
+        end
+      end
+    end
+
     def dump(job_name)
       @logger.info "Debug #{@debug}"
       @logger.info "Dumping #{job_name} into #{job_name}.xml"
@@ -337,7 +403,7 @@ module JenkinsPipelineBuilder
         when 'build_flow'
           xml = compile_freestyle_job_to_xml(job)
           payload = add_job_dsl(job, xml)
-        when 'free_style'
+        when 'free_style', 'pull_request_generator'
           payload = compile_freestyle_job_to_xml job
         else
           return false, "Job type: #{job[:job_type]} is not one of job_dsl, multi_project, build_flow or free_style"

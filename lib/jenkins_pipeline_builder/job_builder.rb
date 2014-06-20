@@ -34,6 +34,7 @@ module JenkinsPipelineBuilder
       XmlHelper.update_node_text(n_xml, '//scm/excludedUsers', params[:excluded_users]) if params[:excluded_users]
       XmlHelper.update_node_text(n_xml, '//scm/userRemoteConfigs/hudson.plugins.git.UserRemoteConfig/name', params[:remote_name]) if params[:remote_name]
       XmlHelper.update_node_text(n_xml, '//scm/skipTag', params[:skip_tag]) if params[:skip_tag]
+      XmlHelper.update_node_text(n_xml, '//scm/userRemoteConfigs/hudson.plugins.git.UserRemoteConfig/refspec', params[:refspec]) if params[:refspec]
     end
 
     def self.hipchat_notifier(params, n_xml)
@@ -145,6 +146,11 @@ module JenkinsPipelineBuilder
           xml.keepBuildVariables params[:keep_build] if params[:keep_build]
         }
       end
+    end
+
+    def self.concurrent_build(params, n_xml)
+      concurrentBuild = n_xml.xpath('//concurrentBuild').first
+      concurrentBuild.content = (params == true) ? 'true' : 'false'
     end
 
   end

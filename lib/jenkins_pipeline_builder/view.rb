@@ -113,8 +113,20 @@ module JenkinsPipelineBuilder
       raise ArgumentError, "Name is required for creating view" \
           unless params.is_a?(Hash) && params[:name]
       unless @generator.debug
-        if @client.view.exists?(params[:name])
-          @client.view.delete(params[:name])
+        # If we have a parent view, we need to do some additional checks
+        if params[:parent_view]
+          # If there is no current parent view, create it
+          unless @client.view.exists?(params[:parent_view])
+            create_base_view(params[:parent_view], 'nestedView')  
+          end
+          # If the view currently exists, delete it
+          if exists?(params[:name], params[:parent_view])
+            delete(params[:name], params[:parent_view])
+          end
+        else
+          if @client.view.exists?(params[:name])
+            @client.view.delete(params[:name])
+          end
         end
       end
       params[:type] = 'listview' unless params[:type]
@@ -254,6 +266,17 @@ module JenkinsPipelineBuilder
       path = parent_view.nil? ? '' : "/view/#{parent_view}"
       path += "/view/#{view_name}/doDelete"
       @client.api_post_request(path)
+    end
+    # Checks if the given view exists in Jenkins
+    #
+    # @param [String] view_name
+    #
+    def exists?(view_name, parent_view = nil)
+      if parent_view
+        list_children(parent_view, view_name).include?(view_name)
+      else
+        list(view_name).include?(view_name)
+      end
     end
   end
 end

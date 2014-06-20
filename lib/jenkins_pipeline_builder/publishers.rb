@@ -124,5 +124,21 @@ module JenkinsPipelineBuilder
         xml.executeOn params[:execute_on] || 'BOTH'
       }
     end
+
+    def self.groovy_postbuild(params, xml)
+      xml.send('org.jvnet.hudson.plugins.groovypostbuild.GroovyPostbuildRecorder', 'plugin' => 'groovy-postbuild') {
+        xml.groovyScript params[:groovy_script]
+        xml.behavior params[:behavior] || '0'
+        xml.runFormMatrixParent 'false'
+        if params[:additional_classpaths]
+          params[:additional_classpaths].each do |path|
+            xml.send('org.jvnet.hudson.plugins.groovypostbuild.GroovyScriptPath') {
+              xml.path path[:path] || '/'
+            }
+          end
+        end
+      }
+    end
+
   end
 end
