@@ -35,6 +35,8 @@ module JenkinsPipelineBuilder
       XmlHelper.update_node_text(n_xml, '//scm/userRemoteConfigs/hudson.plugins.git.UserRemoteConfig/name', params[:remote_name]) if params[:remote_name]
       XmlHelper.update_node_text(n_xml, '//scm/skipTag', params[:skip_tag]) if params[:skip_tag]
       XmlHelper.update_node_text(n_xml, '//scm/userRemoteConfigs/hudson.plugins.git.UserRemoteConfig/refspec', params[:refspec]) if params[:refspec]
+      XmlHelper.update_node_text(n_xml, '//scm/excludedRegions', params[:excluded_regions]) if params[:excluded_regions]
+      XmlHelper.update_node_text(n_xml, '//scm/includedRegions', params[:included_regions]) if params[:included_regions]
     end
 
     def self.hipchat_notifier(params, n_xml)
