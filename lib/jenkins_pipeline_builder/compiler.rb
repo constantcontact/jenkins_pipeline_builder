@@ -22,10 +22,20 @@
 
 module JenkinsPipelineBuilder
   class Compiler
-    def self.resolve_value(value, settings)
+    def self.resolve_value(value, settings, job_collection)
       settings = settings.with_indifferent_access
       value_s = value.to_s.clone
-      vars = value_s.scan(/{{([^{}]+)}}/).flatten
+      # First we try to do job name correction
+      vars = value_s.scan(/{{job@(.*)}}/).flatten
+      if vars.count > 0
+        vars.select! do |var|
+          var_val = job_collection[var.to_s]
+          value_s.gsub!("{{job@#{var.to_s}}}", var_val[:value][:name]) unless var_val.nil?
+          var_val.nil?
+        end
+      end
+      # Then we look for normal values to replace
+      vars = value_s.scan(/{{([^{}@]+)}}/).flatten
       vars.select! do |var|
         var_val = settings[var]
         value_s.gsub!("{{#{var.to_s}}}", var_val) unless var_val.nil?
@@ -42,7 +52,7 @@ module JenkinsPipelineBuilder
       item.keys.each do |k|
         val = item[k]
         if val.kind_of? String
-          new_value = resolve_value(val, settings_bag)
+          new_value = resolve_value(val, settings_bag, {})
           return nil if new_value.nil?
           bag[k] = new_value
         end
@@ -51,11 +61,11 @@ module JenkinsPipelineBuilder
       return my_settings_bag.merge(bag)
     end
 
-    def self.compile(item, settings = {})
+    def self.compile(item, settings = {}, job_collection = {})
       errors = {}
       case item
         when String
-          new_value = resolve_value(item, settings)
+          new_value = resolve_value(item, settings, job_collection)
           if new_value.nil?
             errors[item] =  "Failed to resolve #{item}"
           end
@@ -70,7 +80,7 @@ module JenkinsPipelineBuilder
               errors[key] = "key: #{key} has a nil value, this is likely a yaml syntax error. Skipping children and siblings"
               break
             end
-            success, payload = compile(value, settings)
+            success, payload = compile(value, settings, job_collection)
             unless success
               errors.merge!(payload)
               next
@@ -92,7 +102,7 @@ module JenkinsPipelineBuilder
               errors[item] = "found a nil value when processing following array:\n #{item.inspect}"
               break
             end
-            success, payload = compile(value, settings)
+            success, payload = compile(value, settings, job_collection)
             unless success
               errors.merge!(payload)
               next

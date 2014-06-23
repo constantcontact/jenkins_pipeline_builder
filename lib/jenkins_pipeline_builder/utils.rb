@@ -42,5 +42,27 @@ module JenkinsPipelineBuilder
         end
       end
     end
+    def self.hash_merge!(old, new)
+      old.merge!(new) do |key, old, new|
+        if old.is_a?(Hash) && new.is_a?(Hash)
+          hash_merge!(old, new)
+        elsif old.is_a?(Array) && new.is_a?(Array)
+          new.each do |nar|
+            found = false
+            old.map! do |oar|
+              if nar.keys.first == oar.keys.first
+                found = true
+                nar
+              else
+                oar
+              end
+            end
+            old << nar unless found
+          end
+        else
+          new 
+        end 
+      end 
+    end
   end
 end

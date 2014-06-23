@@ -318,6 +318,16 @@ module JenkinsPipelineBuilder
       end
       errors = {}
       @logger.info project
+
+      # First process job changes
+      jobs.each do |job|
+        job_id = job.keys.first
+        j = get_item(job_id)
+        Utils.hash_merge!(j, job[job_id])
+        j[:value][:name] = j[:job_name] if j[:job_name]
+      end
+      
+      # Now process jobs
       jobs.each do |job|
         job_id = job.keys.first
         settings = project[:settings].clone.merge(job[job_id])
@@ -328,7 +338,6 @@ module JenkinsPipelineBuilder
           errors[job_id] = payload
         end
       end
-
       # Process views
       views = project_body[:views] || []
       views.map! do |view|
@@ -363,8 +372,7 @@ module JenkinsPipelineBuilder
       raise "Failed to locate job by name '#{name}'" if job.nil?
       job_value = job[:value]
       @logger.debug "Compiling job #{name}"
-
-      success, payload = Compiler.compile(job_value, settings)
+      success, payload = Compiler.compile(job_value, settings, @job_collection)
       return success, payload
     end
 
@@ -426,7 +434,6 @@ module JenkinsPipelineBuilder
                 end
               end
             end
-
             if compiled_project[:value][:views]
               compiled_project[:value][:views].each do |v|
                 _view = v[:result]
