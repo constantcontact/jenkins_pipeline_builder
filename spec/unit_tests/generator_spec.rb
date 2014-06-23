@@ -83,5 +83,7 @@ describe 'Test YAML jobs conversion to XML' do
         compare_jobs job, file_name
       end
     end
+
+    it 'downloads from remote repos'
   end
 end
