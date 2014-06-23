@@ -148,7 +148,7 @@ Here's a high level overview of what's available:
           mavenName: maven-name # Optional
       - remote_job:
           server: 'Name of Server' # Name of the Remote Jenkins Server
-          job_name: name_of_remote_build 
+          job_name: name_of_remote_build
           blocking: true # Block current job until remote job finishes
           polling_interval: 10 # Optional, number of seconds between polls, defaults to 10
           continue_on_remote_failure: false
@@ -183,13 +183,14 @@ Here's a high level overview of what's available:
           snapshot-repo: snapshot
           publish: 'pkg/*.gem'
           publish-build-info: true # Optional
+          properties: key=value;key2=value2,value2.1
       - maven3artifactory:
           url: https://artifactory.com/artifactory
           artifactory-name: name
           release-repo: release
           snapshot-repo: snapshot
           publish-build-info: true # Optional
-      - inject_env_var: 
+      - inject_env_var:
           file: 'foo.prop'
           content: |
             VAR1 = value_1
