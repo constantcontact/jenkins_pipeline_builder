@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+    <actions/>
+    <description/>
+    <keepDependencies>false</keepDependencies>
+    <properties/>
+    <scm class="hudson.scm.NullSCM"/>
+    <canRoam>true</canRoam>
+    <disabled>false</disabled>
+    <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+    <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+    <triggers class="vector"/>
+    <concurrentBuild>false</concurrentBuild>
+    <builders>
+        <hudson.plugins.copyartifact.CopyArtifact plugin="copyartifact">
+            <project>test</project>
+            <filter>artifact.txt</filter>
+            <target>artifacts</target>
+            <parameters>test=true</parameters>
+            <selector class="hudson.plugins.copyartifact.TriggeredBuildSelector">
+                <fallbackToLastSuccessful>true</fallbackToLastSuccessful>
+            </selector>
+            <doNotFingerprintArtifacts>false</doNotFingerprintArtifacts>
+            <flatten>true</flatten>
+            <optional>true</optional>
+        </hudson.plugins.copyartifact.CopyArtifact>
+    </builders>
+    <publishers/>
+    <buildWrappers/>
+</project>
