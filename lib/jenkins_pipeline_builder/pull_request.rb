@@ -100,7 +100,6 @@ module JenkinsPipelineBuilder
         end
       end
     end
-
   end
   class PullRequest
 
