@@ -23,7 +23,7 @@
 module JenkinsPipelineBuilder
   class ::Hash
     def deep_merge(second)
-      merger = proc { |key, v1, v2| Hash === v1 && Hash === v2 ? v1.merge(v2, &merger) : v2 }
+      merger = proc { |_key, v1, v2| Hash === v1 && Hash === v2 ? v1.merge(v2, &merger) : v2 }
       self.merge(second, &merger)
     end
   end
@@ -43,13 +43,13 @@ module JenkinsPipelineBuilder
       end
     end
     def self.hash_merge!(old, new)
-      old.merge!(new) do |key, old, new|
+      old.merge!(new) do |_key, old, new|
         if old.is_a?(Hash) && new.is_a?(Hash)
           hash_merge!(old, new)
         else
-          new 
-        end 
-      end 
+          new
+        end
+      end
     end
   end
 end

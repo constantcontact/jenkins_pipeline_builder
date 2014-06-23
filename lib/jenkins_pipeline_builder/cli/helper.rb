@@ -56,15 +56,15 @@ module JenkinsPipelineBuilder
               )
           )
         else
-          msg = "Credentials are not set. Please pass them as parameters or"
-          msg << " set them in the default credentials file"
+          msg = 'Credentials are not set. Please pass them as parameters or'
+          msg << ' set them in the default credentials file'
           puts msg
           exit 1
         end
 
         #creds[:log_level] =  Logger::DEBUG
         client = JenkinsApi::Client.new(creds)
-        generator = JenkinsPipelineBuilder::Generator.new(options, client)
+        generator = JenkinsPipelineBuilder::Generator.new(client)
         generator.debug = options[:debug] #== 'debug'
         return generator
       end

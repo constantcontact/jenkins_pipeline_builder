@@ -22,102 +22,102 @@
 
 module JenkinsPipelineBuilder
   class Wrappers
-    def self.ansicolor(wrapper, xml)
-      xml.send('hudson.plugins.ansicolor.AnsiColorBuildWrapper') {
+    def self.ansicolor(_, xml)
+      xml.send('hudson.plugins.ansicolor.AnsiColorBuildWrapper') do
         xml.colorMapName 'xterm'
-      }
+      end
     end
 
-    def self.console_timestamp(wrapper, xml)
+    def self.console_timestamp(_, xml)
       xml.send('hudson.plugins.timestamper.TimestamperBuildWrapper', 'plugin' => 'timestamper')
     end
 
     def self.run_with_rvm05(wrapper, xml)
-      xml.send('ruby-proxy-object') {
-        xml.send('ruby-object', 'ruby-class' => 'Jenkins::Tasks::BuildWrapperProxy', 'pluginid' => 'rvm') {
-          xml.object('ruby-class' => 'RvmWrapper', 'pluginid' => 'rvm') {
-            xml.impl('pluginid' => "rvm", 'ruby-class' => 'String') { xml.text wrapper }
-          }
+      xml.send('ruby-proxy-object') do
+        xml.send('ruby-object', 'ruby-class' => 'Jenkins::Tasks::BuildWrapperProxy', 'pluginid' => 'rvm') do
+          xml.object('ruby-class' => 'RvmWrapper', 'pluginid' => 'rvm') do
+            xml.impl('pluginid' => 'rvm', 'ruby-class' => 'String') { xml.text wrapper }
+          end
           xml.pluginid(:pluginid => 'rvm', 'ruby-class' => 'String') { xml.text 'rvm' }
-        }
-      }
+        end
+      end
     end
     def self.run_with_rvm(wrapper, xml)
-      xml.send('ruby-proxy-object') {
-        xml.send('ruby-object', 'ruby-class' => 'Jenkins::Plugin::Proxies::BuildWrapper', 'pluginid' => 'rvm') {
-          xml.object('ruby-class' => 'RvmWrapper', 'pluginid' => 'rvm') {
-            xml.impl('pluginid' => "rvm", 'ruby-class' => 'String') { xml.text wrapper }
-          }
+      xml.send('ruby-proxy-object') do
+        xml.send('ruby-object', 'ruby-class' => 'Jenkins::Plugin::Proxies::BuildWrapper', 'pluginid' => 'rvm') do
+          xml.object('ruby-class' => 'RvmWrapper', 'pluginid' => 'rvm') do
+            xml.impl('pluginid' => 'rvm', 'ruby-class' => 'String') { xml.text wrapper }
+          end
           xml.pluginid(:pluginid => 'rvm', 'ruby-class' => 'String') { xml.text 'rvm' }
-        }
-      }
+        end
+      end
     end
 
     def self.inject_passwords(passwords, xml)
-      xml.EnvInjectPasswordWrapper {
+      xml.EnvInjectPasswordWrapper do
         xml.injectGlobalPasswords false
-        xml.passwordEntries {
+        xml.passwordEntries do
           passwords.each do |password|
-            xml.EnvInjectPasswordEntry {
+            xml.EnvInjectPasswordEntry do
               xml.name password[:name]
               xml.value password[:value]
-            }
+            end
           end
-        }
-      }
+        end
+      end
     end
 
     def self.inject_env_vars(params, xml)
-      xml.EnvInjectBuildWrapper {
-        xml.info {
+      xml.EnvInjectBuildWrapper do
+        xml.info do
           xml.propertiesFilePath params[:file] if params[:file]
           xml.propertiesContent params[:content] if params[:content]
           xml.loadFilesFromMaster false
-        }
-      }
+        end
+      end
     end
 
     def self.publish_to_artifactory(wrapper, xml)
-      xml.send('org.jfrog.hudson.generic.ArtifactoryGenericConfigurator') {
-        xml.details {
+      xml.send('org.jfrog.hudson.generic.ArtifactoryGenericConfigurator') do
+        xml.details do
           xml.artifactoryUrl wrapper[:url]
           xml.artifactoryName wrapper[:'artifactory-name']
           xml.repositoryKey wrapper[:'release-repo']
           xml.snapshotsRepositoryKey wrapper.fetch(:'snapshot-repo', wrapper[:'release-repo'])
-        }
+        end
         xml.deployPattern wrapper[:publish]
         xml.resolvePattern
         xml.matrixParams wrapper[:properties]
         xml.deployBuildInfo wrapper[:'publish-build-info']
         xml.includeEnvVars false
-        xml.envVarsPatterns {
+        xml.envVarsPatterns do
           xml.includePatterns
           xml.excludePatterns '*password*,*secret*'
-        }
+        end
         xml.discardOldBuilds false
         xml.discardBuildArtifacts true
-      }
+      end
     end
 
     def self.artifactory_maven3_configurator(wrapper, xml)
-      xml.send('org.jfrog.hudson.maven3.ArtifactoryMaven3Configurator') { # plugin="artifactory@2.2.1"
-        xml.details {
+      xml.send('org.jfrog.hudson.maven3.ArtifactoryMaven3Configurator') do # plugin='artifactory@2.2.1'
+        xml.details do
           xml.artifactoryUrl wrapper[:url]
           xml.artifactoryName wrapper[:'artifactory-name']
           xml.repositoryKey wrapper[:'release-repo']
           xml.snapshotsRepositoryKey wrapper.fetch(:'snapshot-repo', wrapper[:'release-repo'])
-        }
+        end
         xml.deployArtifacts wrapper.fetch(:'deploy', true)
-        xml.artifactDeploymentPatterns {
+        xml.artifactDeploymentPatterns do
           xml.includePatterns
           xml.excludePatterns
-        }
+        end
         xml.includeEnvVars false
         xml.deployBuildInfo wrapper.fetch(:'publish-build-info', true)
-        xml.envVarsPatterns {
+        xml.envVarsPatterns do
           xml.includePatterns
           xml.excludePatterns '*password*,*secret*'
-        }
+        end
         xml.runChecks false
         xml.violationRecipients
         xml.includePublishArtifacts false
@@ -138,7 +138,7 @@ module JenkinsPipelineBuilder
         xml.autoCreateMissingComponentRequests true
         xml.autoDiscardStaleComponentRequests true
         xml.filterExcludedArtifactsFromBuild false
-      }
+      end
     end
   end
 end

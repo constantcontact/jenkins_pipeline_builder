@@ -23,7 +23,7 @@
 module JenkinsPipelineBuilder
   class JobBuilder
     def self.change_description(description, n_xml)
-      desc = n_xml.xpath("//description").first
+      desc = n_xml.xpath('//description').first
       desc.content = "#{description}"
     end
 
@@ -38,113 +38,113 @@ module JenkinsPipelineBuilder
     end
 
     def self.hipchat_notifier(params, n_xml)
-      raise "No HipChat room specified" unless params[:room]
+      raise 'No HipChat room specified' unless params[:room]
 
-      properties = n_xml.xpath("//properties").first
+      properties = n_xml.xpath('//properties').first
       Nokogiri::XML::Builder.with(properties) do |xml|
-        xml.send('jenkins.plugins.hipchat.HipChatNotifier_-HipChatJobProperty') {
+        xml.send('jenkins.plugins.hipchat.HipChatNotifier_-HipChatJobProperty') do
           xml.room params[:room]
           xml.startNotification params[:'start-notify'] || false
-        }
+        end
       end
     end
 
     def self.use_specific_priority(params, n_xml)
       n_builders = n_xml.xpath('//properties').first
       Nokogiri::XML::Builder.with(n_builders) do |xml|
-        xml.send('jenkins.advancedqueue.AdvancedQueueSorterJobProperty', 'plugin' => 'PrioritySorter') {
+        xml.send('jenkins.advancedqueue.AdvancedQueueSorterJobProperty', 'plugin' => 'PrioritySorter') do
           xml.useJobPriority params[:use_priority]
           xml.priority params[:job_priority] || -1
-        }
+        end
       end
     end
 
     def self.build_parameters(params, n_xml)
       n_builders = n_xml.xpath('//properties').first
       Nokogiri::XML::Builder.with(n_builders) do |xml|
-        xml.send('hudson.model.ParametersDefinitionProperty') {
-          xml.parameterDefinitions {
+        xml.send('hudson.model.ParametersDefinitionProperty') do
+          xml.parameterDefinitions do
             param_proc = lambda do |xml, params, type|
-              xml.send(type) {
+              xml.send(type) do
                 xml.name params[:name]
                 xml.description params[:description]
                 xml.defaultValue params[:default]
                 if params[:type] == 'choice'
                   puts 'choice'
                   puts params
-                  xml.choices('class' => 'java.util.Arrays$ArrayList') {
-                    xml.a('class' => 'string-array') {
+                  xml.choices('class' => 'java.util.Arrays$ArrayList') do
+                    xml.a('class' => 'string-array') do
                       params[:values].each do |value|
                         xml.string value
                       end
-                    }
-                  }
+                    end
+                  end
                 end
-              }
+              end
             end
             params.each do |param|
               case param[:type]
-                when 'string'
-                  paramType = 'hudson.model.StringParameterDefinition'
-                when 'bool'
-                  paramType = 'hudson.model.BooleanParameterDefinition'
-                when 'text'
-                  paramType = 'hudson.model.TextParameterDefinition'
-                when 'password'
-                  paramType = 'hudson.model.PasswordParameterDefinition'
-                when 'choice'
-                  paramType = 'hudson.model.ChoiceParameterDefinition'
-                else
-                  paramType = 'hudson.model.StringParameterDefinition'
-                end
+              when 'string'
+                paramType = 'hudson.model.StringParameterDefinition'
+              when 'bool'
+                paramType = 'hudson.model.BooleanParameterDefinition'
+              when 'text'
+                paramType = 'hudson.model.TextParameterDefinition'
+              when 'password'
+                paramType = 'hudson.model.PasswordParameterDefinition'
+              when 'choice'
+                paramType = 'hudson.model.ChoiceParameterDefinition'
+              else
+                paramType = 'hudson.model.StringParameterDefinition'
+              end
 
               param_proc.call xml, param, paramType
             end
-          }
-        }
+          end
+        end
       end
     end
 
     def self.discard_old_param(params, n_xml)
       properties = n_xml.child
       Nokogiri::XML::Builder.with(properties) do |xml|
-        xml.send('logRotator', 'class' => 'hudson.tasks.LogRotator') {
+        xml.send('logRotator', 'class' => 'hudson.tasks.LogRotator') do
           xml.daysToKeep params[:days] if params[:days]
           xml.numToKeep params[:number] || -1
           xml.artifactDaysToKeep params[:artifact_days] || -1
           xml.artifactNumToKeep params[:artifact_number] || -1
-        }
+        end
       end
     end
 
     def self.throttle_job(params, n_xml)
       properties = n_xml.xpath('//properties').first
-      cat_set = params[:option]=="category"
+      cat_set = params[:option] == 'category'
       Nokogiri::XML::Builder.with(properties) do |xml|
-        xml.send('hudson.plugins.throttleconcurrents.ThrottleJobProperty', 'plugin' => 'throttle-concurrents') {
+        xml.send('hudson.plugins.throttleconcurrents.ThrottleJobProperty', 'plugin' => 'throttle-concurrents') do
           xml.maxConcurrentPerNode params[:max_per_node] || 0
           xml.maxConcurrentTotal params[:max_total] || 0
           xml.throttleEnabled true
-          xml.throttleOption params[:option] || "alone"
-          xml.categories {
+          xml.throttleOption params[:option] || 'alone'
+          xml.categories do
             xml.string params[:category] if cat_set
-          }
-        }
+          end
+        end
       end
     end
 
     def self.prepare_environment(params, n_xml)
       properties = n_xml.xpath('//properties').first
       Nokogiri::XML::Builder.with(properties) do |xml|
-        xml.send('EnvInjectJobProperty') {
-          xml.info{
+        xml.send('EnvInjectJobProperty') do
+          xml.info do
             xml.propertiesContent params[:properties_content] if params[:properties_content]
             xml.loadFilesFromMaster params[:load_from_master] if params[:load_from_master]
-          }
+          end
           xml.on true
           xml.keepJenkinsSystemVariables params[:keep_environment] if params[:keep_environment]
           xml.keepBuildVariables params[:keep_build] if params[:keep_build]
-        }
+        end
       end
     end
 

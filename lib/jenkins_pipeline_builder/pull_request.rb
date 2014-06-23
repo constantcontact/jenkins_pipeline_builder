@@ -33,7 +33,7 @@ module JenkinsPipelineBuilder
       @client = generator.client
       @logger = @client.logger
     end
-    
+
     # Check for Github Pull Requests
     #
     # args[:git_url] URL to the github main page ex. https://www.github.com/
@@ -41,14 +41,14 @@ module JenkinsPipelineBuilder
     # args[:git_org] The Orig user ex. igorshare
     # @return = array of pull request numbers
     def check_for_pull(args)
-      raise "Please specify all arguments" unless args[:git_url] && args[:git_org] && args[:git_repo]
+      raise 'Please specify all arguments' unless args[:git_url] && args[:git_org] && args[:git_repo]
       # Build the Git URL
       git_url = "#{args[:git_url]}api/v3/repos/#{args[:git_org]}/#{args[:git_repo]}/pulls"
-      
+
       # Download the JSON Data from the API
       resp = Net::HTTP.get_response(URI.parse(git_url))
       pulls = JSON.parse(resp.body)
-      pulls.map{ |p| p["number"]}
+      pulls.map{ |p| p['number']}
     end
 
     # Purge old builds
@@ -57,7 +57,7 @@ module JenkinsPipelineBuilder
       @logger.info "Current pull requests: #{reqs}"
       # Read File
       old_requests = File.new('pull_requests.csv', 'a+').read.split(',')
-      
+
       # Pop off current pull requests
       old_requests.delete_if { |req| reqs.include?("#{req}")}
 
@@ -70,12 +70,11 @@ module JenkinsPipelineBuilder
         end
       end
       # Write File
-      File.open('pull_requests.csv', 'w+') { |file| file.write reqs.join(",") }
+      File.open('pull_requests.csv', 'w+') { |file| file.write reqs.join(',') }
     end
 
     def run(project, job_collection, generator_job)
-      @logger.info "Begin running Pull Request Generator"
-      git_args = {}
+      @logger.info 'Begin running Pull Request Generator'
       pull_requests = check_for_pull generator_job[:value]
       purge_old(pull_requests, project)
       main_collection = job_collection
@@ -88,7 +87,7 @@ module JenkinsPipelineBuilder
 
         # Overwrite the jobs from the generator to the project
         project[:value][:jobs] = generator_job[:value][:jobs]
-        
+
         # Build the jobs
         success, compiled_project = @generator.resolve_project(project)
         compiled_project[:value][:jobs].each do |i|
@@ -113,11 +112,11 @@ module JenkinsPipelineBuilder
     # Initialize
     def initialize(project, number, jobs, generator)
       # Set instance vars
-      @project = project.clone 
+      @project = project.clone
       @number = number
       @jobs = jobs.clone
       @generator = generator.clone
-      
+
       # Run
       run!
     end
@@ -136,7 +135,7 @@ module JenkinsPipelineBuilder
       @jobs.each_value do |job|
         job[:value][:scm_branch] = "origin/pr/#{@number}/head"
         job[:value][:scm_params] = {} unless job[:value][:scm_params]
-        job[:value][:scm_params][:refspec] = "refs/pull/*:refs/remotes/origin/pr/*"
+        job[:value][:scm_params][:refspec] = 'refs/pull/*:refs/remotes/origin/pr/*'
       end
     end
 

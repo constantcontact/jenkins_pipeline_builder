@@ -35,7 +35,7 @@ module JenkinsPipelineBuilder
     #
     # @raise [ArgumentError] when required options are not provided.
     #
-    def initialize(args, client)
+    def initialize(client)
       @client        = client
       @logger        = @client.logger
       #@logger.level = (@debug) ? Logger::DEBUG : Logger::INFO;
@@ -44,7 +44,7 @@ module JenkinsPipelineBuilder
       @extensions = {}
       @remote_depends = {}
 
-      @module_registry = ModuleRegistry.new ({
+      @module_registry = ModuleRegistry.new(
         job: {
           description: JobBuilder.method(:change_description),
           scm_params: JobBuilder.method(:apply_scm_params),
@@ -106,12 +106,12 @@ module JenkinsPipelineBuilder
             lambda { |registry, params, n_xml| @module_registry.run_registry_on_path('//triggers', registry, params, n_xml) }
           }
         }
-      })
+      )
     end
 
     def load_extensions(path)
       path = "#{path}/extensions"
-      path = File.expand_path(path, relative_to=Dir.getwd)
+      path = File.expand_path(path, Dir.getwd)
       if File.directory?(path)
         @logger.info "Loading extensions from folder #{path}"
         Dir[File.join(path, '/*.yaml'), File.join(path, '/*.yml')].each do |file|
@@ -160,7 +160,7 @@ module JenkinsPipelineBuilder
     end
 
     def load_collection_from_path(path, recursively = false, remote=false)
-      path = File.expand_path(path, relative_to=Dir.getwd)
+      path = File.expand_path(path, Dir.getwd)
       if File.directory?(path)
         @logger.info "Generating from folder #{path}"
         Dir[File.join(path, '/*.yaml'), File.join(path, '/*.yml')].each do |file|
@@ -188,7 +188,7 @@ module JenkinsPipelineBuilder
         key = section.keys.first
         value = section[key]
         if key == :dependencies
-          @logger.info "Resolving Dependencies for remote project"
+          @logger.info 'Resolving Dependencies for remote project'
           return load_remote_yaml(value)
         end
 
@@ -214,9 +214,9 @@ module JenkinsPipelineBuilder
       if template[:folder]
         path = File.join(path, template[:folder])
       else
-        path = File.join(path, template[:name]) unless template[:name] == "default"
+        path = File.join(path, template[:name]) unless template[:name] == 'default'
         # If we are looking for the newest version or no version was set
-        if (template[:version].nil? || template[:version]=='newest') && File.directory?(path)
+        if (template[:version].nil? || template[:version] == 'newest') && File.directory?(path)
           folders = Dir.entries(path)
           highest = '0' # Default to v1
           folders.each do |f|
@@ -264,7 +264,7 @@ module JenkinsPipelineBuilder
           download_yaml(url, file)
         end
 
-        path = File.expand_path(file, relative_to=Dir.getwd)
+        path = File.expand_path(file, Dir.getwd)
         # Load templates recursively
         unless source[:templates]
           @logger.info 'No specific template specified'
@@ -285,7 +285,7 @@ module JenkinsPipelineBuilder
         remote = Dir.entries(path)
         if remote.include? template[:name]
           # We found the template name, load this path
-          @logger.info "We found the template!"
+          @logger.info 'We found the template!'
           load_template(path, template)
         else
           # Many cases we must dig one layer deep
@@ -370,7 +370,7 @@ module JenkinsPipelineBuilder
           puts "  #{error.inspect}"
         end
       end
-      return false, "Encountered errors exiting" unless errors.empty?
+      return false, 'Encountered errors exiting' unless errors.empty?
 
       return true, project
     end
@@ -417,8 +417,8 @@ module JenkinsPipelineBuilder
         end
         if compiled_project[:value][:views]
           compiled_project[:value][:views].each do |v|
-            _view = v[:result]
-            view.create(_view)
+            compiled_view = v[:result]
+            view.create(compiled_view)
           end
         end
       end
@@ -471,9 +471,9 @@ module JenkinsPipelineBuilder
           pull_job = nil
           project_jobs.each do |job|
             job = @job_collection[job.to_s]
-            pull_job = job if job[:value][:job_type] == "pull_request_generator"
+            pull_job = job if job[:value][:job_type] == 'pull_request_generator'
           end
-          raise "No Pull Request Found for Project" unless pull_job
+          raise 'No Pull Request Found for Project' unless pull_job
           pull_jobs = pull_job[:value][:jobs] || []
           pull_jobs.each do |job|
             if job.is_a? String
@@ -562,7 +562,7 @@ module JenkinsPipelineBuilder
     end
 
     def add_job_dsl(job, xml)
-      n_xml      = Nokogiri::XML(xml)
+      n_xml = Nokogiri::XML(xml)
       n_xml.root.name = 'com.cloudbees.plugins.flow.BuildFlow'
       Nokogiri::XML::Builder.with(n_xml.root) do |xml|
         xml.dsl job[:build_flow]
@@ -581,24 +581,24 @@ module JenkinsPipelineBuilder
     end
 
     def generate_job_dsl_body(params)
-      @logger.info "Generating pipeline"
+      @logger.info 'Generating pipeline'
 
       xml = @client.job.build_freestyle_config(params)
 
       n_xml = Nokogiri::XML(xml)
       if n_xml.xpath('//javaposse.jobdsl.plugin.ExecuteDslScripts').empty?
-        p_xml = Nokogiri::XML::Builder.new(:encoding => 'UTF-8') do |b_xml|
+        p_xml = Nokogiri::XML::Builder.new(encoding:  'UTF-8') do |b_xml|
           build_job_dsl(params, b_xml)
         end
 
-        n_xml.xpath('//builders').first.add_child("\r\n" + p_xml.doc.root.to_xml(:indent => 4) + "\r\n")
+        n_xml.xpath('//builders').first.add_child("\r\n" + p_xml.doc.root.to_xml(indent:  4) + "\r\n")
         xml = n_xml.to_xml
       end
       xml
     end
 
     def build_job_dsl(job, xml)
-      xml.send('javaposse.jobdsl.plugin.ExecuteDslScripts') {
+      xml.send('javaposse.jobdsl.plugin.ExecuteDslScripts') do
         if job.has_key?(:job_dsl)
           xml.scriptText job[:job_dsl]
           xml.usingScriptText true
@@ -608,7 +608,7 @@ module JenkinsPipelineBuilder
         end
         xml.ignoreExisting false
         xml.removedJobAction 'IGNORE'
-      }
+      end
     end
   end
 end

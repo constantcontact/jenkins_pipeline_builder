@@ -30,7 +30,7 @@ module JenkinsPipelineBuilder
       if vars.count > 0
         vars.select! do |var|
           var_val = job_collection[var.to_s]
-          value_s.gsub!("{{job@#{var.to_s}}}", var_val[:value][:name]) unless var_val.nil?
+          value_s.gsub!("{{job@#{var}}}", var_val[:value][:name]) unless var_val.nil?
           var_val.nil?
         end
       end
@@ -38,7 +38,7 @@ module JenkinsPipelineBuilder
       vars = value_s.scan(/{{([^{}@]+)}}/).flatten
       vars.select! do |var|
         var_val = settings[var]
-        value_s.gsub!("{{#{var.to_s}}}", var_val) unless var_val.nil?
+        value_s.gsub!("{{#{var}}}", var_val) unless var_val.nil?
         var_val.nil?
       end
       return nil if vars.count != 0
@@ -64,59 +64,59 @@ module JenkinsPipelineBuilder
     def self.compile(item, settings = {}, job_collection = {})
       errors = {}
       case item
-        when String
-          new_value = resolve_value(item, settings, job_collection)
-          if new_value.nil?
-            errors[item] =  "Failed to resolve #{item}"
+      when String
+        new_value = resolve_value(item, settings, job_collection)
+        if new_value.nil?
+          errors[item] =  "Failed to resolve #{item}"
+        end
+        unless errors.empty?
+          return false, errors
+        end
+        return true, new_value
+      when Hash
+        result = {}
+        item.each do |key, value|
+          if value.nil?
+            errors[key] = "key: #{key} has a nil value, this is likely a yaml syntax error. Skipping children and siblings"
+            break
           end
-          unless errors.empty?
-            return false, errors
+          success, payload = compile(value, settings, job_collection)
+          unless success
+            errors.merge!(payload)
+            next
           end
-          return true, new_value
-        when Hash
-          result = {}
-          item.each do |key, value|
-            if value.nil?
-              errors[key] = "key: #{key} has a nil value, this is likely a yaml syntax error. Skipping children and siblings"
-              break
-            end
-            success, payload = compile(value, settings, job_collection)
-            unless success
-              errors.merge!(payload)
-              next
-            end
-            if payload.nil?
-              errors[key] = "Failed to resolve:\n===>key: #{key}\n\n===>value: #{value}\n\n===>of: #{item}"
-              next
-            end
-            result[key] = payload
+          if payload.nil?
+            errors[key] = "Failed to resolve:\n===>key: #{key}\n\n===>value: #{value}\n\n===>of: #{item}"
+            next
           end
-          unless errors.empty?
-            return false, errors
+          result[key] = payload
+        end
+        unless errors.empty?
+          return false, errors
+        end
+        return true, result
+      when Array
+        result = []
+        item.each do |value|
+          if value.nil?
+            errors[item] = "found a nil value when processing following array:\n #{item.inspect}"
+            break
           end
-          return true, result
-        when Array
-          result = []
-          item.each do |value|
-            if value.nil?
-              errors[item] = "found a nil value when processing following array:\n #{item.inspect}"
-              break
-            end
-            success, payload = compile(value, settings, job_collection)
-            unless success
-              errors.merge!(payload)
-              next
-            end
-            if payload.nil?
-              errors[value] = "Failed to resolve:\n===>item #{value}\n\n===>of list: #{item}"
-              next
-            end
-            result << payload
+          success, payload = compile(value, settings, job_collection)
+          unless success
+            errors.merge!(payload)
+            next
           end
-          unless errors.empty?
-            return false, errors
+          if payload.nil?
+            errors[value] = "Failed to resolve:\n===>item #{value}\n\n===>of list: #{item}"
+            next
           end
-          return true, result
+          result << payload
+        end
+        unless errors.empty?
+          return false, errors
+        end
+        return true, result
       end
       return true, item
     end

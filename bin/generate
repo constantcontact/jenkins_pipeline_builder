@@ -22,7 +22,7 @@
 #
 
 
-$LOAD_PATH.unshift(File.expand_path(File.dirname(__FILE__) + "/../lib"))
+$LOAD_PATH.unshift(File.expand_path(File.dirname(__FILE__) + '/../lib'))
 require 'jenkins_pipeline_builder'
 JenkinsPipelineBuilder::CLI::Base.start
 

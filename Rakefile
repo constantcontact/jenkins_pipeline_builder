@@ -24,11 +24,11 @@
 require 'rspec/core/rake_task'
 require 'yard'
 
-RSpec::Core::RakeTask.new(:spec, :tag) do |t, task_args|
-  t.pattern = ".spec/**/*_spec.rb"
-  t.verbose = true
-  t.fail_on_error = false
-  t.rspec_opts = spec_output 'spec.xml'
+RSpec::Core::RakeTask.new(:spec, :tag) do |spec|
+  spec.pattern = '.spec/**/*_spec.rb'
+  spec.verbose = true
+  spec.fail_on_error = false
+  spec.rspec_opts = spec_output 'spec.xml'
 end
 
 def spec_output(filename)
@@ -58,11 +58,11 @@ end
 namespace :doc do
   # This task requires that graphviz is installed locally. For more info:
   # http://www.graphviz.org/
-  desc "Generates the class diagram using the yard generated dot file"
+  desc 'Generates the class diagram using the yard generated dot file'
   task :generate_class_diagram do
-    puts "Generating the dot file..."
+    puts 'Generating the dot file...'
     `yard graph --file jenkins_api_client.dot`
-    puts "Generating class diagram from the dot file..."
+    puts 'Generating class diagram from the dot file...'
     `dot jenkins_api_client.dot -Tpng -o jenkins_api_client_class_diagram.png`
   end
 end

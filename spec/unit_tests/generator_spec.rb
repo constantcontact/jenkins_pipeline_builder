@@ -4,13 +4,13 @@ describe 'Test YAML jobs conversion to XML' do
   context 'Loading YAML files' do
     before do
       @client = JenkinsApi::Client.new(
-          :server_ip => '127.0.0.1',
-          :server_port => 8080,
-          :username => 'username',
-          :password => 'password',
-          :log_location => '/dev/null'
+          server_ip:  '127.0.0.1',
+          server_port:  8080,
+          username:  'username',
+          password:  'password',
+          log_location:  '/dev/null'
       )
-      @generator = JenkinsPipelineBuilder::Generator.new(nil, @client)
+      @generator = JenkinsPipelineBuilder::Generator.new(@client)
       @generator.debug = true
       @generator.no_files = true
     end
@@ -62,7 +62,7 @@ describe 'Test YAML jobs conversion to XML' do
       end
     end
 
-    it "should create expected XML from YAML collection" do
+    it 'should create expected XML from YAML collection' do
       path = File.expand_path('../fixtures/files/', __FILE__)
 
       @generator.load_collection_from_path(path)

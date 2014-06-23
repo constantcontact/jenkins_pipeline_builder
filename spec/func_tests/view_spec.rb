@@ -1,7 +1,7 @@
 require File.expand_path('../spec_helper', __FILE__)
 
 describe JenkinsPipelineBuilder::View do
-  context "With properly initialized client" do
+  context 'With properly initialized client' do
     before(:all) do
       @creds_file = '~/.jenkins_api_client/login.yml'
       @valid_post_responses = [200, 201, 302]
@@ -10,9 +10,9 @@ describe JenkinsPipelineBuilder::View do
             YAML.load_file(File.expand_path(@creds_file, __FILE__))
         )
         @client.logger.level = Logger::DEBUG
-        @generator = JenkinsPipelineBuilder::Generator.new(nil, @client)
+        @generator = JenkinsPipelineBuilder::Generator.new(@client)
         @generator.no_files = true
-      rescue Exception => e
+      rescue StandardError => e
         puts 'WARNING: Credentials are not set properly.'
         puts e.message
       end
@@ -43,7 +43,7 @@ describe JenkinsPipelineBuilder::View do
 
         it 'accepts the name of the view and creates the view' do
           params = {
-            :name => 'test_list_view'
+            name:  'test_list_view'
           }
 
           test_and_validate(params)

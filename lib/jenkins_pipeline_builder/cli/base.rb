@@ -27,42 +27,37 @@ module JenkinsPipelineBuilder
   module CLI
     class Base < Thor
 
-      class_option :username, :aliases => "-u", :desc => "Name of Jenkins user"
-      class_option :password, :aliases => "-p",
-                   :desc => "Password of Jenkins user"
-      class_option :password_base64, :aliases => "-b",
-                   :desc => "Base 64 encoded password of Jenkins user"
-      class_option :server_ip, :aliases => "-s",
-                   :desc => "Jenkins server IP address"
-      class_option :server_port, :aliases => "-o", :desc => "Jenkins port"
-      class_option :creds_file, :aliases => "-c",
-                   :desc => "Credentials file for communicating with Jenkins server"
-      class_option :debug, :type => :boolean, :aliases => "-d", :desc => "Run in debug mode (no Jenkins changes)",
-                   :default => false
+      class_option :username, aliases:  '-u', desc:  'Name of Jenkins user'
+      class_option :password, aliases:  '-p', desc:  'Password of Jenkins user'
+      class_option :password_base64, aliases:  '-b', desc:  'Base 64 encoded password of Jenkins user'
+      class_option :server_ip, aliases:  '-s', desc:  'Jenkins server IP address'
+      class_option :server_port, aliases:  '-o', desc:  'Jenkins port'
+      class_option :creds_file, aliases:  '-c', desc:  'Credentials file for communicating with Jenkins server'
+      class_option :debug, type:  :boolean, aliases:  '-d', desc:  'Run in debug mode (no Jenkins changes)', default:  false
 
 
-      map "-v" => :version
+      map '-v' => :version
 
-      desc "version", "Shows current version"
+      desc 'version', 'Shows current version'
       # CLI command that returns the version of Jenkins API Client
       def version
         puts JenkinsPipelineBuilder::VERSION
       end
 
-      # Register the CLI::Pipeline class as "pipeline" subcommand to CLI
+      # Register the CLI::Pipeline class as 'pipeline' subcommand to CLI
       register(
-          CLI::Pipeline,
-          'pipeline',
-          'pipeline [subcommand]',
-          'Provides functions to access pipeline functions of the Jenkins CI server'
+        CLI::Pipeline,
+        'pipeline',
+        'pipeline [subcommand]',
+        'Provides functions to access pipeline functions of the Jenkins CI server'
       )
 
-      # Register the CLI::Job class as "view" subcommand to CLI
+      # Register the CLI::Job class as 'view' subcommand to CLI
       register(
-          CLI::View,
-          'view',
-          'view [subcommand]',
-          'Provides functions to access view interface of Jenkins CI server'
+        CLI::View,
+        'view',
+        'view [subcommand]',
+        'Provides functions to access view interface of Jenkins CI server'
       )
     end
   end

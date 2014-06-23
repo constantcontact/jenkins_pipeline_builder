@@ -28,9 +28,9 @@ module JenkinsPipelineBuilder
         left, right = path.match(/^(.*)\/([^\/]*)$/).captures
         parent_node = n_xml.xpath(left).first
         Nokogiri::XML::Builder.with(parent_node) do |xml|
-          xml.send(right) {
+          xml.send(right) do
             xml.text value
-          }
+          end
         end
       else
         n_node.content = value
