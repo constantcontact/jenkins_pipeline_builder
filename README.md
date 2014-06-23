@@ -115,6 +115,8 @@ Here's a high level overview of what's available:
       recursive_update: true
       wipe_workspace: true
       skip_tag: true # Optional, defaults to false
+      excluded_regions: region
+      included_regions: region
     shell_command: '. commit_build.sh'
     hipchat:
       room: room name here
