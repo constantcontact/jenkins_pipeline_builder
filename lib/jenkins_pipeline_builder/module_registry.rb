@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014 Igor Moochnick
+# Copyright (c) 2014 Constant Contact
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -30,14 +30,12 @@ module JenkinsPipelineBuilder
 
     def get(path)
       parts = path.split('/')
-      self.get_by_path_collection(parts, @registry)
+      get_by_path_collection(parts, @registry)
     end
 
     def get_by_path_collection(path, registry)
       item = registry[path.shift.to_sym]
-      if path.count == 0
-        return item
-      end
+      return item if path.count == 0
 
       get_by_path_collection(path, item)
     end
