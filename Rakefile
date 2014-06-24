@@ -20,9 +20,11 @@
 # THE SOFTWARE.
 #
 
-#!/usr/bin/env rake
 require 'rspec/core/rake_task'
 require 'yard'
+require 'rubocop/rake_task'
+
+RuboCop::RakeTask.new
 
 RSpec::Core::RakeTask.new(:spec, :tag) do |spec|
   spec.pattern = '.spec/**/*_spec.rb'
@@ -67,4 +69,4 @@ namespace :doc do
   end
 end
 
-task default: :unit_tests
+task default: [:unit_tests, :rubocop]

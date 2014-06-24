@@ -8,15 +8,15 @@ Gem::Specification.new do |spec|
   spec.version       = JenkinsPipelineBuilder::VERSION
   spec.authors       = ['Igor Moochnick']
   spec.email         = %w(igor.moochnick@gmail.com)
-  spec.description   = %q{This is a simple and easy-to-use Jenkins Pipeline generator with features focused on
-automating Job & Pipeline creation from the YAML files checked-in with your application source code}
-  spec.summary       = %q{This gem is will boostrap your Jenkins pipelines}
+  spec.description   = %q(This is a simple and easy-to-use Jenkins Pipeline generator with features focused on
+automating Job & Pipeline creation from the YAML files checked-in with your application source code)
+  spec.summary       = %q(This gem is will boostrap your Jenkins pipelines)
   spec.homepage      = 'https://github.com/IgorShare/jenkins_pipeline_builder'
   spec.license       = 'MIT'
 
-  spec.files         = `git ls-files`.split($/)
-  spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
-  spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
+  spec.files         = `git ls-files`.split($RS)
+  spec.executables   = spec.files.grep(/^bin\//) { |f| File.basename(f) }
+  spec.test_files    = spec.files.grep(/^(test|spec|features)\//)
   spec.require_paths = ['lib']
 
   ENV['NOKOGIRI_USE_SYSTEM_LIBRARIES'] = 'true'

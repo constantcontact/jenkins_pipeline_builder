@@ -27,27 +27,27 @@ describe 'Test YAML jobs conversion to XML' do
       doc1.should be_equivalent_to(doc2)
     end
 
-    files = [
-      'Job-Multi-Project',
-      'Job-Build-Maven',
-      'Job-Build-Flow',
-      'Job-Gem-Build',
-      'post_build_script',
-      'properties_file',
-      'downstream',
-      'upstream',
-      'rvm05',
-      'prepare_environment',
-      'remote_job',
-      'throttle',
-      'specific_priority',
-      'periodic_build',
-      'discard_old',
-      'concurrent_build',
-      'choice_parameter',
-      'downstream_blocking',
-      'groovy_postbuild'
-    ]
+    files = %w(
+      Job-Multi-Project
+      Job-Build-Maven
+      Job-Build-Flow
+      Job-Gem-Build
+      post_build_script
+      properties_file
+      downstream
+      upstream
+      rvm05
+      prepare_environment
+      remote_job
+      throttle
+      specific_priority
+      periodic_build
+      discard_old
+      concurrent_build
+      choice_parameter
+      downstream_blocking
+      groovy_postbuild
+    )
 
     files.each do |file|
       it "should create expected XML from YAML '#{file}'" do

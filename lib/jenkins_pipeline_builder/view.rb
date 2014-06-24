@@ -58,7 +58,7 @@ module JenkinsPipelineBuilder
       when 'multijobView'
         'com.tikal.jenkins.plugins.multijob.views.MultiJobView'
       else
-        raise "Type #{type} is not supported by Jenkins."
+        fail "Type #{type} is not supported by Jenkins."
       end
     end
 
@@ -110,7 +110,7 @@ module JenkinsPipelineBuilder
     #
     def create(params)
       # Name is a required parameter. Raise an error if not specified
-      raise ArgumentError, 'Name is required for creating view' unless params.is_a?(Hash) && params[:name]
+      fail ArgumentError, 'Name is required for creating view' unless params.is_a?(Hash) && params[:name]
       unless @generator.debug
         # If we have a parent view, we need to do some additional checks
         if params[:parent_view]
@@ -228,7 +228,7 @@ module JenkinsPipelineBuilder
       column_names.each do |name|
         result << columns_repository[name]
       end
-      return result
+      result
     end
 
     def path_encode(path)

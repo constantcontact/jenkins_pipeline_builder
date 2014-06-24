@@ -25,7 +25,7 @@ module JenkinsPipelineBuilder
     def self.update_node_text(n_xml, path, value)
       n_node = n_xml.xpath(path).first
       if n_node.nil?
-        left, right = path.match(/^(.*)\/([^\/]*)$/).captures
+        left, right = path.match(%r{^(.*)/([^/]*)$}).captures
         parent_node = n_xml.xpath(left).first
         Nokogiri::XML::Builder.with(parent_node) do |xml|
           xml.send(right) do

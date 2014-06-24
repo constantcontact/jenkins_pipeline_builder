@@ -42,7 +42,7 @@ module JenkinsPipelineBuilder
         var_val.nil?
       end
       return nil if vars.count != 0
-      return value_s
+      value_s
     end
 
     def self.get_settings_bag(item_bag, settings_bag = {})
@@ -58,7 +58,7 @@ module JenkinsPipelineBuilder
         end
       end
       my_settings_bag = settings_bag.clone
-      return my_settings_bag.merge(bag)
+      my_settings_bag.merge(bag)
     end
 
     def self.compile(item, settings = {}, job_collection = {})
@@ -66,12 +66,8 @@ module JenkinsPipelineBuilder
       case item
       when String
         new_value = resolve_value(item, settings, job_collection)
-        if new_value.nil?
-          errors[item] =  "Failed to resolve #{item}"
-        end
-        unless errors.empty?
-          return false, errors
-        end
+        errors[item] =  "Failed to resolve #{item}" if new_value.nil?
+        return false, errors unless errors.empty?
         return true, new_value
       when Hash
         result = {}
@@ -91,9 +87,7 @@ module JenkinsPipelineBuilder
           end
           result[key] = payload
         end
-        unless errors.empty?
-          return false, errors
-        end
+        return false, errors unless errors.empty?
         return true, result
       when Array
         result = []
@@ -113,12 +107,10 @@ module JenkinsPipelineBuilder
           end
           result << payload
         end
-        unless errors.empty?
-          return false, errors
-        end
+        return false, errors unless errors.empty?
         return true, result
       end
-      return true, item
+      [true, item]
     end
   end
 end

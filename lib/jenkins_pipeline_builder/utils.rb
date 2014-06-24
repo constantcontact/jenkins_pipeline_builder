@@ -23,8 +23,8 @@
 module JenkinsPipelineBuilder
   class ::Hash
     def deep_merge(second)
-      merger = proc { |_key, v1, v2| Hash === v1 && Hash === v2 ? v1.merge(v2, &merger) : v2 }
-      self.merge(second, &merger)
+      merger = proc { |_key, v1, v2| v1.is_a?(Hash) && v2.is_a?(Hash) ? v1.merge(v2, &merger) : v2 }
+      merge(second, &merger)
     end
   end
 
@@ -36,10 +36,7 @@ module JenkinsPipelineBuilder
         ks    = k.respond_to?(:to_sym) ? k.to_sym : k
         h[ks] = h.delete k # Preserve order even when k == ks
         symbolize_keys_deep! h[ks] if h[ks].kind_of? Hash
-        if h[ks].kind_of? Array
-          #puts "Array #{h[ks]}"
-          h[ks].each { |item| symbolize_keys_deep!(item) }
-        end
+        h[ks].each { |item| symbolize_keys_deep!(item) } if h[ks].is_a?(Array)
       end
     end
     def self.hash_merge!(old, new)

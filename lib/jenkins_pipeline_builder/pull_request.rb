@@ -41,25 +41,25 @@ module JenkinsPipelineBuilder
     # args[:git_org] The Orig user ex. igorshare
     # @return = array of pull request numbers
     def check_for_pull(args)
-      raise 'Please specify all arguments' unless args[:git_url] && args[:git_org] && args[:git_repo]
+      fail 'Please specify all arguments' unless args[:git_url] && args[:git_org] && args[:git_repo]
       # Build the Git URL
       git_url = "#{args[:git_url]}api/v3/repos/#{args[:git_org]}/#{args[:git_repo]}/pulls"
 
       # Download the JSON Data from the API
       resp = Net::HTTP.get_response(URI.parse(git_url))
       pulls = JSON.parse(resp.body)
-      pulls.map{ |p| p['number']}
+      pulls.map { |p| p['number'] }
     end
 
     # Purge old builds
     def purge_old(pull_requests, project)
-      reqs = pull_requests.clone.map {|req| "#{project[:name]}-PR#{req}" }
+      reqs = pull_requests.clone.map { |req| "#{project[:name]}-PR#{req}" }
       @logger.info "Current pull requests: #{reqs}"
       # Read File
       old_requests = File.new('pull_requests.csv', 'a+').read.split(',')
 
       # Pop off current pull requests
-      old_requests.delete_if { |req| reqs.include?("#{req}")}
+      old_requests.delete_if { |req| reqs.include?("#{req}") }
 
       # Delete the old requests from jenkins
       @logger.info "Purging old requests: #{old_requests}"
@@ -93,17 +93,13 @@ module JenkinsPipelineBuilder
         compiled_project[:value][:jobs].each do |i|
           job = i[:result]
           success, payload = @generator.compile_job_to_xml(job)
-          if success
-            @generator.create_or_update(job, payload)
-          end
+          @generator.create_or_update(job, payload) if success
         end
       end
     end
-
   end
-  class PullRequest
 
-    # Accessors
+  class PullRequest
     attr_reader :project    # The root project YAML as a hash
     attr_reader :number     # The pull request number
     attr_reader :jobs       # The jobs in the pull request as an array of hashes
@@ -111,13 +107,11 @@ module JenkinsPipelineBuilder
 
     # Initialize
     def initialize(project, number, jobs, generator)
-      # Set instance vars
       @project = project.clone
       @number = number
       @jobs = jobs.clone
       @generator = generator.clone
 
-      # Run
       run!
     end
 
@@ -152,18 +146,11 @@ module JenkinsPipelineBuilder
         changes = nil
         # Search the generator for changes
         @generator[:value][:jobs].each do |gen|
-          if gen.is_a? Hash
-            if gen.keys[0] == name.to_sym
-              changes = gen[name.to_sym]
-            end
-          end
+          changes = gen[name.to_sym] if gen.is_a?(Hash) && gen.keys[0] == name.to_sym
         end
         # Apply changes
-        if changes != nil
-          Utils.hash_merge!(job[:value], changes)
-        end
+        Utils.hash_merge!(job[:value], changes) unless changes.nil?
       end
     end
-
-  end # class
-end # module
+  end
+end

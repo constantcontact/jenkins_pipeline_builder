@@ -38,7 +38,7 @@ module JenkinsPipelineBuilder
     end
 
     def self.hipchat_notifier(params, n_xml)
-      raise 'No HipChat room specified' unless params[:room]
+      fail 'No HipChat room specified' unless params[:room]
 
       properties = n_xml.xpath('//properties').first
       Nokogiri::XML::Builder.with(properties) do |xml|
@@ -152,6 +152,5 @@ module JenkinsPipelineBuilder
       concurrentBuild = n_xml.xpath('//concurrentBuild').first
       concurrentBuild.content = (params == true) ? 'true' : 'false'
     end
-
   end
 end

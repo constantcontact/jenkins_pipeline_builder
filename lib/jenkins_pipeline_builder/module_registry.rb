@@ -30,14 +30,12 @@ module JenkinsPipelineBuilder
 
     def get(path)
       parts = path.split('/')
-      self.get_by_path_collection(parts, @registry)
+      get_by_path_collection(parts, @registry)
     end
 
     def get_by_path_collection(path, registry)
       item = registry[path.shift.to_sym]
-      if path.count == 0
-        return item
-      end
+      return item if path.count == 0
 
       get_by_path_collection(path, item)
     end

@@ -38,7 +38,7 @@ module JenkinsPipelineBuilder
     def initialize(client)
       @client        = client
       @logger        = @client.logger
-      #@logger.level = (@debug) ? Logger::DEBUG : Logger::INFO;
+      # @logger.level = (@debug) ? Logger::DEBUG : Logger::INFO;
       @job_templates = {}
       @job_collection = {}
       @extensions = {}
@@ -65,7 +65,7 @@ module JenkinsPipelineBuilder
               remote_job: Builders.method(:start_remote_job)
             },
             method:
-            lambda { |registry, params, n_xml| @module_registry.run_registry_on_path('//builders', registry, params, n_xml) }
+            ->(registry, params, n_xml) { @module_registry.run_registry_on_path('//builders', registry, params, n_xml) }
           },
           publishers: {
             registry: {
@@ -79,7 +79,7 @@ module JenkinsPipelineBuilder
               groovy_postbuild: Publishers.method(:groovy_postbuild)
             },
             method:
-            lambda { |registry, params, n_xml| @module_registry.run_registry_on_path('//publishers', registry, params, n_xml) }
+            ->(registry, params, n_xml) { @module_registry.run_registry_on_path('//publishers', registry, params, n_xml) }
           },
           wrappers: {
             registry: {
@@ -93,7 +93,7 @@ module JenkinsPipelineBuilder
               maven3artifactory: Wrappers.method(:artifactory_maven3_configurator)
             },
             method:
-            lambda { |registry, params, n_xml| @module_registry.run_registry_on_path('//buildWrappers', registry, params, n_xml) }
+            ->(registry, params, n_xml) { @module_registry.run_registry_on_path('//buildWrappers', registry, params, n_xml) }
           },
           triggers: {
             registry: {
@@ -103,7 +103,7 @@ module JenkinsPipelineBuilder
               upstream: Triggers.method(:enable_upstream_check)
             },
             method:
-            lambda { |registry, params, n_xml| @module_registry.run_registry_on_path('//triggers', registry, params, n_xml) }
+            ->(registry, params, n_xml) { @module_registry.run_registry_on_path('//triggers', registry, params, n_xml) }
           }
         }
       )
@@ -123,7 +123,7 @@ module JenkinsPipelineBuilder
             name = ext[:name]
             type = ext[:type]
             function = ext[:function]
-            raise "Duplicate extension with name '#{name}' was detected." if @extensions.has_key?(name)
+            fail "Duplicate extension with name '#{name}' was detected." if @extensions.key?(name)
             @extensions[name.to_s] = { name: name.to_s, type: type, function: function }
           end
         end
@@ -159,7 +159,7 @@ module JenkinsPipelineBuilder
       JenkinsPipelineBuilder::View.new(self)
     end
 
-    def load_collection_from_path(path, recursively = false, remote=false)
+    def load_collection_from_path(path, recursively = false, remote = false)
       path = File.expand_path(path, Dir.getwd)
       if File.directory?(path)
         @logger.info "Generating from folder #{path}"
@@ -182,7 +182,7 @@ module JenkinsPipelineBuilder
       end
     end
 
-    def load_job_collection(yaml, remote=false)
+    def load_job_collection(yaml, remote = false)
       yaml.each do |section|
         Utils.symbolize_keys_deep!(section)
         key = section.keys.first
@@ -193,11 +193,11 @@ module JenkinsPipelineBuilder
         end
 
         name = value[:name]
-        if @job_collection.has_key?(name)
+        if @job_collection.key?(name)
           if remote
             @logger.info "Duplicate item with name '#{name}' was detected from the remote folder."
           else
-            raise "Duplicate item with name '#{name}' was detected."
+            fail "Duplicate item with name '#{name}' was detected."
           end
         else
           @job_collection[name.to_s] = { name: name.to_s, type: key, value: value }
@@ -318,7 +318,7 @@ module JenkinsPipelineBuilder
       end
     end
 
-    def process_views(views, project, errors={})
+    def process_views(views, project, errors = {})
       views.map! do |view|
         view.kind_of?(String) ? { view.to_sym => {} } : view
       end
@@ -336,7 +336,7 @@ module JenkinsPipelineBuilder
       errors
     end
 
-    def process_jobs(jobs, project, errors={})
+    def process_jobs(jobs, project, errors = {})
       jobs.each do |job|
         job_id = job.keys.first
         settings = project[:settings].clone.merge(job[job_id])
@@ -363,7 +363,7 @@ module JenkinsPipelineBuilder
       errors = process_jobs(jobs, project)
       errors = process_view(project_body[:views], project,  errors) if project_body[:views]
 
-      errors.each do |k,v|
+      errors.each do |k, v|
         puts "Encountered errors processing: #{k}:"
         v.each do |key, error|
           puts "  key: #{key} had the following error:"
@@ -372,16 +372,16 @@ module JenkinsPipelineBuilder
       end
       return false, 'Encountered errors exiting' unless errors.empty?
 
-      return true, project
+      [true, project]
     end
 
     def resolve_job_by_name(name, settings = {})
       job = get_item(name)
-      raise "Failed to locate job by name '#{name}'" if job.nil?
+      fail "Failed to locate job by name '#{name}'" if job.nil?
       job_value = job[:value]
       @logger.debug "Compiling job #{name}"
       success, payload = Compiler.compile(job_value, settings, @job_collection)
-      return success, payload
+      [success, payload]
     end
 
     def projects
@@ -389,7 +389,7 @@ module JenkinsPipelineBuilder
       @job_collection.values.each do |item|
         result << item if item[:type] == :project
       end
-      return result
+      result
     end
 
     def jobs
@@ -397,10 +397,10 @@ module JenkinsPipelineBuilder
       @job_collection.values.each do |item|
         result << item if item[:type] == :job
       end
-      return result
+      result
     end
 
-    def publish_project(project_name, errors={})
+    def publish_project(project_name, errors = {})
       projects.each do |project|
         next if project_name && project[:name] == project_name
         success, payload = resolve_project(project)
@@ -439,6 +439,7 @@ module JenkinsPipelineBuilder
       end
       errors
     end
+
     def bootstrap(path, project_name)
       @logger.info "Bootstrapping pipeline from path #{path}"
       load_collection_from_path(path)
@@ -451,7 +452,7 @@ module JenkinsPipelineBuilder
       else
         errors = publish_project(project_name)
       end
-      errors.each do |k,v|
+      errors.each do |k, v|
         @logger.error "Encountered errors compiling: #{k}:"
         @logger.error v
       end
@@ -464,7 +465,7 @@ module JenkinsPipelineBuilder
       load_extensions(path)
       jobs = {}
       projects.each do |project|
-        if project[:name] == project_name || project_name == nil
+        if project[:name] == project_name || project_name.nil?
           project_body = project[:value]
           project_jobs = project_body[:jobs] || []
           @logger.info "Using Project #{project}"
@@ -473,7 +474,7 @@ module JenkinsPipelineBuilder
             job = @job_collection[job.to_s]
             pull_job = job if job[:value][:job_type] == 'pull_request_generator'
           end
-          raise 'No Pull Request Found for Project' unless pull_job
+          fail 'No Pull Request Found for Project' unless pull_job
           pull_jobs = pull_job[:value][:jobs] || []
           pull_jobs.each do |job|
             if job.is_a? String
@@ -512,7 +513,7 @@ module JenkinsPipelineBuilder
     end
 
     def compile_job_to_xml(job)
-      raise 'Job name is not specified' unless job[:name]
+      fail 'Job name is not specified' unless job[:name]
 
       @logger.info "Creating Yaml Job #{job}"
       job[:job_type] = 'free_style' unless job[:job_type]
@@ -532,20 +533,20 @@ module JenkinsPipelineBuilder
         return false, "Job type: #{job[:job_type]} is not one of job_dsl, multi_project, build_flow or free_style"
       end
 
-      return true, payload
+      [true, payload]
     end
 
     def adjust_multi_project(xml)
       n_xml = Nokogiri::XML(xml)
-      root = n_xml.root()
+      root = n_xml.root
       root.name = 'com.tikal.jenkins.plugins.multijob.MultiJobProject'
       n_xml.to_xml
     end
 
     def compile_freestyle_job_to_xml(params)
-      if params.has_key?(:template)
+      if params.key?(:template)
         template_name = params[:template]
-        raise "Job template '#{template_name}' can't be resolved." unless @job_templates.has_key?(template_name)
+        fail "Job template '#{template_name}' can't be resolved." unless @job_templates.key?(template_name)
         params.delete(:template)
         template = @job_templates[template_name]
         puts "Template found: #{template}"
@@ -599,7 +600,7 @@ module JenkinsPipelineBuilder
 
     def build_job_dsl(job, xml)
       xml.send('javaposse.jobdsl.plugin.ExecuteDslScripts') do
-        if job.has_key?(:job_dsl)
+        if job.key?(:job_dsl)
           xml.scriptText job[:job_dsl]
           xml.usingScriptText true
         else

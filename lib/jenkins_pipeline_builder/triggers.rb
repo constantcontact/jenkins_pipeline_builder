@@ -67,6 +67,5 @@ module JenkinsPipelineBuilder
         end
       end
     end
-
   end
 end

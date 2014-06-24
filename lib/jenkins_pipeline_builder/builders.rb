@@ -34,7 +34,7 @@ module JenkinsPipelineBuilder
                 xml.exposedSCM job[:exposed_scm] || false
                 if job[:config]
                   xml.configs do
-                    if job[:config].has_key? :predefined_build_parameters
+                    if job[:config].key? :predefined_build_parameters
                       xml.send('hudson.plugins.parameterizedtrigger.PredefinedBuildParameters') do
                         xml.properties job[:config][:predefined_build_parameters].join "\n"
                       end
@@ -73,13 +73,13 @@ module JenkinsPipelineBuilder
     end
 
     def self.blocking_downstream(params, xml)
-      colors = { 'SUCCESS' => { ordinal:  0, color:  'BLUE' },'FAILURE' => { ordinal:  2, color:  'RED' },'UNSTABLE' => { ordinal:  1, color:  'YELLOW' } }
+      colors = { 'SUCCESS' => { ordinal:  0, color:  'BLUE' }, 'FAILURE' => { ordinal:  2, color:  'RED' }, 'UNSTABLE' => { ordinal:  1, color:  'YELLOW' } }
       xml.send('hudson.plugins.parameterizedtrigger.TriggerBuilder', 'plugin' => 'parameterized-trigger') do
         xml.configs do
           xml.send('hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig') do
 
             xml.configs do
-              params[:data] = [ { params: '' } ] unless params[:data]
+              params[:data] = [{ params: '' }] unless params[:data]
               params[:data].each do |config|
                 if config[:params]
                   xml.send('hudson.plugins.parameterizedtrigger.PredefinedBuildParameters') do
@@ -170,6 +170,5 @@ module JenkinsPipelineBuilder
         end
       end
     end
-
   end
 end

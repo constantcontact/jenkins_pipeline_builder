@@ -16,36 +16,36 @@ describe 'Templates resolver' do
 
   describe 'resolving settings bags' do
     it 'gives a bag when all the variables can be resolved' do
-      str = %{
+      str = %(
 - project:
     name: project-name
     db: my_own_db_{{else}}
-      }
+      )
       project = YAML.load(str)
       @generator.load_job_collection project
 
-      #@generator.resolve_item('project-name')
+      # @generator.resolve_item('project-name')
       settings = JenkinsPipelineBuilder::Compiler.get_settings_bag(@generator.get_item('project-name'), db: 'blah', else: 'bum')
       settings.should == { name: 'project-name', db: 'my_own_db_bum', else: 'bum' }
     end
 
     it 'returns nil when all the variables cant be resolved' do
-      str = %{
+      str = %(
 - project:
     name: project-name
     db: my_own_db_{{else}}_{{blah}}
-      }
+      )
       project = YAML.load(str)
       @generator.load_job_collection project
 
-      #@generator.resolve_item('project-name')
+      # @generator.resolve_item('project-name')
       settings = JenkinsPipelineBuilder::Compiler.get_settings_bag(@generator.get_item('project-name'), db: 'blah', else: 'bum')
       settings.should be_nil
     end
   end
 
   it 'starts with the defaults section for settings bag' do
-    str = %{
+    str = %(
 - defaults:
     name: global
     description: 'Do not edit this job through the web!'
@@ -59,7 +59,7 @@ describe 'Templates resolver' do
     db: my_own_db
     jobs:
       - 'foo-bar'
-      }
+      )
     project = YAML.load(str)
     @generator.load_job_collection project
 
@@ -91,7 +91,7 @@ describe 'Templates resolver' do
   end
 
   it 'should build project collection from jobs templates' do
-    str = %{
+    str = %(
 - job-template:
     name: '{{name}}-unit-tests'
     builders:
@@ -116,7 +116,7 @@ describe 'Templates resolver' do
           mail-to: developer@nowhere.net
       - '{{name}}-perf-tests':
           mail-to: projmanager@nowhere.net
-}
+)
 
     project = YAML.load(str)
     @generator.load_job_collection project
@@ -150,7 +150,7 @@ describe 'Templates resolver' do
   end
 
   it 'should build project collection from jobs and jobs templates' do
-    str = %{
+    str = %(
 - job-template:
     name: '{{name}}-unit-tests'
     builders:
@@ -171,13 +171,13 @@ describe 'Templates resolver' do
       - 'foo-bar'
       - '{{name}}-unit-tests':
           mail-to: projmanager@nowhere.net
-}
+)
 
     project = YAML.load(str)
     @generator.load_job_collection project
 
     success, project = @generator.resolve_project(@generator.get_item('project-name'))
-      expect(success).to be_true
+    expect(success).to be_true
     expect(project).to eq(
       name: 'project-name',
       type: :project,
@@ -202,7 +202,6 @@ describe 'Templates resolver' do
       settings: { name: 'project-name', db: 'my_own_db' }
     )
   end
-
 
   describe 'compilation of templates' do
     it 'compiles String' do

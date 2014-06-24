@@ -44,16 +44,10 @@ module JenkinsPipelineBuilder
           (options[:password] || options[:password_base64])
           creds = options
         elsif options[:creds_file]
-          creds = YAML.load_file(
-              File.expand_path(options[:creds_file])
-              #File.expand_path(options[:creds_file], __FILE__)
-              #options[:creds_file]
-          )
+          creds = YAML.load_file(File.expand_path(options[:creds_file]))
         elsif File.exist?("#{ENV['HOME']}/.jenkins_api_client/login.yml")
           creds = YAML.load_file(
-              File.expand_path(
-                  "#{ENV['HOME']}/.jenkins_api_client/login.yml", __FILE__
-              )
+            File.expand_path("#{ENV['HOME']}/.jenkins_api_client/login.yml", __FILE__)
           )
         else
           msg = 'Credentials are not set. Please pass them as parameters or'
@@ -62,11 +56,10 @@ module JenkinsPipelineBuilder
           exit 1
         end
 
-        #creds[:log_level] =  Logger::DEBUG
         client = JenkinsApi::Client.new(creds)
         generator = JenkinsPipelineBuilder::Generator.new(client)
-        generator.debug = options[:debug] #== 'debug'
-        return generator
+        generator.debug = options[:debug]
+        generator
       end
     end
   end

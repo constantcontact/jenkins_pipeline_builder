@@ -37,7 +37,7 @@ module JenkinsPipelineBuilder
         xml.configs do
           xml.send('hudson.plugins.parameterizedtrigger.BuildTriggerConfig') do
             xml.configs do
-              params[:data] = [ { params: '' } ] unless params[:data]
+              params[:data] = [{ params: '' }] unless params[:data]
               params[:data].each do |config|
                 if config[:params]
                   xml.send('hudson.plugins.parameterizedtrigger.PredefinedBuildParameters') do
@@ -139,6 +139,5 @@ module JenkinsPipelineBuilder
         end
       end
     end
-
   end
 end

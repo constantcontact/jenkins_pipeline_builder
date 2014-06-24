@@ -76,10 +76,10 @@ describe JenkinsPipelineBuilder::View do
             groupingRules: [{
               groupRegex: 'Step-1.*',
               namingRule: '1. Commit'
-            },{
+            }, {
               groupRegex: 'Step-2.*',
               namingRule: '2. Acceptance'
-            },{
+            }, {
               groupRegex: 'Step-3.*',
               namingRule: '3. Release'
             }]
