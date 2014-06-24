@@ -4,13 +4,13 @@ describe 'Test YAML jobs conversion to XML' do
   context 'Loading YAML files' do
     before do
       @client = JenkinsApi::Client.new(
-          :server_ip => '127.0.0.1',
-          :server_port => 8080,
-          :username => 'username',
-          :password => 'password',
-          :log_location => '/dev/null'
+          server_ip:  '127.0.0.1',
+          server_port:  8080,
+          username:  'username',
+          password:  'password',
+          log_location:  '/dev/null'
       )
-      @generator = JenkinsPipelineBuilder::Generator.new(nil, @client)
+      @generator = JenkinsPipelineBuilder::Generator.new(@client)
       @generator.debug = true
       @generator.no_files = true
     end
@@ -27,28 +27,28 @@ describe 'Test YAML jobs conversion to XML' do
       doc1.should be_equivalent_to(doc2)
     end
 
-    files = [
-      'Job-Multi-Project',
-      'Job-Build-Maven',
-      'Job-Build-Flow',
-      'Job-Gem-Build',
-      'post_build_script',
-      'properties_file',
-      'downstream',
-      'upstream',
-      'rvm05',
-      'prepare_environment',
-      'remote_job',
-      'throttle',
-      'specific_priority',
-      'periodic_build',
-      'discard_old',
-      'concurrent_build',
-      'choice_parameter',
-      'downstream_blocking',
-      'groovy_postbuild',
-      'git_include_exclude'
-    ]
+    files = %w(
+      Job-Multi-Project
+      Job-Build-Maven
+      Job-Build-Flow
+      Job-Gem-Build
+      post_build_script
+      properties_file
+      downstream
+      upstream
+      rvm05
+      prepare_environment
+      remote_job
+      throttle
+      specific_priority
+      periodic_build
+      discard_old
+      concurrent_build
+      choice_parameter
+      downstream_blocking
+      groovy_postbuild
+      git_include_exclude
+    )
 
     files.each do |file|
       it "should create expected XML from YAML '#{file}'" do
@@ -63,7 +63,7 @@ describe 'Test YAML jobs conversion to XML' do
       end
     end
 
-    it "should create expected XML from YAML collection" do
+    it 'should create expected XML from YAML collection' do
       path = File.expand_path('../fixtures/files/', __FILE__)
 
       @generator.load_collection_from_path(path)
@@ -84,5 +84,7 @@ describe 'Test YAML jobs conversion to XML' do
         compare_jobs job, file_name
       end
     end
+
+    it 'downloads from remote repos'
   end
 end

@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014 Igor Moochnick
+# Copyright (c) 2014 Constant Contact
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,12 +25,12 @@ module JenkinsPipelineBuilder
     def self.update_node_text(n_xml, path, value)
       n_node = n_xml.xpath(path).first
       if n_node.nil?
-        left, right = path.match(/^(.*)\/([^\/]*)$/).captures
+        left, right = path.match(%r{^(.*)/([^/]*)$}).captures
         parent_node = n_xml.xpath(left).first
         Nokogiri::XML::Builder.with(parent_node) do |xml|
-          xml.send(right) {
+          xml.send(right) do
             xml.text value
-          }
+          end
         end
       else
         n_node.content = value

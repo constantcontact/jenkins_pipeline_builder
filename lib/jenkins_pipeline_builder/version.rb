@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014 Igor Moochnick
+# Copyright (c) 2014 Constant Contact
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -21,5 +21,5 @@
 #
 
 module JenkinsPipelineBuilder
-  VERSION = "0.4.3"
+  VERSION = '0.5.0'
 end
