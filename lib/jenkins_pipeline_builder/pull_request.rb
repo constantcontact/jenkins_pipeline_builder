@@ -84,13 +84,13 @@ module JenkinsPipelineBuilder
         # Manipulate the YAML
         req = JenkinsPipelineBuilder::PullRequest.new(project, number, main_collection, generator_job)
         @generator.job_collection.merge req.jobs
-        project = req.project
+        project_t = req.project
 
         # Overwrite the jobs from the generator to the project
-        project[:value][:jobs] = generator_job[:value][:jobs]
+        project_t[:value][:jobs] = generator_job[:value][:jobs]
         
         # Build the jobs
-        success, compiled_project = @generator.resolve_project(project)
+        success, compiled_project = @generator.resolve_project(project_t)
         compiled_project[:value][:jobs].each do |i|
           job = i[:result]
           success, payload = @generator.compile_job_to_xml(job)
@@ -113,10 +113,10 @@ module JenkinsPipelineBuilder
     # Initialize
     def initialize(project, number, jobs, generator)
       # Set instance vars
-      @project = project.clone 
+      @project = Marshal.load(Marshal.dump(project))
       @number = number
-      @jobs = jobs.clone
-      @generator = generator.clone
+      @jobs = Marshal.load(Marshal.dump(jobs))
+      @generator = Marshal.load(Marshal.dump(generator))
       
       # Run
       run!
