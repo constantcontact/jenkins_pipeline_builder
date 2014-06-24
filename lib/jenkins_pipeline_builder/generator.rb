@@ -140,6 +140,19 @@ module JenkinsPipelineBuilder
       end
     end
 
+    def load_extensions_take2(path)
+      path = "#{path}/extensions"
+      path = File.expand_path(path, relative_to=Dir.getwd)
+      if File.directory?(path)
+        @logger.info "Loading extensions from folder #{path}"
+        @logger.info Dir.glob("#{path}/*.rb").inspect
+        Dir.glob("#{path}/*.rb").each do |file|
+          @logger.info "Loaded #{file}"
+          require file
+        end
+      end
+    end
+
     attr_accessor :client
     def debug=(value)
       @debug = value
@@ -345,8 +358,18 @@ module JenkinsPipelineBuilder
 
     def bootstrap(path, project_name)
       @logger.info "Bootstrapping pipeline from path #{path}"
+      # LOLOLOL
+      # self.list_plugins
+      load_extensions_take2(path)
+      # New endpoint at root
+
+      # Existing endpoint at root
+
+      # Existing endpoint within existing section
+
+      # LOLOLOL
       load_collection_from_path(path)
-      load_extensions(path)
+      # load_extensions(path)
       errors = {}
       # Publish all the jobs if the projects are not found
       if projects.count == 0
@@ -403,7 +426,7 @@ module JenkinsPipelineBuilder
     def pull_request(path, project_name)
       @logger.info "Pull Request Generator Running from path #{path}"
       load_collection_from_path(path)
-      load_extensions(path)
+      # load_extensions(path)
       jobs = {}
       projects.each do |project|
         if project[:name] == project_name || project_name == nil
@@ -552,5 +575,43 @@ module JenkinsPipelineBuilder
         xml.removedJobAction 'IGNORE'
       }
     end
+
+    def self.register_extension(path, &method)
+      # @logger.info "Registering extension in module registry..."
+      # @logger.info "LOLOLOLOLOL========================"
+      puts path
+      puts method
+
+      parts = path.split("/")
+      parts.shift if parts[0] == "job"
+      newPath = "job"
+      parts.each do |part|
+        tmpPath = newPath  + "/" + part
+        if @module_registry.get(tmpPath) != nil
+          parts.shift
+          newPath = tmpPath
+        else
+          break
+        end
+      end
+      registry = @module_registry.get(newPath)
+      registry = registry[:registry] if registry.has_key? :registry
+      newEndpoint = parts[0].to_sym
+      registry[newEndpoint] = method
+
+      pp registry
+      puts "-------"
+      pp @module_registry.registry
+
+      # @logger.info "LOLOLOLOLOL========================"
+    end
+
+    def list_plugins
+      plugins = @client.plugin.list_installed
+      @logger.info "LOLOLOLOLOL========================"
+      puts plugins
+      @logger.info "LOLOLOLOLOL========================"
+    end
+
   end
 end
