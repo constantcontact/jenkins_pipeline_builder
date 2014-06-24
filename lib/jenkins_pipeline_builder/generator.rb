@@ -462,6 +462,9 @@ module JenkinsPipelineBuilder
           @logger.info "Using Project #{project}"
           pull_job = nil
           project_jobs.each do |job|
+            if job.is_a? Hash
+              job = job.keys.first
+            end
             job = @job_collection[job.to_s]
             pull_job = job if job[:value][:job_type] == "pull_request_generator"
           end
