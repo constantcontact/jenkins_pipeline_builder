@@ -1,0 +1,8 @@
+- job:
+    name: git_include_exclude
+    scm_provider: git
+    scm_url: git@github.com:devops/repo.git
+    scm_branch: master
+    scm_params:
+        excluded_regions: 'test1'
+        included_regions: 'test2'

@@ -26,7 +26,7 @@ describe 'Test YAML jobs conversion to XML' do
 
       doc1.should be_equivalent_to(doc2)
     end
-    
+
     files = %w(
       Job-Multi-Project
       Job-Build-Maven
@@ -49,6 +49,7 @@ describe 'Test YAML jobs conversion to XML' do
       groovy_postbuild
       archive_artifact
       copy_artifact
+      git_include_exclude
     )
 
     files.each do |file|
