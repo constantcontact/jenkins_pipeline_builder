@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014 Igor Moochnick
+# Copyright (c) 2014 Constant Contact
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,7 @@ module JenkinsPipelineBuilder
       @client = generator.client
       @logger = @client.logger
     end
-    
+
     # Check for Github Pull Requests
     #
     # args[:git_url] URL to the github main page ex. https://www.github.com/
@@ -41,25 +41,25 @@ module JenkinsPipelineBuilder
     # args[:git_org] The Orig user ex. igorshare
     # @return = array of pull request numbers
     def check_for_pull(args)
-      raise "Please specify all arguments" unless args[:git_url] && args[:git_org] && args[:git_repo]
+      fail 'Please specify all arguments' unless args[:git_url] && args[:git_org] && args[:git_repo]
       # Build the Git URL
       git_url = "#{args[:git_url]}api/v3/repos/#{args[:git_org]}/#{args[:git_repo]}/pulls"
-      
+
       # Download the JSON Data from the API
       resp = Net::HTTP.get_response(URI.parse(git_url))
       pulls = JSON.parse(resp.body)
-      pulls.map{ |p| p["number"]}
+      pulls.map { |p| p['number'] }
     end
 
     # Purge old builds
     def purge_old(pull_requests, project)
-      reqs = pull_requests.clone.map {|req| "#{project[:name]}-PR#{req}" }
+      reqs = pull_requests.clone.map { |req| "#{project[:name]}-PR#{req}" }
       @logger.info "Current pull requests: #{reqs}"
       # Read File
       old_requests = File.new('pull_requests.csv', 'a+').read.split(',')
-      
+
       # Pop off current pull requests
-      old_requests.delete_if { |req| reqs.include?("#{req}")}
+      old_requests.delete_if { |req| reqs.include?("#{req}") }
 
       # Delete the old requests from jenkins
       @logger.info "Purging old requests: #{old_requests}"
@@ -70,12 +70,11 @@ module JenkinsPipelineBuilder
         end
       end
       # Write File
-      File.open('pull_requests.csv', 'w+') { |file| file.write reqs.join(",") }
+      File.open('pull_requests.csv', 'w+') { |file| file.write reqs.join(',') }
     end
 
     def run(project, job_collection, generator_job)
-      @logger.info "Begin running Pull Request Generator"
-      git_args = {}
+      @logger.info 'Begin running Pull Request Generator'
       pull_requests = check_for_pull generator_job[:value]
       purge_old(pull_requests, project)
       main_collection = job_collection
@@ -88,22 +87,19 @@ module JenkinsPipelineBuilder
 
         # Overwrite the jobs from the generator to the project
         project[:value][:jobs] = generator_job[:value][:jobs]
-        
+
         # Build the jobs
         success, compiled_project = @generator.resolve_project(project)
         compiled_project[:value][:jobs].each do |i|
           job = i[:result]
           success, payload = @generator.compile_job_to_xml(job)
-          if success
-            @generator.create_or_update(job, payload)
-          end
+          @generator.create_or_update(job, payload) if success
         end
       end
     end
   end
-  class PullRequest
 
-    # Accessors
+  class PullRequest
     attr_reader :project    # The root project YAML as a hash
     attr_reader :number     # The pull request number
     attr_reader :jobs       # The jobs in the pull request as an array of hashes
@@ -111,93 +107,50 @@ module JenkinsPipelineBuilder
 
     # Initialize
     def initialize(project, number, jobs, generator)
-        # Set instance vars
-        @project = project.clone 
-        @number = number
-        @jobs = jobs.clone
-        @generator = generator.clone
-        
-        # Run
-        run!
+      @project = project.clone
+      @number = number
+      @jobs = jobs.clone
+      @generator = generator.clone
+
+      run!
     end
 
     private
 
     # Apply all changes
     def run!
-        update_jobs!
-        change_git!
-        change_name!
+      update_jobs!
+      change_git!
+      change_name!
     end
 
     # Change the git branch for each job
     def change_git!
-        @jobs.each_value do |job|
-            job[:value][:scm_branch] = "origin/pr/#{@number}/head"
-            job[:value][:scm_params] = {} unless job[:value][:scm_params]
-            job[:value][:scm_params][:refspec] = "refs/pull/*:refs/remotes/origin/pr/*"
-        end
+      @jobs.each_value do |job|
+        job[:value][:scm_branch] = "origin/pr/#{@number}/head"
+        job[:value][:scm_params] = {} unless job[:value][:scm_params]
+        job[:value][:scm_params][:refspec] = 'refs/pull/*:refs/remotes/origin/pr/*'
+      end
     end
 
     # Change the name of the pull request project
     def change_name!
-        @project[:name] = "#{@project[:name]}-PR#{@number}" if @project[:name]
-        @project[:value][:name] = "#{@project[:value][:name]}-PR#{@number}" if @project[:value][:name]
+      @project[:name] = "#{@project[:name]}-PR#{@number}" if @project[:name]
+      @project[:value][:name] = "#{@project[:value][:name]}-PR#{@number}" if @project[:value][:name]
     end
 
     # Apply any specified changes to each job
     def update_jobs!
-        @jobs.each_value do |job|
-              name = job[:name]
-              changes = nil
-              # Search the generator for changes
-              @generator[:value][:jobs].each do |gen|
-                if gen.is_a? Hash
-                  if gen.keys[0] == name.to_sym
-                    changes = gen[name.to_sym]
-                  end
-                end
-              end
-              # Apply changes
-              if changes != nil
-                  apply_changes!(job[:value], changes)
-              end
+      @jobs.each_value do |job|
+        name = job[:name]
+        changes = nil
+        # Search the generator for changes
+        @generator[:value][:jobs].each do |gen|
+          changes = gen[name.to_sym] if gen.is_a?(Hash) && gen.keys[0] == name.to_sym
         end
-    end
-
-    # Apply changes to a single job
-    def apply_changes!(original, changes)
-      # Apply the specified changes
-      changes.each do |cK, cV|
-        # The change doesn't already exist in the original
-        unless original.include? cK
-          original[cK] = cV
-          # The change does exists, so we need to replace!
-        else
-          # Loop through the original job
-          original.each do |oK, oV|
-            if oK == cK
-              # The change is a hash
-              if cV.is_a? Hash and oV.is_a? Hash
-                apply_changes!(oV, cV)
-                # The change is an array
-              elsif cV.is_a? Array and oV.is_a? Array 
-                # Add changes
-                # cV.each do |elem|
-                #     unless oV.include? elem
-                #         original[oK].push elem
-                #     end
-                # end
-                # Replace entire array
-                original[oK] = cV
-                # The change is a string, etc
-              else 
-                original[oK] = cV
-              end
-            end
-          end
-        end
+        # Apply changes
+        Utils.hash_merge!(job[:value], changes) unless changes.nil?
       end
     end
-  end # class
-end # module
+  end
+end

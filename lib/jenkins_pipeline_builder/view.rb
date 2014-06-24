@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014 Igor Moochnick
+# Copyright (c) 2014 Constant Contact
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -45,20 +45,20 @@ module JenkinsPipelineBuilder
 
     def get_mode(type)
       case type
-        when 'listview'
-          'hudson.model.ListView'
-        when 'myview'
-          'hudson.model.MyView'
-        when 'nestedView'
-          'hudson.plugins.nested_view.NestedView'
-        when 'categorizedView'
-          'org.jenkinsci.plugins.categorizedview.CategorizedJobsView'
-        when 'dashboardView'
-          'hudson.plugins.view.dashboard.Dashboard'
-        when 'multijobView'
-         'com.tikal.jenkins.plugins.multijob.views.MultiJobView'
-        else
-          raise "Type #{type} is not supported by Jenkins."
+      when 'listview'
+        'hudson.model.ListView'
+      when 'myview'
+        'hudson.model.MyView'
+      when 'nestedView'
+        'hudson.plugins.nested_view.NestedView'
+      when 'categorizedView'
+        'org.jenkinsci.plugins.categorizedview.CategorizedJobsView'
+      when 'dashboardView'
+        'hudson.plugins.view.dashboard.Dashboard'
+      when 'multijobView'
+        'com.tikal.jenkins.plugins.multijob.views.MultiJobView'
+      else
+        fail "Type #{type} is not supported by Jenkins."
       end
     end
 
@@ -72,12 +72,12 @@ module JenkinsPipelineBuilder
       @logger.info "Creating a view '#{view_name}' of type '#{type}'"
       mode = get_mode(type)
       initial_post_params = {
+        'name' => view_name,
+        'mode' => mode,
+        'json' => {
           'name' => view_name,
-          'mode' => mode,
-          'json' => {
-              'name' => view_name,
-              'mode' => mode
-          }.to_json
+          'mode' => mode
+        }.to_json
       }
 
       if @generator.debug
@@ -110,14 +110,13 @@ module JenkinsPipelineBuilder
     #
     def create(params)
       # Name is a required parameter. Raise an error if not specified
-      raise ArgumentError, "Name is required for creating view" \
-          unless params.is_a?(Hash) && params[:name]
+      fail ArgumentError, 'Name is required for creating view' unless params.is_a?(Hash) && params[:name]
       unless @generator.debug
         # If we have a parent view, we need to do some additional checks
         if params[:parent_view]
           # If there is no current parent view, create it
           unless @client.view.exists?(params[:parent_view])
-            create_base_view(params[:parent_view], 'nestedView')  
+            create_base_view(params[:parent_view], 'nestedView')
           end
           # If the view currently exists, delete it
           if exists?(params[:name], params[:parent_view])
@@ -133,35 +132,35 @@ module JenkinsPipelineBuilder
       create_base_view(params[:name], params[:type], params[:parent_view])
       @logger.debug "Creating a #{params[:type]} view with params: #{params.inspect}"
       status_filter = case params[:status_filter]
-                        when "all_selected_jobs"
-                          ""
-                        when "enabled_jobs_only"
-                          "1"
-                        when "disabled_jobs_only"
-                          "2"
-                        else
-                          ""
+                      when 'all_selected_jobs'
+                        ''
+                      when 'enabled_jobs_only'
+                        '1'
+                      when 'disabled_jobs_only'
+                        '2'
+                      else
+                        ''
                       end
 
       json = {
-          "name" => params[:name],
-          "description" => params[:description],
-          "mode" => get_mode(params[:type]),
-          "statusFilter" => "",
-          "columns" => get_columns(params[:type])
+        'name' => params[:name],
+        'description' => params[:description],
+        'mode' => get_mode(params[:type]),
+        'statusFilter' => '',
+        'columns' => get_columns(params[:type])
       }
-      json.merge!("groupingRules" => params[:groupingRules]) if params[:groupingRules]
+      json.merge!('groupingRules' => params[:groupingRules]) if params[:groupingRules]
       post_params = {
-          "name" => params[:name],
-          "mode" => get_mode(params[:type]),
-          "description" => params[:description],
-          "statusFilter" => status_filter,
-          "json" => json.to_json
+        'name' => params[:name],
+        'mode' => get_mode(params[:type]),
+        'description' => params[:description],
+        'statusFilter' => status_filter,
+        'json' => json.to_json
       }
-      post_params.merge!("filterQueue" => "on") if params[:filter_queue]
-      post_params.merge!("filterExecutors" => "on") if params[:filter_executors]
-      post_params.merge!("useincluderegex" => "on",
-                         "includeRegex" => params[:regex]) if params[:regex]
+      post_params.merge!('filterQueue' => 'on') if params[:filter_queue]
+      post_params.merge!('filterExecutors' => 'on') if params[:filter_executors]
+      post_params.merge!('useincluderegex' => 'on',
+                         'includeRegex' => params[:regex]) if params[:regex]
 
       if @generator.debug
         pp post_params
@@ -176,60 +175,60 @@ module JenkinsPipelineBuilder
 
     def get_columns(type)
       columns_repository = {
-          'Status' =>
-              {
-                  'stapler-class' => 'hudson.views.StatusColumn',
-                  'kind' => 'hudson.views.StatusColumn'
-              },
-          'Weather' =>
-              {
-                  "stapler-class" => "hudson.views.WeatherColumn",
-                  "kind" => "hudson.views.WeatherColumn"
-              },
-          'Name' =>
-              {
-                  "stapler-class" => "hudson.views.JobColumn",
-                  "kind" => "hudson.views.JobColumn"
-              },
-          'Last Success' =>
-              {
-                  "stapler-class" => "hudson.views.LastSuccessColumn",
-                  "kind" => "hudson.views.LastSuccessColumn"
-              },
-          'Last Failure' =>
-              {
-                  "stapler-class" => "hudson.views.LastFailureColumn",
-                  "kind" => "hudson.views.LastFailureColumn"
-              },
-          'Last Duration' =>
-              {
-                  "stapler-class" => "hudson.views.LastDurationColumn",
-                  "kind" => "hudson.views.LastDurationColumn"
-              },
-          'Build Button' =>
-              {
-                  'stapler-class' => 'hudson.views.BuildButtonColumn',
-                  'kind' => 'hudson.views.BuildButtonColumn'
-              },
-          'Categorized - Job' =>
-              {
-                  'stapler-class' => 'org.jenkinsci.plugins.categorizedview.IndentedJobColumn',
-                  'kind' => 'org.jenkinsci.plugins.categorizedview.IndentedJobColumn'
-              }
+        'Status' =>
+        {
+          'stapler-class' => 'hudson.views.StatusColumn',
+          'kind' => 'hudson.views.StatusColumn'
+        },
+        'Weather' =>
+        {
+          'stapler-class' => 'hudson.views.WeatherColumn',
+          'kind' => 'hudson.views.WeatherColumn'
+        },
+        'Name' =>
+        {
+          'stapler-class' => 'hudson.views.JobColumn',
+          'kind' => 'hudson.views.JobColumn'
+        },
+        'Last Success' =>
+        {
+          'stapler-class' => 'hudson.views.LastSuccessColumn',
+          'kind' => 'hudson.views.LastSuccessColumn'
+        },
+        'Last Failure' =>
+        {
+          'stapler-class' => 'hudson.views.LastFailureColumn',
+          'kind' => 'hudson.views.LastFailureColumn'
+        },
+        'Last Duration' =>
+        {
+          'stapler-class' => 'hudson.views.LastDurationColumn',
+          'kind' => 'hudson.views.LastDurationColumn'
+        },
+        'Build Button' =>
+        {
+          'stapler-class' => 'hudson.views.BuildButtonColumn',
+          'kind' => 'hudson.views.BuildButtonColumn'
+        },
+        'Categorized - Job' =>
+        {
+          'stapler-class' => 'org.jenkinsci.plugins.categorizedview.IndentedJobColumn',
+          'kind' => 'org.jenkinsci.plugins.categorizedview.IndentedJobColumn'
+        }
       }
 
       column_names = case type
-                       when 'categorizedView'
-                         ['Status', 'Weather', 'Categorized - Job', 'Last Success', 'Last Failure', 'Last Duration', 'Build Button']
-                       else
-                         ['Status', 'Weather', 'Name', 'Last Success', 'Last Failure', 'Last Duration', 'Build Button']
+                     when 'categorizedView'
+                       ['Status', 'Weather', 'Categorized - Job', 'Last Success', 'Last Failure', 'Last Duration', 'Build Button']
+                     else
+                       ['Status', 'Weather', 'Name', 'Last Success', 'Last Failure', 'Last Duration', 'Build Button']
                      end
 
       result = []
       column_names.each do |name|
         result << columns_repository[name]
       end
-      return result
+      result
     end
 
     def path_encode(path)
@@ -242,18 +241,18 @@ module JenkinsPipelineBuilder
     # @param [String] filter a regex to filter view names
     # @param [Bool] ignorecase whether to be case sensitive or not
     #
-    def list_children(parent_view = nil, filter = "", ignorecase = true)
+    def list_children(parent_view = nil, filter = '', ignorecase = true)
       @logger.info "Obtaining children views of parent #{parent_view} based on filter '#{filter}'"
       view_names = []
       path = parent_view.nil? ? '' : "/view/#{parent_view}"
       response_json = @client.api_get_request(path)
-      response_json["views"].each { |view|
+      response_json['views'].each do |view|
         if ignorecase
-          view_names << view["name"] if view["name"] =~ /#{filter}/i
+          view_names << view['name'] if view['name'] =~ /#{filter}/i
         else
-          view_names << view["name"] if view["name"] =~ /#{filter}/
+          view_names << view['name'] if view['name'] =~ /#{filter}/
         end
-      }
+      end
       view_names
     end
 
