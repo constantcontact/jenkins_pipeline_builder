@@ -170,5 +170,55 @@ module JenkinsPipelineBuilder
         end
       end
     end
+
+    def self.build_copy_artifact(params, xml)
+      xml.send('hudson.plugins.copyartifact.CopyArtifact', 'plugin' => 'copyartifact') do
+        xml.project params[:project]
+        xml.filter params[:artifacts]
+        xml.target params[:target_directory]
+        xml.parameters params[:filter] if params[:filter]
+        if params[:selector] && params[:selector][:type]
+          case params[:selector][:type]
+          when 'saved'
+            xml.send('selector', 'class' => 'hudson.plugins.copyartifact.SavedBuildSelector')
+          when 'triggered'
+            xml.send('selector', 'class' => 'hudson.plugins.copyartifact.TriggeredBuildSelector') do
+              xml.fallbackToLastSuccessful params[:selector][:fallback] if params[:selector][:fallback]
+            end
+          when 'permalink'
+            xml.send('selector', 'class' => 'hudson.plugins.copyartifact.PermalinkBuildSelector') do
+              xml.id params[:selector][:id] if params[:selector][:id]
+            end
+          when 'specific'
+            xml.send('selector', 'class' => 'hudson.plugins.copyartifact.SpecificBuildSelector') do
+              xml.buildNumber params[:selector][:number] if params[:selector][:number]
+            end
+          when 'workspace'
+            xml.send('selector', 'class' => 'hudson.plugins.copyartifact.WorkspaceSelector')
+          when 'parameter'
+            xml.send('selector', 'class' => 'hudson.plugins.copyartifact.ParameterizedBuildSelector') do
+              xml.parameterName params[:selector][:param] if params[:selector][:param]
+            end
+          else
+            xml.send('selector', 'class' => 'hudson.plugins.copyartifact.StatusBuildSelector') do
+              xml.stable params[:selector][:stable] if params[:selector][:stable]
+            end
+          end
+        else
+          xml.send('selector', 'class' => 'hudson.plugins.copyartifact.StatusBuildSelector')
+        end
+        if params[:fingerprint].nil?
+          xml.doNotFingerprintArtifacts false
+        else
+          if params[:fingerprint].to_s == 'true'
+            xml.doNotFingerprintArtifacts false
+          else
+            xml.doNotFingerprintArtifacts true
+          end
+        end
+        xml.flatten true if params[:flatten]
+        xml.optional true if params[:optional]
+      end
+    end
   end
 end

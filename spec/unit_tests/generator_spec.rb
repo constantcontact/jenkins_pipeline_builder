@@ -47,6 +47,9 @@ describe 'Test YAML jobs conversion to XML' do
       choice_parameter
       downstream_blocking
       groovy_postbuild
+      archive_artifact
+      copy_artifact
+      git_include_exclude
     )
 
     files.each do |file|

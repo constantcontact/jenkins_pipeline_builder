@@ -62,7 +62,8 @@ module JenkinsPipelineBuilder
               shell_command: Builders.method(:build_shell_command),
               maven3: Builders.method(:build_maven3),
               blocking_downstream: Builders.method(:blocking_downstream),
-              remote_job: Builders.method(:start_remote_job)
+              remote_job: Builders.method(:start_remote_job),
+              copy_artifact: Builders.method(:build_copy_artifact)
             },
             method:
             ->(registry, params, n_xml) { @module_registry.run_registry_on_path('//builders', registry, params, n_xml) }
@@ -76,7 +77,8 @@ module JenkinsPipelineBuilder
               junit_result: Publishers.method(:publish_junit),
               coverage_result: Publishers.method(:publish_rcov),
               post_build_script: Publishers.method(:post_build_script),
-              groovy_postbuild: Publishers.method(:groovy_postbuild)
+              groovy_postbuild: Publishers.method(:groovy_postbuild),
+              archive_artifact: Publishers.method(:archive_artifact)
             },
             method:
             ->(registry, params, n_xml) { @module_registry.run_registry_on_path('//publishers', registry, params, n_xml) }

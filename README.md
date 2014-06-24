@@ -115,6 +115,8 @@ Here's a high level overview of what's available:
       recursive_update: true
       wipe_workspace: true
       skip_tag: true # Optional, defaults to false
+      excluded_regions: region
+      included_regions: region
     shell_command: '. commit_build.sh'
     hipchat:
       room: room name here
@@ -173,6 +175,21 @@ Here's a high level overview of what's available:
           fail: FAILURE # Fail this build step if the triggered build is worse or equal to
           mark_fail: SUCCESS # Mark this build as failure if the triggered build is worse or equal to
           mark_unstable: UNSTABLE # Mark this build as unstable if the triggered build is worse or equal to
+      - copy_artifact:
+          project: nameStr # Name of the project
+          artifacts: 'artifact.txt' # Selector for artifacts
+          target_directory: 'artifacts' # Where the artifacts should go, blank for Workspace root
+          filter: 'test=true' # String of filters, PARAM1=VALUE1,PARAM2=VALUE2, Optional
+          fingerprint: true # Optional, true or false, defaults to true
+          flatten: false # Optional, true or false, defaults to false
+          optional: false # Optional, true or false, defaults to false
+          selector: # Optional
+            type: status # Defaults to status, options: status, saved, triggered, permalink, specific, workspace, parameter
+            stable: true # Use if type = 'status', true or false
+            fallback: true # Use if type = 'triggered', true or false
+            id: lastBuild # Use if type = 'permalink', options: lastBuild, lastStableBuild, lastSuccessfulBuild, lastFailedBuild, lastUnstableBuild, lastUnsucceessfulBuild
+            number: '123' # Use if type = 'specific', the number of the build to use
+            param: 'BUILD_SELECTOR' # Use if type = 'parameter', the build parameter name
     wrappers:
       - timestamp: true
       - ansicolor: true
@@ -229,6 +246,11 @@ Here's a high level overview of what's available:
                 PARAM1=value1
                 PARAM2=value2
             - file: promote-job-params
+      - archive_artifact:
+          artifacts: 'artifact.txt' #Artifact include string/pattern
+          exclude: '' # Optional, exclude string/pattern
+          latest_only: false # Optional, true or false, defaults to false
+          allow_empty: false # Optional, true or false, defaults to false
     triggers:
       - git_push: true
       - scm_polling: 'H/5 * * * *'

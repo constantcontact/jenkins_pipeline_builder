@@ -139,5 +139,14 @@ module JenkinsPipelineBuilder
         end
       end
     end
+
+    def self.archive_artifact(params, xml)
+      xml.send('hudson.tasks.ArtifactArchiver') do
+        xml.artifacts params[:artifacts]
+        xml.excludes params[:excludes] if params[:excludes]
+        xml.latestOnly params[:latest_only] || false
+        xml.allowEmptyArchive params[:allow_empty] || false
+      end
+    end
   end
 end
