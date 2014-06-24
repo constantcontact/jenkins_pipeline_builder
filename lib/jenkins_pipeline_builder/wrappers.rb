@@ -21,18 +21,18 @@
 #
 
 module JenkinsPipelineBuilder
-  class Wrappers
-    def self.ansicolor(_, xml)
+  class Wrappers < Extendable
+    register :ansicolor do |_, xml|
       xml.send('hudson.plugins.ansicolor.AnsiColorBuildWrapper') do
         xml.colorMapName 'xterm'
       end
     end
 
-    def self.console_timestamp(_, xml)
+    register :timestamp do |_, xml|
       xml.send('hudson.plugins.timestamper.TimestamperBuildWrapper', 'plugin' => 'timestamper')
     end
 
-    def self.run_with_rvm05(wrapper, xml)
+    register :rvm05 do |wrapper, xml|
       xml.send('ruby-proxy-object') do
         xml.send('ruby-object', 'ruby-class' => 'Jenkins::Tasks::BuildWrapperProxy', 'pluginid' => 'rvm') do
           xml.object('ruby-class' => 'RvmWrapper', 'pluginid' => 'rvm') do
@@ -42,7 +42,8 @@ module JenkinsPipelineBuilder
         end
       end
     end
-    def self.run_with_rvm(wrapper, xml)
+
+    register :rvm do |wrapper, xml|
       xml.send('ruby-proxy-object') do
         xml.send('ruby-object', 'ruby-class' => 'Jenkins::Plugin::Proxies::BuildWrapper', 'pluginid' => 'rvm') do
           xml.object('ruby-class' => 'RvmWrapper', 'pluginid' => 'rvm') do
@@ -53,7 +54,7 @@ module JenkinsPipelineBuilder
       end
     end
 
-    def self.inject_passwords(passwords, xml)
+    register :inject_passwords do |passwords, xml|
       xml.EnvInjectPasswordWrapper do
         xml.injectGlobalPasswords false
         xml.passwordEntries do
@@ -67,7 +68,7 @@ module JenkinsPipelineBuilder
       end
     end
 
-    def self.inject_env_vars(params, xml)
+    register :inject_env_var do |params, xml|
       xml.EnvInjectBuildWrapper do
         xml.info do
           xml.propertiesFilePath params[:file] if params[:file]
@@ -77,7 +78,7 @@ module JenkinsPipelineBuilder
       end
     end
 
-    def self.publish_to_artifactory(wrapper, xml)
+    register :artifactory do |wrapper, xml|
       xml.send('org.jfrog.hudson.generic.ArtifactoryGenericConfigurator') do
         xml.details do
           xml.artifactoryUrl wrapper[:url]
@@ -99,7 +100,7 @@ module JenkinsPipelineBuilder
       end
     end
 
-    def self.artifactory_maven3_configurator(wrapper, xml)
+    register :maven3artifactory do |wrapper, xml|
       xml.send('org.jfrog.hudson.maven3.ArtifactoryMaven3Configurator') do # plugin='artifactory@2.2.1'
         xml.details do
           xml.artifactoryUrl wrapper[:url]

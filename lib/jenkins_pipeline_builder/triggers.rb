@@ -21,27 +21,27 @@
 #
 
 module JenkinsPipelineBuilder
-  class Triggers
-    def self.enable_git_push(_, xml)
+  class Triggers < Extendable
+    register :git_push do |_, xml|
       xml.send('com.cloudbees.jenkins.GitHubPushTrigger') do
         xml.spec
       end
     end
 
-    def self.enable_scm_polling(scm_polling, xml)
+    register :scm_polling do |scm_polling, xml|
       xml.send('hudson.triggers.SCMTrigger') do
         xml.spec scm_polling
         xml.ignorePostCommitHooks false
       end
     end
 
-    def self.enable_periodic_build(periodic_build, xml)
+    register :periodic_build do |periodic_build, xml|
       xml.send('hudson.triggers.TimerTrigger') do
         xml.spec periodic_build
       end
     end
 
-    def self.enable_upstream_check(params, xml)
+    register :upstream do |params, xml|
       case params[:status]
       when 'unstable'
         name = 'UNSTABLE'

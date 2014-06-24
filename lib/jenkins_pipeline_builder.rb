@@ -20,16 +20,15 @@
 # THE SOFTWARE.
 #
 
+require 'active_support'
+require 'active_support/core_ext'
+
 require 'jenkins_pipeline_builder/version'
 require 'jenkins_pipeline_builder/utils'
 require 'jenkins_pipeline_builder/xml_helper'
+require 'jenkins_pipeline_builder/extendable'
 require 'jenkins_pipeline_builder/compiler'
-require 'jenkins_pipeline_builder/job_builder'
 require 'jenkins_pipeline_builder/module_registry'
-require 'jenkins_pipeline_builder/builders'
-require 'jenkins_pipeline_builder/wrappers'
-require 'jenkins_pipeline_builder/triggers'
-require 'jenkins_pipeline_builder/publishers'
 require 'jenkins_pipeline_builder/pull_request'
 require 'jenkins_pipeline_builder/view'
 require 'jenkins_pipeline_builder/generator'
@@ -38,5 +37,26 @@ require 'jenkins_pipeline_builder/cli/helper'
 require 'jenkins_pipeline_builder/cli/view'
 require 'jenkins_pipeline_builder/cli/pipeline'
 require 'jenkins_pipeline_builder/cli/base'
-require 'active_support'
-require 'active_support/core_ext'
+
+module JenkinsPipelineBuilder
+  class << self
+    attr_accessor :credentials
+    def generator
+      @_generator ||= Generator.new
+    end
+
+    def client
+      return @_client if @_client
+      fail 'No credentails set' unless credentials
+      @_client = JenkinsApi::Client.new(credentials)
+      generator.logger = @_client.logger
+      @_client
+    end
+  end
+end
+JenkinsPipelineBuilder.generator
+require 'jenkins_pipeline_builder/builders'
+require 'jenkins_pipeline_builder/job_builder'
+require 'jenkins_pipeline_builder/wrappers'
+require 'jenkins_pipeline_builder/publishers'
+require 'jenkins_pipeline_builder/triggers'
