@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014 Igor Moochnick
+# Copyright (c) 2014 Constant Contact
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -70,8 +70,6 @@ module JenkinsPipelineBuilder
                 xml.description params[:description]
                 xml.defaultValue params[:default]
                 if params[:type] == 'choice'
-                  puts 'choice'
-                  puts params
                   xml.choices('class' => 'java.util.Arrays$ArrayList') do
                     xml.a('class' => 'string-array') do
                       params[:values].each do |value|

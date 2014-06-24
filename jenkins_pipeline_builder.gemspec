@@ -6,12 +6,12 @@ require 'jenkins_pipeline_builder/version'
 Gem::Specification.new do |spec|
   spec.name          = 'jenkins_pipeline_builder'
   spec.version       = JenkinsPipelineBuilder::VERSION
-  spec.authors       = ['Igor Moochnick']
-  spec.email         = %w(igor.moochnick@gmail.com)
+  spec.authors       = ['Igor Moochnick', 'Joseph Henrich']
+  spec.email         = %w(igor.moochnick@gmail.com crimsonknave@gmail.com)
   spec.description   = %q(This is a simple and easy-to-use Jenkins Pipeline generator with features focused on
 automating Job & Pipeline creation from the YAML files checked-in with your application source code)
   spec.summary       = %q(This gem is will boostrap your Jenkins pipelines)
-  spec.homepage      = 'https://github.com/IgorShare/jenkins_pipeline_builder'
+  spec.homepage      = 'https://github.com/ConstantContact/jenkins_pipeline_builder'
   spec.license       = 'MIT'
 
   spec.files         = `git ls-files`.split($RS)
