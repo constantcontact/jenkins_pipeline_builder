@@ -1,0 +1,14 @@
+---
+- job:
+    name: '{{name}}-00'
+    job_type: pull_request_generator
+    git_url: 'https://www.github.com/'
+    git_repo: 'constantcontact'
+    git_org: 'jenkins_pipeline_builder'
+    jobs:
+      - '{{name}}-10'
+      - '{{name}}-11'
+    builders:
+        - shell_command: |
+            generate -v || gem install jenkins_pipeline_builder
+            generate pipeline -c config/{{login_config}} pull_request pipeline/ {{name}}
