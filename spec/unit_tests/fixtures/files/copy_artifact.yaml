@@ -1,0 +1,14 @@
+- job:
+    name: copy_artifact
+    builders:
+        - copy_artifact:
+            project: 'test' 
+            artifacts: 'artifact.txt' 
+            target_directory: 'artifacts' 
+            filter: 'test=true' 
+            fingerprint: true
+            flatten: true
+            optional: true 
+            selector: 
+                type: triggered
+                fallback: true 

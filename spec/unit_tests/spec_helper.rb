@@ -20,7 +20,7 @@ class SimpleCov::Formatter::Console
   end
 end
 
-SimpleCov.start 'spec' #if ENV["COVERAGE"]
+SimpleCov.start 'spec' # if ENV["COVERAGE"]
 
 require File.expand_path('../../../lib/jenkins_pipeline_builder', __FILE__)
 require 'rspec/matchers'

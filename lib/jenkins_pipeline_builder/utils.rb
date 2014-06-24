@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014 Igor Moochnick
+# Copyright (c) 2014 Constant Contact
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -23,8 +23,8 @@
 module JenkinsPipelineBuilder
   class ::Hash
     def deep_merge(second)
-      merger = proc { |key, v1, v2| Hash === v1 && Hash === v2 ? v1.merge(v2, &merger) : v2 }
-      self.merge(second, &merger)
+      merger = proc { |_key, v1, v2| v1.is_a?(Hash) && v2.is_a?(Hash) ? v1.merge(v2, &merger) : v2 }
+      merge(second, &merger)
     end
   end
 
@@ -36,20 +36,17 @@ module JenkinsPipelineBuilder
         ks    = k.respond_to?(:to_sym) ? k.to_sym : k
         h[ks] = h.delete k # Preserve order even when k == ks
         symbolize_keys_deep! h[ks] if h[ks].kind_of? Hash
-        if h[ks].kind_of? Array
-          #puts "Array #{h[ks]}"
-          h[ks].each { |item| symbolize_keys_deep!(item) }
-        end
+        h[ks].each { |item| symbolize_keys_deep!(item) } if h[ks].is_a?(Array)
       end
     end
     def self.hash_merge!(old, new)
-      old.merge!(new) do |key, old, new|
+      old.merge!(new) do |_key, old, new|
         if old.is_a?(Hash) && new.is_a?(Hash)
           hash_merge!(old, new)
         else
-          new 
-        end 
-      end 
+          new
+        end
+      end
     end
   end
 end
