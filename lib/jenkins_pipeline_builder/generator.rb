@@ -191,9 +191,9 @@ module JenkinsPipelineBuilder
         value = section[key]
         if key == :dependencies
           @logger.info 'Resolving Dependencies for remote project'
-          return load_remote_yaml(value)
+          load_remote_yaml(value)
+          next
         end
-
         name = value[:name]
         if @job_collection.key?(name)
           if remote
@@ -275,11 +275,11 @@ module JenkinsPipelineBuilder
           return load_collection_from_path(path)
         end
 
-        load_templates(source[:templates])
+        load_templates(path, source[:templates])
       end
     end
 
-    def load_templates(templates)
+    def load_templates(path, templates)
       templates.each do |template|
         version = template[:version] || 'newest'
         @logger.info "Loading #{template[:name]} at version #{version}"
@@ -355,7 +355,6 @@ module JenkinsPipelineBuilder
     def resolve_project(project)
       defaults = get_item('global')
       settings = defaults.nil? ? {} : defaults[:value] || {}
-
       project[:settings] = Compiler.get_settings_bag(project, settings) unless project[:settings]
       project_body = project[:value]
 
@@ -445,6 +444,7 @@ module JenkinsPipelineBuilder
     def bootstrap(path, project_name)
       @logger.info "Bootstrapping pipeline from path #{path}"
       load_collection_from_path(path)
+      @logger.info @job_collection
       cleanup_temp_remote
       load_extensions(path)
       errors = {}
@@ -466,6 +466,7 @@ module JenkinsPipelineBuilder
       cleanup_temp_remote
       load_extensions(path)
       jobs = {}
+      @logger.info "Project: #{projects}"
       projects.each do |project|
         if project[:name] == project_name || project_name.nil?
           project_body = project[:value]
@@ -483,21 +484,23 @@ module JenkinsPipelineBuilder
             if job.is_a? String
               jobs[job.to_s] = @job_collection[job.to_s]
             else
-              jobs[job.keys[0].to_s] = @job_collection[job.keys[0].to_s]
+              jobs[job.keys.first.to_s] = @job_collection[job.keys.first.to_s]
             end
           end
           pull = JenkinsPipelineBuilder::PullRequestGenerator.new(project, jobs, pull_job)
           # Build the jobs
-          @pull.create.each do |project|
+          @job_collection.merge! pull.jobs
+          pull.create.each do |project|
             success, compiled_project = resolve_project(project)
             compiled_project[:value][:jobs].each do |i|
               job = i[:result]
-              success, payload = @generator.compile_job_to_xml(job)
-              @generator.create_or_update(job, payload) if success
+              success, payload = compile_job_to_xml(job)
+              create_or_update(job, payload) if success
             end
           end
-          @pull.purge.each do |job|
-            jobs = @client.job.list "#{req}.*"
+          # Purge old jobs
+          pull.purge.each do |job|
+            jobs = @client.job.list "#{job}.*"
             jobs.each do |job|
               @client.job.delete job
             end

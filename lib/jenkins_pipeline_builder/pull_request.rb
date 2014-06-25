@@ -27,26 +27,25 @@ module JenkinsPipelineBuilder
     attr_reader :jobs
 
     def initialize(project, job_collection, generator_job)
-      @purge = {}
-      @create = {}
+      @purge = []
+      @create = []
       @jobs = {}
 
       pull_requests = check_for_pull generator_job[:value]
       purge_old(pull_requests, project)
-      main_collection = job_collection
       pull_requests.each do |number|
         # Manipulate the YAML
-        req = JenkinsPipelineBuilder::PullRequest.new(project, number, main_collection, generator_job)
-        @jobs.merge req.jobs
+        req = JenkinsPipelineBuilder::PullRequest.new(project, number, job_collection, generator_job)
+        @jobs.merge! req.jobs
         project_t = req.project
 
         # Overwrite the jobs from the generator to the project
         project_t[:value][:jobs] = generator_job[:value][:jobs]
-        @create.merge project_t
+        @create << project_t
       end
     end
 
-    private 
+    private
 
     # Check for Github Pull Requests
     #
