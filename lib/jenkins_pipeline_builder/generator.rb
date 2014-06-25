@@ -35,78 +35,12 @@ module JenkinsPipelineBuilder
     #
     # @raise [ArgumentError] when required options are not provided.
     #
-    def initialize(client)
-      @client        = client
-      @logger        = @client.logger
-      # @logger.level = (@debug) ? Logger::DEBUG : Logger::INFO;
+    def initialize
       @job_templates = {}
       @job_collection = {}
       @extensions = {}
       @remote_depends = {}
-
-      @module_registry = ModuleRegistry.new(
-        job: {
-          description: JobBuilder.method(:change_description),
-          scm_params: JobBuilder.method(:apply_scm_params),
-          hipchat: JobBuilder.method(:hipchat_notifier),
-          parameters: JobBuilder.method(:build_parameters),
-          priority: JobBuilder.method(:use_specific_priority),
-          discard_old: JobBuilder.method(:discard_old_param),
-          throttle: JobBuilder.method(:throttle_job),
-          prepare_environment: JobBuilder.method(:prepare_environment),
-          concurrent_build: JobBuilder.method(:concurrent_build),
-          builders: {
-            registry: {
-              multi_job: Builders.method(:build_multijob),
-              inject_vars_file: Builders.method(:build_environment_vars_injector),
-              shell_command: Builders.method(:build_shell_command),
-              maven3: Builders.method(:build_maven3),
-              blocking_downstream: Builders.method(:blocking_downstream),
-              remote_job: Builders.method(:start_remote_job)
-            },
-            method:
-            ->(registry, params, n_xml) { @module_registry.run_registry_on_path('//builders', registry, params, n_xml) }
-          },
-          publishers: {
-            registry: {
-              git: Publishers.method(:push_to_git),
-              hipchat: Publishers.method(:push_to_hipchat),
-              description_setter: Publishers.method(:description_setter),
-              downstream: Publishers.method(:push_to_projects),
-              junit_result: Publishers.method(:publish_junit),
-              coverage_result: Publishers.method(:publish_rcov),
-              post_build_script: Publishers.method(:post_build_script),
-              groovy_postbuild: Publishers.method(:groovy_postbuild)
-            },
-            method:
-            ->(registry, params, n_xml) { @module_registry.run_registry_on_path('//publishers', registry, params, n_xml) }
-          },
-          wrappers: {
-            registry: {
-              timestamp: Wrappers.method(:console_timestamp),
-              ansicolor: Wrappers.method(:ansicolor),
-              artifactory: Wrappers.method(:publish_to_artifactory),
-              rvm: Wrappers.method(:run_with_rvm),
-              rvm05: Wrappers.method(:run_with_rvm05),
-              inject_env_var: Wrappers.method(:inject_env_vars),
-              inject_passwords: Wrappers.method(:inject_passwords),
-              maven3artifactory: Wrappers.method(:artifactory_maven3_configurator)
-            },
-            method:
-            ->(registry, params, n_xml) { @module_registry.run_registry_on_path('//buildWrappers', registry, params, n_xml) }
-          },
-          triggers: {
-            registry: {
-              git_push: Triggers.method(:enable_git_push),
-              scm_polling: Triggers.method(:enable_scm_polling),
-              periodic_build: Triggers.method(:enable_periodic_build),
-              upstream: Triggers.method(:enable_upstream_check)
-            },
-            method:
-            ->(registry, params, n_xml) { @module_registry.run_registry_on_path('//triggers', registry, params, n_xml) }
-          }
-        }
-      )
+      @module_registry = ModuleRegistry.new
     end
 
     def load_extensions(path)
@@ -159,10 +93,12 @@ module JenkinsPipelineBuilder
       @logger.level = (value) ? Logger::DEBUG : Logger::INFO
     end
 
+    def client
+      JenkinsPipelineBuilder.client
+    end
+
     attr_reader :debug
-    attr_accessor :client
-    attr_accessor :no_files
-    attr_accessor :job_collection
+    attr_accessor :no_files, :job_collection, :logger, :module_registry
 
     # Creates an instance to the View class by passing a reference to self
     #
@@ -202,9 +138,9 @@ module JenkinsPipelineBuilder
         value = section[key]
         if key == :dependencies
           @logger.info 'Resolving Dependencies for remote project'
-          return load_remote_yaml(value)
+          load_remote_yaml(value)
+          next
         end
-
         name = value[:name]
         if @job_collection.key?(name)
           if remote
@@ -286,11 +222,11 @@ module JenkinsPipelineBuilder
           return load_collection_from_path(path)
         end
 
-        load_templates(source[:templates])
+        load_templates(path, source[:templates])
       end
     end
 
-    def load_templates(templates)
+    def load_templates(path, templates)
       templates.each do |template|
         version = template[:version] || 'newest'
         @logger.info "Loading #{template[:name]} at version #{version}"
@@ -366,7 +302,6 @@ module JenkinsPipelineBuilder
     def resolve_project(project)
       defaults = get_item('global')
       settings = defaults.nil? ? {} : defaults[:value] || {}
-
       project[:settings] = Compiler.get_settings_bag(project, settings) unless project[:settings]
       project_body = project[:value]
 
@@ -466,6 +401,7 @@ module JenkinsPipelineBuilder
 
       # LOLOLOL
       load_collection_from_path(path)
+      @logger.info @job_collection
       cleanup_temp_remote
       # load_extensions(path)
       errors = {}
@@ -487,6 +423,7 @@ module JenkinsPipelineBuilder
       cleanup_temp_remote
       # load_extensions(path)
       jobs = {}
+      @logger.info "Project: #{projects}"
       projects.each do |project|
         if project[:name] == project_name || project_name.nil?
           project_body = project[:value]
@@ -494,6 +431,7 @@ module JenkinsPipelineBuilder
           @logger.info "Using Project #{project}"
           pull_job = nil
           project_jobs.each do |job|
+            job = job.keys.first if job.is_a? Hash
             job = @job_collection[job.to_s]
             pull_job = job if job[:value][:job_type] == 'pull_request_generator'
           end
@@ -503,11 +441,27 @@ module JenkinsPipelineBuilder
             if job.is_a? String
               jobs[job.to_s] = @job_collection[job.to_s]
             else
-              jobs[job.keys[0].to_s] = @job_collection[job.keys[0].to_s]
+              jobs[job.keys.first.to_s] = @job_collection[job.keys.first.to_s]
             end
           end
-          pull = JenkinsPipelineBuilder::PullRequestGenerator.new(self)
-          pull.run(project, jobs, pull_job)
+          pull = JenkinsPipelineBuilder::PullRequestGenerator.new(project, jobs, pull_job)
+          # Build the jobs
+          @job_collection.merge! pull.jobs
+          pull.create.each do |project|
+            success, compiled_project = resolve_project(project)
+            compiled_project[:value][:jobs].each do |i|
+              job = i[:result]
+              success, payload = compile_job_to_xml(job)
+              create_or_update(job, payload) if success
+            end
+          end
+          # Purge old jobs
+          pull.purge.each do |job|
+            jobs = @client.job.list "#{job}.*"
+            jobs.each do |job|
+              @client.job.delete job
+            end
+          end
         end
       end
     end
@@ -515,7 +469,7 @@ module JenkinsPipelineBuilder
     def dump(job_name)
       @logger.info "Debug #{@debug}"
       @logger.info "Dumping #{job_name} into #{job_name}.xml"
-      xml = @client.job.get_config(job_name)
+      xml = client.job.get_config(job_name)
       File.open(job_name + '.xml', 'w') { |f| f.write xml }
     end
 
@@ -528,10 +482,10 @@ module JenkinsPipelineBuilder
         return
       end
 
-      if @client.job.exists?(job_name)
-        @client.job.update(job_name, xml)
+      if client.job.exists?(job_name)
+        client.job.update(job_name, xml)
       else
-        @client.job.create(job_name, xml)
+        client.job.create(job_name, xml)
       end
     end
 
@@ -577,7 +531,7 @@ module JenkinsPipelineBuilder
         puts "Template merged: #{template}"
       end
 
-      xml   = @client.job.build_freestyle_config(params)
+      xml   = client.job.build_freestyle_config(params)
       n_xml = Nokogiri::XML(xml)
 
       @module_registry.traverse_registry_path('job', params, n_xml)
@@ -607,7 +561,7 @@ module JenkinsPipelineBuilder
     def generate_job_dsl_body(params)
       @logger.info 'Generating pipeline'
 
-      xml = @client.job.build_freestyle_config(params)
+      xml = client.job.build_freestyle_config(params)
 
       n_xml = Nokogiri::XML(xml)
       if n_xml.xpath('//javaposse.jobdsl.plugin.ExecuteDslScripts').empty?

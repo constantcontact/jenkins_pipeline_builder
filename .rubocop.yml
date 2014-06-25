@@ -36,14 +36,18 @@ Style/ClassAndModuleChildren:
 # Offense count: 6
 # Configuration parameters: CountComments.
 Style/ClassLength:
+  Enabled: false
   Max: 506
 
 # Offense count: 12
 Style/CyclomaticComplexity:
-  Max: 18
+  Max: 20
 
 # Offense count: 17
 Style/Documentation:
+  Enabled: false
+
+Style/AccessModifierIndentation:
   Enabled: false
 
 #######

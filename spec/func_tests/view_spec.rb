@@ -6,11 +6,8 @@ describe JenkinsPipelineBuilder::View do
       @creds_file = '~/.jenkins_api_client/login.yml'
       @valid_post_responses = [200, 201, 302]
       begin
-        @client = JenkinsApi::Client.new(
-            YAML.load_file(File.expand_path(@creds_file, __FILE__))
-        )
-        @client.logger.level = Logger::DEBUG
-        @generator = JenkinsPipelineBuilder::Generator.new(@client)
+        JenksinPipelineBuilder.credentials = YAML.load_file(File.expand_path(@creds_file, __FILE__))
+        @generator = JenkinsPipelineBuilder.generator
         @generator.no_files = true
       rescue StandardError => e
         puts 'WARNING: Credentials are not set properly.'

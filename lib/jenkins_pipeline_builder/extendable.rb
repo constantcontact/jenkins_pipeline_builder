@@ -21,5 +21,23 @@
 #
 
 module JenkinsPipelineBuilder
-  VERSION = '0.5.2'
+  class Extendable
+    def self.register(name, jenkins_name: 'No jenkins display name provided', description: 'No description provided', &block)
+      # TODO: Accessor or something for this
+      registry = JenkinsPipelineBuilder.registry
+      registry.send(class_to_registry_method(to_s), name, jenkins_name, description, &block)
+    end
+
+    def self.class_to_registry_method(name)
+      h = {
+        'JenkinsPipelineBuilder::JobBuilder' => :register_job_attribute,
+        'JenkinsPipelineBuilder::Builders' => :register_builder,
+        'JenkinsPipelineBuilder::Publishers' => :register_publisher,
+        'JenkinsPipelineBuilder::Wrappers' => :register_wrapper,
+        'JenkinsPipelineBuilder::Triggers' => :register_trigger
+      }
+      fail "Unknown class #{name} when adding an extension. Known classes are #{h.keys.join ', '}" unless h.key?(name)
+      h[name]
+    end
+  end
 end

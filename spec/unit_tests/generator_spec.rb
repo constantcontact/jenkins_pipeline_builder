@@ -3,16 +3,21 @@ require 'unit_tests/spec_helper'
 describe 'Test YAML jobs conversion to XML' do
   context 'Loading YAML files' do
     before do
-      @client = JenkinsApi::Client.new(
-          server_ip:  '127.0.0.1',
-          server_port:  8080,
-          username:  'username',
-          password:  'password',
-          log_location:  '/dev/null'
-      )
-      @generator = JenkinsPipelineBuilder::Generator.new(@client)
+      JenkinsPipelineBuilder.credentials = {
+        server_ip: '127.0.0.1',
+        server_port: 8080,
+        username: 'username',
+        password: 'password',
+        log_location: '/dev/null'
+      }
+      @generator = JenkinsPipelineBuilder.generator
+      JenkinsPipelineBuilder.client
       @generator.debug = true
       @generator.no_files = true
+    end
+
+    after :each do
+      JenkinsPipelineBuilder.generator.instance_variable_set(:@job_collection, {})
     end
 
     def compare_jobs(job, path)
@@ -47,6 +52,9 @@ describe 'Test YAML jobs conversion to XML' do
       choice_parameter
       downstream_blocking
       groovy_postbuild
+      archive_artifact
+      copy_artifact
+      git_include_exclude
     )
 
     files.each do |file|
@@ -83,7 +91,5 @@ describe 'Test YAML jobs conversion to XML' do
         compare_jobs job, file_name
       end
     end
-
-    it 'downloads from remote repos'
   end
 end
