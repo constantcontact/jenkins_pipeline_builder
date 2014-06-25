@@ -41,21 +41,17 @@ module JenkinsPipelineBuilder
         puts JenkinsPipelineBuilder::VERSION
       end
 
-      # Register the CLI::Pipeline class as 'pipeline' subcommand to CLI
-      register(
-        CLI::Pipeline,
-        'pipeline',
-        'pipeline [subcommand]',
-        'Provides functions to access pipeline functions of the Jenkins CI server'
-      )
+      desc 'pipeline [subcommand]', 'Provides functions to access pipeline functions of the Jenkins CI server'
+      subcommand 'pipeline', CLI::Pipeline
 
-      # Register the CLI::Job class as 'view' subcommand to CLI
-      register(
-        CLI::View,
-        'view',
-        'view [subcommand]',
-        'Provides functions to access view interface of Jenkins CI server'
-      )
+      desc 'view [subcommand]', 'Provides functions to access view interface of Jenkins CI server'
+      subcommand 'view', CLI::View
+
+      desc 'list [type]', 'Lists all registered modules of a type'
+      subcommand 'list', List
+
+      desc 'describe [type]', 'Describe a module'
+      subcommand 'describe', Describe
     end
   end
 end

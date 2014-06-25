@@ -21,8 +21,8 @@
 #
 
 module JenkinsPipelineBuilder
-  class Publishers
-    def self.description_setter(params, xml)
+  class Publishers < Extendable
+    register :description_setter do |params, xml|
       xml.send('hudson.plugins.descriptionsetter.DescriptionSetterPublisher') do
         xml.regexp params[:regexp]
         xml.regexpForFailed params[:regexp]
@@ -32,7 +32,7 @@ module JenkinsPipelineBuilder
       end
     end
 
-    def self.push_to_projects(params, xml)
+    register :downstream do |params, xml|
       xml.send('hudson.plugins.parameterizedtrigger.BuildTrigger') do
         xml.configs do
           xml.send('hudson.plugins.parameterizedtrigger.BuildTriggerConfig') do
@@ -60,7 +60,7 @@ module JenkinsPipelineBuilder
       end
     end
 
-    def self.push_to_hipchat(params, xml)
+    register :hipchat do |params, xml|
       params = {} if params == true
       xml.send('jenkins.plugins.hipchat.HipChatNotifier') do
         xml.jenkinsUrl params[:jenkinsUrl] || ''
@@ -69,7 +69,7 @@ module JenkinsPipelineBuilder
       end
     end
 
-    def self.push_to_git(params, xml)
+    register :git do |params, xml|
       xml.send('hudson.plugins.git.GitPublisher') do
         xml.configVersion params[:configVersion] || 2
         xml.pushMerge params[:'push-merge'] || false
@@ -83,7 +83,7 @@ module JenkinsPipelineBuilder
       end
     end
 
-    def self.publish_junit(params, xml)
+    register :junit_result do |params, xml|
       xml.send('hudson.tasks.junit.JUnitResultArchiver') do
         xml.testResults params[:test_results] || ''
         xml.keepLongStdio false
@@ -91,16 +91,7 @@ module JenkinsPipelineBuilder
       end
     end
 
-    def self.coverage_metric(name, params, xml)
-      xml.send('hudson.plugins.rubyMetrics.rcov.model.MetricTarget') do
-        xml.metric name
-        xml.healthy params[:healthy]
-        xml.unhealthy params[:unhealthy]
-        xml.unstable params[:unstable]
-      end
-    end
-
-    def self.publish_rcov(params, xml)
+    register :coverage_result do |params, xml|
       xml.send('hudson.plugins.rubyMetrics.rcov.RcovPublisher') do
         xml.reportDir params[:report_dir]
         xml.targets do
@@ -110,7 +101,7 @@ module JenkinsPipelineBuilder
       end
     end
 
-    def self.post_build_script(params, xml)
+    register :post_build_script do |params, xml|
       xml.send('org.jenkinsci.plugins.postbuildscript.PostBuildScript') do
         xml.buildSteps do
           if params[:shell_command]
@@ -125,7 +116,7 @@ module JenkinsPipelineBuilder
       end
     end
 
-    def self.groovy_postbuild(params, xml)
+    register :groovy_postbuild do |params, xml|
       xml.send('org.jvnet.hudson.plugins.groovypostbuild.GroovyPostbuildRecorder', 'plugin' => 'groovy-postbuild') do
         xml.groovyScript params[:groovy_script]
         xml.behavior params[:behavior] || '0'
@@ -140,12 +131,21 @@ module JenkinsPipelineBuilder
       end
     end
 
-    def self.archive_artifact(params, xml)
+    register :archive_artifact do |params, xml|
       xml.send('hudson.tasks.ArtifactArchiver') do
         xml.artifacts params[:artifacts]
         xml.excludes params[:excludes] if params[:excludes]
         xml.latestOnly params[:latest_only] || false
         xml.allowEmptyArchive params[:allow_empty] || false
+      end
+    end
+
+    def self.coverage_metric(name, params, xml)
+      xml.send('hudson.plugins.rubyMetrics.rcov.model.MetricTarget') do
+        xml.metric name
+        xml.healthy params[:healthy]
+        xml.unhealthy params[:unhealthy]
+        xml.unstable params[:unstable]
       end
     end
   end

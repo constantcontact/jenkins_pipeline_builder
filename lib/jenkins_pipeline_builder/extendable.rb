@@ -21,51 +21,23 @@
 #
 
 module JenkinsPipelineBuilder
-  class Triggers < Extendable
-    register :git_push do |_, xml|
-      xml.send('com.cloudbees.jenkins.GitHubPushTrigger') do
-        xml.spec
-      end
+  class Extendable
+    def self.register(name, jenkins_name: 'No jenkins display name provided', description: 'No description provided', &block)
+      # TODO: Accessor or something for this
+      registry = JenkinsPipelineBuilder.registry
+      registry.send(class_to_registry_method(to_s), name, jenkins_name, description, &block)
     end
 
-    register :scm_polling do |scm_polling, xml|
-      xml.send('hudson.triggers.SCMTrigger') do
-        xml.spec scm_polling
-        xml.ignorePostCommitHooks false
-      end
-    end
-
-    register :periodic_build do |periodic_build, xml|
-      xml.send('hudson.triggers.TimerTrigger') do
-        xml.spec periodic_build
-      end
-    end
-
-    register :upstream do |params, xml|
-      case params[:status]
-      when 'unstable'
-        name = 'UNSTABLE'
-        ordinal = '1'
-        color = 'yellow'
-      when 'failed'
-        name = 'FAILURE'
-        ordinal = '2'
-        color = 'RED'
-      else
-        name = 'SUCCESS'
-        ordinal = '0'
-        color = 'BLUE'
-      end
-      xml.send('jenkins.triggers.ReverseBuildTrigger') do
-        xml.spec
-        xml.upstreamProjects params[:projects]
-        xml.send('threshold') do
-          xml.name name
-          xml.ordinal ordinal
-          xml.color color
-          xml.completeBuild true
-        end
-      end
+    def self.class_to_registry_method(name)
+      h = {
+        'JenkinsPipelineBuilder::JobBuilder' => :register_job_attribute,
+        'JenkinsPipelineBuilder::Builders' => :register_builder,
+        'JenkinsPipelineBuilder::Publishers' => :register_publisher,
+        'JenkinsPipelineBuilder::Wrappers' => :register_wrapper,
+        'JenkinsPipelineBuilder::Triggers' => :register_trigger
+      }
+      fail "Unknown class #{name} when adding an extension. Known classes are #{h.keys.join ', '}" unless h.key?(name)
+      h[name]
     end
   end
 end

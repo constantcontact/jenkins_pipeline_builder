@@ -21,50 +21,34 @@
 #
 
 module JenkinsPipelineBuilder
-  class Triggers < Extendable
-    register :git_push do |_, xml|
-      xml.send('com.cloudbees.jenkins.GitHubPushTrigger') do
-        xml.spec
-      end
-    end
+  module CLI
+    JenkinsPipelineBuilder.registry.entries.each do |entry, _path|
+      klass_name = entry.to_s.classify
+      klass = Class.new(Thor) do
 
-    register :scm_polling do |scm_polling, xml|
-      xml.send('hudson.triggers.SCMTrigger') do
-        xml.spec scm_polling
-        xml.ignorePostCommitHooks false
-      end
-    end
-
-    register :periodic_build do |periodic_build, xml|
-      xml.send('hudson.triggers.TimerTrigger') do
-        xml.spec periodic_build
-      end
-    end
-
-    register :upstream do |params, xml|
-      case params[:status]
-      when 'unstable'
-        name = 'UNSTABLE'
-        ordinal = '1'
-        color = 'yellow'
-      when 'failed'
-        name = 'FAILURE'
-        ordinal = '2'
-        color = 'RED'
-      else
-        name = 'SUCCESS'
-        ordinal = '0'
-        color = 'BLUE'
-      end
-      xml.send('jenkins.triggers.ReverseBuildTrigger') do
-        xml.spec
-        xml.upstreamProjects params[:projects]
-        xml.send('threshold') do
-          xml.name name
-          xml.ordinal ordinal
-          xml.color color
-          xml.completeBuild true
+        modules =  JenkinsPipelineBuilder.registry.registered_modules[entry]
+        modules.each do |mod, values|
+          desc mod, "Details for #{mod}"
+          define_method(mod) do
+            display_module(mod, values)
+          end
         end
+
+        private
+
+        def display_module(mod, values)
+          puts "#{mod}: #{values[:description]}"
+        end
+      end
+      Module.const_set(klass_name, klass)
+    end
+    class Describe < Thor
+      JenkinsPipelineBuilder.registry.entries.each do |entry, _path|
+        klass_name = entry.to_s.classify
+        singular_model = entry.to_s.singularize
+
+        desc "#{singular_model} [module]", 'Shows details for the named module'
+        subcommand singular_model, Module.const_get(klass_name)
       end
     end
   end

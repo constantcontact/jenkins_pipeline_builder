@@ -21,50 +21,26 @@
 #
 
 module JenkinsPipelineBuilder
-  class Triggers < Extendable
-    register :git_push do |_, xml|
-      xml.send('com.cloudbees.jenkins.GitHubPushTrigger') do
-        xml.spec
-      end
-    end
-
-    register :scm_polling do |scm_polling, xml|
-      xml.send('hudson.triggers.SCMTrigger') do
-        xml.spec scm_polling
-        xml.ignorePostCommitHooks false
-      end
-    end
-
-    register :periodic_build do |periodic_build, xml|
-      xml.send('hudson.triggers.TimerTrigger') do
-        xml.spec periodic_build
-      end
-    end
-
-    register :upstream do |params, xml|
-      case params[:status]
-      when 'unstable'
-        name = 'UNSTABLE'
-        ordinal = '1'
-        color = 'yellow'
-      when 'failed'
-        name = 'FAILURE'
-        ordinal = '2'
-        color = 'RED'
-      else
-        name = 'SUCCESS'
-        ordinal = '0'
-        color = 'BLUE'
-      end
-      xml.send('jenkins.triggers.ReverseBuildTrigger') do
-        xml.spec
-        xml.upstreamProjects params[:projects]
-        xml.send('threshold') do
-          xml.name name
-          xml.ordinal ordinal
-          xml.color color
-          xml.completeBuild true
+  module CLI
+    class List < Thor
+      JenkinsPipelineBuilder.registry.entries.each do |entry, _path|
+        desc entry, "List all #{entry}"
+        define_method(entry) do
+          modules =  JenkinsPipelineBuilder.registry.registered_modules[entry]
+          modules.each { |mod, values| display_module(mod, values) }
         end
+      end
+
+      desc 'job_attributes', 'List all job attributes'
+      def job_attributes
+        modules =  JenkinsPipelineBuilder.registry.registered_modules[:job_attributes]
+        modules.each { |mod, values| display_module(mod, values) }
+      end
+
+      private
+
+      def display_module(mod, values)
+        puts "#{mod}: Jenkins Name: #{values[:jenkins_name]}"
       end
     end
   end

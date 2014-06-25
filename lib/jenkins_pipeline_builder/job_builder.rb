@@ -21,13 +21,13 @@
 #
 
 module JenkinsPipelineBuilder
-  class JobBuilder
-    def self.change_description(description, n_xml)
+  class JobBuilder < Extendable
+    register :description do |description, n_xml|
       desc = n_xml.xpath('//description').first
       desc.content = "#{description}"
     end
 
-    def self.apply_scm_params(params, n_xml)
+    register :scm_params do |params, n_xml|
       XmlHelper.update_node_text(n_xml, '//scm/localBranch', params[:local_branch]) if params[:local_branch]
       XmlHelper.update_node_text(n_xml, '//scm/recursiveSubmodules', params[:recursive_update]) if params[:recursive_update]
       XmlHelper.update_node_text(n_xml, '//scm/wipeOutWorkspace', params[:wipe_workspace]) if params[:wipe_workspace]
@@ -39,7 +39,7 @@ module JenkinsPipelineBuilder
       XmlHelper.update_node_text(n_xml, '//scm/includedRegions', params[:included_regions]) if params[:included_regions]
     end
 
-    def self.hipchat_notifier(params, n_xml)
+    register :hipchat do |params, n_xml|
       fail 'No HipChat room specified' unless params[:room]
 
       properties = n_xml.xpath('//properties').first
@@ -51,7 +51,7 @@ module JenkinsPipelineBuilder
       end
     end
 
-    def self.use_specific_priority(params, n_xml)
+    register :priority do |params, n_xml|
       n_builders = n_xml.xpath('//properties').first
       Nokogiri::XML::Builder.with(n_builders) do |xml|
         xml.send('jenkins.advancedqueue.AdvancedQueueSorterJobProperty', 'plugin' => 'PrioritySorter') do
@@ -61,7 +61,7 @@ module JenkinsPipelineBuilder
       end
     end
 
-    def self.build_parameters(params, n_xml)
+    register :parameters do |params, n_xml|
       n_builders = n_xml.xpath('//properties').first
       Nokogiri::XML::Builder.with(n_builders) do |xml|
         xml.send('hudson.model.ParametersDefinitionProperty') do
@@ -105,7 +105,7 @@ module JenkinsPipelineBuilder
       end
     end
 
-    def self.discard_old_param(params, n_xml)
+    register :discard_old do |params, n_xml|
       properties = n_xml.child
       Nokogiri::XML::Builder.with(properties) do |xml|
         xml.send('logRotator', 'class' => 'hudson.tasks.LogRotator') do
@@ -117,7 +117,7 @@ module JenkinsPipelineBuilder
       end
     end
 
-    def self.throttle_job(params, n_xml)
+    register :throttle do |params, n_xml|
       properties = n_xml.xpath('//properties').first
       cat_set = params[:option] == 'category'
       Nokogiri::XML::Builder.with(properties) do |xml|
@@ -133,7 +133,7 @@ module JenkinsPipelineBuilder
       end
     end
 
-    def self.prepare_environment(params, n_xml)
+    register :prepare_environment do |params, n_xml|
       properties = n_xml.xpath('//properties').first
       Nokogiri::XML::Builder.with(properties) do |xml|
         xml.send('EnvInjectJobProperty') do
@@ -148,7 +148,7 @@ module JenkinsPipelineBuilder
       end
     end
 
-    def self.concurrent_build(params, n_xml)
+    register :concurrent_build do |params, n_xml|
       concurrentBuild = n_xml.xpath('//concurrentBuild').first
       concurrentBuild.content = (params == true) ? 'true' : 'false'
     end
