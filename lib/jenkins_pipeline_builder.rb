@@ -33,11 +33,6 @@ require 'jenkins_pipeline_builder/pull_request'
 require 'jenkins_pipeline_builder/view'
 require 'jenkins_pipeline_builder/generator'
 
-require 'jenkins_pipeline_builder/cli/helper'
-require 'jenkins_pipeline_builder/cli/view'
-require 'jenkins_pipeline_builder/cli/pipeline'
-require 'jenkins_pipeline_builder/cli/base'
-
 module JenkinsPipelineBuilder
   class << self
     attr_accessor :credentials
@@ -52,6 +47,10 @@ module JenkinsPipelineBuilder
       generator.logger = @_client.logger
       @_client
     end
+
+    def registry
+      generator.module_registry
+    end
   end
 end
 JenkinsPipelineBuilder.generator
@@ -60,3 +59,10 @@ require 'jenkins_pipeline_builder/job_builder'
 require 'jenkins_pipeline_builder/wrappers'
 require 'jenkins_pipeline_builder/publishers'
 require 'jenkins_pipeline_builder/triggers'
+
+require 'jenkins_pipeline_builder/cli/helper'
+require 'jenkins_pipeline_builder/cli/view'
+require 'jenkins_pipeline_builder/cli/pipeline'
+require 'jenkins_pipeline_builder/cli/list'
+require 'jenkins_pipeline_builder/cli/describe'
+require 'jenkins_pipeline_builder/cli/base'

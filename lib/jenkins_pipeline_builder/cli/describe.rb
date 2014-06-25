@@ -21,23 +21,35 @@
 #
 
 module JenkinsPipelineBuilder
-  class Extendable
-    def self.register(name, jenkins_name: 'No jenkins display name provided', description: 'No description provided', &block)
-      # TODO: Accessor or something for this
-      registry = JenkinsPipelineBuilder.registry
-      registry.send(class_to_registry_method(to_s), name, jenkins_name, description, &block)
-    end
+  module CLI
+    JenkinsPipelineBuilder.registry.entries.each do |entry, _path|
+      klass_name = entry.to_s.classify
+      klass = Class.new(Thor) do
 
-    def self.class_to_registry_method(name)
-      h = {
-        'JenkinsPipelineBuilder::JobBuilder' => :register_job_attribute,
-        'JenkinsPipelineBuilder::Builders' => :register_builder,
-        'JenkinsPipelineBuilder::Publishers' => :register_publisher,
-        'JenkinsPipelineBuilder::Wrappers' => :register_wrapper,
-        'JenkinsPipelineBuilder::Triggers' => :register_trigger
-      }
-      fail "Unknown class #{name} when adding an extension. Known classes are #{h.keys.join ', '}" unless h.key?(name)
-      h[name]
+        modules =  JenkinsPipelineBuilder.registry.registered_modules[entry]
+        modules.each do |mod, values|
+          desc mod, "Details for #{mod}"
+          define_method(mod) do
+            display_module(mod, values)
+          end
+        end
+
+        private
+
+        def display_module(mod, values)
+          puts "#{mod}: #{values[:description]}"
+        end
+      end
+      Module.const_set(klass_name, klass)
+    end
+    class Describe < Thor
+      JenkinsPipelineBuilder.registry.entries.each do |entry, _path|
+        klass_name = entry.to_s.classify
+        singular_model = entry.to_s.singularize
+
+        desc "#{singular_model} [module]", 'Shows details for the named module'
+        subcommand singular_model, Module.const_get(klass_name)
+      end
     end
   end
 end

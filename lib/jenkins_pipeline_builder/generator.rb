@@ -40,7 +40,6 @@ module JenkinsPipelineBuilder
       @job_collection = {}
       @extensions = {}
       @remote_depends = {}
-
       @module_registry = ModuleRegistry.new
     end
 
@@ -86,7 +85,7 @@ module JenkinsPipelineBuilder
     end
 
     attr_reader :debug
-    attr_accessor :no_files, :job_collection, :logger
+    attr_accessor :no_files, :job_collection, :logger, :module_registry
 
     # Creates an instance to the View class by passing a reference to self
     #

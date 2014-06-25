@@ -6,7 +6,7 @@ describe 'ModuleRegistry' do
   it 'should return item by a specified path' do
 
     registry = JenkinsPipelineBuilder::ModuleRegistry.new
-    registry.register_job_attribute(:foo) do
+    registry.register_job_attribute(:foo, 'jenkins name', 'desc') do
       true
     end
 

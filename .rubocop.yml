@@ -47,6 +47,9 @@ Style/CyclomaticComplexity:
 Style/Documentation:
   Enabled: false
 
+Style/AccessModifierIndentation:
+  Enabled: false
+
 #######
 # We actually want these off
 

@@ -21,23 +21,27 @@
 #
 
 module JenkinsPipelineBuilder
-  class Extendable
-    def self.register(name, jenkins_name: 'No jenkins display name provided', description: 'No description provided', &block)
-      # TODO: Accessor or something for this
-      registry = JenkinsPipelineBuilder.registry
-      registry.send(class_to_registry_method(to_s), name, jenkins_name, description, &block)
-    end
+  module CLI
+    class List < Thor
+      JenkinsPipelineBuilder.registry.entries.each do |entry, _path|
+        desc entry, "List all #{entry}"
+        define_method(entry) do
+          modules =  JenkinsPipelineBuilder.registry.registered_modules[entry]
+          modules.each { |mod, values| display_module(mod, values) }
+        end
+      end
 
-    def self.class_to_registry_method(name)
-      h = {
-        'JenkinsPipelineBuilder::JobBuilder' => :register_job_attribute,
-        'JenkinsPipelineBuilder::Builders' => :register_builder,
-        'JenkinsPipelineBuilder::Publishers' => :register_publisher,
-        'JenkinsPipelineBuilder::Wrappers' => :register_wrapper,
-        'JenkinsPipelineBuilder::Triggers' => :register_trigger
-      }
-      fail "Unknown class #{name} when adding an extension. Known classes are #{h.keys.join ', '}" unless h.key?(name)
-      h[name]
+      desc 'job_attributes', 'List all job attributes'
+      def job_attributes
+        modules =  JenkinsPipelineBuilder.registry.registered_modules[:job_attributes]
+        modules.each { |mod, values| display_module(mod, values) }
+      end
+
+      private
+
+      def display_module(mod, values)
+        puts "#{mod}: Jenkins Name: #{values[:jenkins_name]}"
+      end
     end
   end
 end

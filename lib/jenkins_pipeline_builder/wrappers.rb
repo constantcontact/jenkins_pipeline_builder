@@ -22,7 +22,7 @@
 
 module JenkinsPipelineBuilder
   class Wrappers < Extendable
-    register :ansicolor do |_, xml|
+    register :ansicolor, jenkins_name: 'color ansi', description: 'this is a description' do |_, xml|
       xml.send('hudson.plugins.ansicolor.AnsiColorBuildWrapper') do
         xml.colorMapName 'xterm'
       end
