@@ -1,0 +1,4 @@
+---
+- job-template:
+    name: '{{name}}-11'
+    description: '{{description}}'

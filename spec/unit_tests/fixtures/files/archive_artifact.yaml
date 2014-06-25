@@ -1,0 +1,5 @@
+- job:
+    name: archive_artifact
+    publishers:
+        - archive_artifact:
+            artifacts: 'artifact.txt'

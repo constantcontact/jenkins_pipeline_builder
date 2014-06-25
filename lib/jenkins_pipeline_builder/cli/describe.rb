@@ -21,5 +21,35 @@
 #
 
 module JenkinsPipelineBuilder
-  VERSION = '0.5.2'
+  module CLI
+    JenkinsPipelineBuilder.registry.entries.each do |entry, _path|
+      klass_name = entry.to_s.classify
+      klass = Class.new(Thor) do
+
+        modules =  JenkinsPipelineBuilder.registry.registered_modules[entry]
+        modules.each do |mod, values|
+          desc mod, "Details for #{mod}"
+          define_method(mod) do
+            display_module(mod, values)
+          end
+        end
+
+        private
+
+        def display_module(mod, values)
+          puts "#{mod}: #{values[:description]}"
+        end
+      end
+      Module.const_set(klass_name, klass)
+    end
+    class Describe < Thor
+      JenkinsPipelineBuilder.registry.entries.each do |entry, _path|
+        klass_name = entry.to_s.classify
+        singular_model = entry.to_s.singularize
+
+        desc "#{singular_model} [module]", 'Shows details for the named module'
+        subcommand singular_model, Module.const_get(klass_name)
+      end
+    end
+  end
 end

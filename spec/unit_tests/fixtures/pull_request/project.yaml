@@ -1,0 +1,11 @@
+- defaults:
+    name: global
+    description: 'Do not edit this job through the web!'
+    discard_days: '14'
+
+- project:
+    name: pull_req_test
+    jobs:
+        - '{{name}}-00'
+        - '{{name}}-10'
+        - '{{name}}-11'

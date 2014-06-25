@@ -22,10 +22,50 @@
 
 module JenkinsPipelineBuilder
   class ModuleRegistry
-    attr_accessor :registry
+    attr_accessor :registry, :registered_modules
+    ENTRIES = {
+      builders: '//builders',
+      publishers: '//publishers',
+      wrappers: '//buildWrappers',
+      triggers: '//triggers'
+    }
 
-    def initialize(registry)
-      @registry = registry
+    # creates register_triggers and so on
+    # we declare job attribues below since it doesn't follow the pattern
+    ENTRIES.keys.each do |key|
+      # TODO: Too lazy to figure out a better way to do this
+      singular_key = key.to_s.singularize.to_sym
+      define_method "register_#{singular_key}" do |name, jenkins_name, description, &block|
+        @registered_modules[key][name] = {
+          jenkins_name: jenkins_name,
+          description: description
+        }
+        @registry[:job][key][:registry][name] = block
+      end
+    end
+
+    def initialize
+      @registry = { job: {} }
+      @registered_modules = { job_attributes: {} }
+
+      entries.each do |key, value|
+        @registered_modules[key] = {}
+        @registry[:job][key] = {}
+        @registry[:job][key][:registry] = {}
+        @registry[:job][key][:method] = ->(registry, params, n_xml) { run_registry_on_path(value, registry, params, n_xml) }
+      end
+    end
+
+    def entries
+      ENTRIES
+    end
+
+    def register_job_attribute(name, jenkins_name, description, &block)
+      @registered_modules[:job_attributes][name] = {
+        jenkins_name: jenkins_name,
+        description: description
+      }
+      @registry[:job][name] = block
     end
 
     def get(path)

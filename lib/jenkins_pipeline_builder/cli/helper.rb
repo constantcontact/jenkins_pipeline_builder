@@ -56,8 +56,8 @@ module JenkinsPipelineBuilder
           exit 1
         end
 
-        client = JenkinsApi::Client.new(creds)
-        generator = JenkinsPipelineBuilder::Generator.new(client)
+        JenkinsPipelineBuilder.credentials = creds
+        generator = JenkinsPipelineBuilder.generator
         generator.debug = options[:debug]
         generator
       end

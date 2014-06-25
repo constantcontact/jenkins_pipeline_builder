@@ -21,8 +21,8 @@
 #
 
 module JenkinsPipelineBuilder
-  class Builders
-    def self.build_multijob(params, xml)
+  class Builders < Extendable
+    register :multi_job do |params, xml|
       params[:phases].each do |name, content|
         xml.send('com.tikal.jenkins.plugins.multijob.MultiJobBuilder') do
           xml.phaseName name
@@ -49,7 +49,7 @@ module JenkinsPipelineBuilder
       end
     end
 
-    def self.build_maven3(params, xml)
+    register :maven3 do |params, xml|
       xml.send('org.jfrog.hudson.maven3.Maven3Builder') do
         xml.mavenName params[:mavenName] || 'tools-maven-3.0.3'
         xml.rootPom params[:rootPom]
@@ -58,13 +58,13 @@ module JenkinsPipelineBuilder
       end
     end
 
-    def self.build_shell_command(param, xml)
+    register :shell_command do |param, xml|
       xml.send('hudson.tasks.Shell') do
         xml.command param
       end
     end
 
-    def self.build_environment_vars_injector(params, xml)
+    register :inject_vars_file do |params, xml|
       xml.EnvInjectBuilder do
         xml.info do
           xml.propertiesFilePath params
@@ -72,7 +72,7 @@ module JenkinsPipelineBuilder
       end
     end
 
-    def self.blocking_downstream(params, xml)
+    register :blocking_downstream do |params, xml|
       colors = { 'SUCCESS' => { ordinal:  0, color:  'BLUE' }, 'FAILURE' => { ordinal:  2, color:  'RED' }, 'UNSTABLE' => { ordinal:  1, color:  'YELLOW' } }
       xml.send('hudson.plugins.parameterizedtrigger.TriggerBuilder', 'plugin' => 'parameterized-trigger') do
         xml.configs do
@@ -129,7 +129,7 @@ module JenkinsPipelineBuilder
       end
     end
 
-    def self.start_remote_job(params, xml)
+    register :remote_job do |params, xml|
       parameters = params[:parameters][:content].split("\n") if params[:parameters] && params[:parameters][:content]
       xml.send('org.jenkinsci.plugins.ParameterizedRemoteTrigger.RemoteBuildConfiguration', 'plugin' => 'Parameterized-Remote-Trigger') do
         xml.remoteJenkinsName params[:server]
@@ -168,6 +168,56 @@ module JenkinsPipelineBuilder
             end
           end
         end
+      end
+    end
+
+    register :copy_artifact do |params, xml|
+      xml.send('hudson.plugins.copyartifact.CopyArtifact', 'plugin' => 'copyartifact') do
+        xml.project params[:project]
+        xml.filter params[:artifacts]
+        xml.target params[:target_directory]
+        xml.parameters params[:filter] if params[:filter]
+        if params[:selector] && params[:selector][:type]
+          case params[:selector][:type]
+          when 'saved'
+            xml.send('selector', 'class' => 'hudson.plugins.copyartifact.SavedBuildSelector')
+          when 'triggered'
+            xml.send('selector', 'class' => 'hudson.plugins.copyartifact.TriggeredBuildSelector') do
+              xml.fallbackToLastSuccessful params[:selector][:fallback] if params[:selector][:fallback]
+            end
+          when 'permalink'
+            xml.send('selector', 'class' => 'hudson.plugins.copyartifact.PermalinkBuildSelector') do
+              xml.id params[:selector][:id] if params[:selector][:id]
+            end
+          when 'specific'
+            xml.send('selector', 'class' => 'hudson.plugins.copyartifact.SpecificBuildSelector') do
+              xml.buildNumber params[:selector][:number] if params[:selector][:number]
+            end
+          when 'workspace'
+            xml.send('selector', 'class' => 'hudson.plugins.copyartifact.WorkspaceSelector')
+          when 'parameter'
+            xml.send('selector', 'class' => 'hudson.plugins.copyartifact.ParameterizedBuildSelector') do
+              xml.parameterName params[:selector][:param] if params[:selector][:param]
+            end
+          else
+            xml.send('selector', 'class' => 'hudson.plugins.copyartifact.StatusBuildSelector') do
+              xml.stable params[:selector][:stable] if params[:selector][:stable]
+            end
+          end
+        else
+          xml.send('selector', 'class' => 'hudson.plugins.copyartifact.StatusBuildSelector')
+        end
+        if params[:fingerprint].nil?
+          xml.doNotFingerprintArtifacts false
+        else
+          if params[:fingerprint].to_s == 'true'
+            xml.doNotFingerprintArtifacts false
+          else
+            xml.doNotFingerprintArtifacts true
+          end
+        end
+        xml.flatten true if params[:flatten]
+        xml.optional true if params[:optional]
       end
     end
   end

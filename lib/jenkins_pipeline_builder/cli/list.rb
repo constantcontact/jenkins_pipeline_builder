@@ -21,5 +21,27 @@
 #
 
 module JenkinsPipelineBuilder
-  VERSION = '0.5.2'
+  module CLI
+    class List < Thor
+      JenkinsPipelineBuilder.registry.entries.each do |entry, _path|
+        desc entry, "List all #{entry}"
+        define_method(entry) do
+          modules =  JenkinsPipelineBuilder.registry.registered_modules[entry]
+          modules.each { |mod, values| display_module(mod, values) }
+        end
+      end
+
+      desc 'job_attributes', 'List all job attributes'
+      def job_attributes
+        modules =  JenkinsPipelineBuilder.registry.registered_modules[:job_attributes]
+        modules.each { |mod, values| display_module(mod, values) }
+      end
+
+      private
+
+      def display_module(mod, values)
+        puts "#{mod}: Jenkins Name: #{values[:jenkins_name]}"
+      end
+    end
+  end
 end

@@ -2,16 +2,21 @@ require File.expand_path('../spec_helper', __FILE__)
 
 describe 'Templates resolver' do
   before(:each) do
-    @client = JenkinsApi::Client.new(
-        server_ip:  '127.0.0.1',
-        server_port:  8080,
-        username:  'username',
-        password:  'password',
-        log_location:  '/dev/null'
-    )
-    @generator = JenkinsPipelineBuilder::Generator.new(@client)
+    JenkinsPipelineBuilder.credentials = {
+      server_ip: '127.0.0.1',
+      server_port: 8080,
+      username: 'username',
+      password: 'password',
+      log_location: '/dev/null'
+    }
+    @generator = JenkinsPipelineBuilder.generator
+    JenkinsPipelineBuilder.client
     @generator.debug = true
     @generator.no_files = true
+  end
+
+  after :each do
+    JenkinsPipelineBuilder.generator.instance_variable_set(:@job_collection, {})
   end
 
   describe 'resolving settings bags' do
