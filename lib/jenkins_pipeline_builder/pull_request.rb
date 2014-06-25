@@ -22,17 +22,31 @@
 
 module JenkinsPipelineBuilder
   class PullRequestGenerator
-    # Initializes a new View object.
-    #
-    # @param generator [Generator] the client object
-    #
-    # @return [View] the view object
-    #
-    def initialize(generator)
-      @generator = generator
-      @client = generator.client
-      @logger = @client.logger
+    attr_reader :purge
+    attr_reader :create
+    attr_reader :jobs
+
+    def initialize(project, job_collection, generator_job)
+      @purge = {}
+      @create = {}
+      @jobs = {}
+
+      pull_requests = check_for_pull generator_job[:value]
+      purge_old(pull_requests, project)
+      main_collection = job_collection
+      pull_requests.each do |number|
+        # Manipulate the YAML
+        req = JenkinsPipelineBuilder::PullRequest.new(project, number, main_collection, generator_job)
+        @jobs.merge req.jobs
+        project_t = req.project
+
+        # Overwrite the jobs from the generator to the project
+        project_t[:value][:jobs] = generator_job[:value][:jobs]
+        @create.merge project_t
+      end
     end
+
+    private 
 
     # Check for Github Pull Requests
     #
@@ -54,48 +68,15 @@ module JenkinsPipelineBuilder
     # Purge old builds
     def purge_old(pull_requests, project)
       reqs = pull_requests.clone.map { |req| "#{project[:name]}-PR#{req}" }
-      @logger.info "Current pull requests: #{reqs}"
       # Read File
       old_requests = File.new('pull_requests.csv', 'a+').read.split(',')
 
       # Pop off current pull requests
       old_requests.delete_if { |req| reqs.include?("#{req}") }
+      @purge = old_requests
 
-      # Delete the old requests from jenkins
-      @logger.info "Purging old requests: #{old_requests}"
-      old_requests.each do |req|
-        jobs = @client.job.list "#{req}.*"
-        jobs.each do |job|
-          @client.job.delete job
-        end
-      end
       # Write File
       File.open('pull_requests.csv', 'w+') { |file| file.write reqs.join(',') }
-    end
-
-    def run(project, job_collection, generator_job)
-      @logger.info 'Begin running Pull Request Generator'
-      pull_requests = check_for_pull generator_job[:value]
-      purge_old(pull_requests, project)
-      main_collection = job_collection
-      @logger.info pull_requests
-      pull_requests.each do |number|
-        # Manipulate the YAML
-        req = JenkinsPipelineBuilder::PullRequest.new(project, number, main_collection, generator_job)
-        @generator.job_collection.merge req.jobs
-        project_t = req.project
-
-        # Overwrite the jobs from the generator to the project
-        project_t[:value][:jobs] = generator_job[:value][:jobs]
-
-        # Build the jobs
-        success, compiled_project = @generator.resolve_project(project_t)
-        compiled_project[:value][:jobs].each do |i|
-          job = i[:result]
-          success, payload = @generator.compile_job_to_xml(job)
-          @generator.create_or_update(job, payload) if success
-        end
-      end
     end
   end
 

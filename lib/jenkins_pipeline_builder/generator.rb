@@ -486,8 +486,22 @@ module JenkinsPipelineBuilder
               jobs[job.keys[0].to_s] = @job_collection[job.keys[0].to_s]
             end
           end
-          pull = JenkinsPipelineBuilder::PullRequestGenerator.new(self)
-          pull.run(project, jobs, pull_job)
+          pull = JenkinsPipelineBuilder::PullRequestGenerator.new(project, jobs, pull_job)
+          # Build the jobs
+          @pull.create.each do |project|
+            success, compiled_project = resolve_project(project)
+            compiled_project[:value][:jobs].each do |i|
+              job = i[:result]
+              success, payload = @generator.compile_job_to_xml(job)
+              @generator.create_or_update(job, payload) if success
+            end
+          end
+          @pull.purge.each do |job|
+            jobs = @client.job.list "#{req}.*"
+            jobs.each do |job|
+              @client.job.delete job
+            end
+          end
         end
       end
     end
