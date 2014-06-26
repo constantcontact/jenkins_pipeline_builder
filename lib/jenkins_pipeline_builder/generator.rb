@@ -318,7 +318,7 @@ module JenkinsPipelineBuilder
 
     def publish_project(project_name, errors = {})
       projects.each do |project|
-        next if project_name && project[:name] == project_name
+        next unless project_name.nil? || project[:name] == project_name
         success, payload = resolve_project(project)
         if success
           puts 'successfully resolved project'

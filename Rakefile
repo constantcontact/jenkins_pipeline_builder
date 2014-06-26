@@ -69,4 +69,4 @@ namespace :doc do
   end
 end
 
-task default: [:unit_tests, :rubocop]
+task default: [:spec, :rubocop]
