@@ -21,8 +21,8 @@ automating Job & Pipeline creation from the YAML files checked-in with your appl
 
   ENV['NOKOGIRI_USE_SYSTEM_LIBRARIES'] = 'true'
 
-  spec.add_dependency 'nokogiri', '~> 1.6.0'
-  spec.add_dependency 'jenkins_api_client', '~> 1.0'
+  spec.add_dependency 'nokogiri', '~> 1.5.0'
+  spec.add_dependency 'jenkins_api_client', '~> 0.14.1'
   spec.add_dependency 'thor', '>= 0.18.0'
   spec.add_dependency 'activesupport'
   spec.add_dependency 'archive-tar-minitar'
