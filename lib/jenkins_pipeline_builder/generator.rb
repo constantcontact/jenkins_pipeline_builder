@@ -296,7 +296,7 @@ module JenkinsPipelineBuilder
       @logger.info project
       process_job_changes(jobs)
       errors = process_jobs(jobs, project)
-      errors = process_view(project_body[:views], project,  errors) if project_body[:views]
+      errors = process_views(project_body[:views], project,  errors) if project_body[:views]
 
       errors.each do |k, v|
         puts "Encountered errors processing: #{k}:"
@@ -337,7 +337,7 @@ module JenkinsPipelineBuilder
 
     def publish_project(project_name, errors = {})
       projects.each do |project|
-        next if project_name && project[:name] == project_name
+        next unless project_name.nil? || project[:name] == project_name
         success, payload = resolve_project(project)
         if success
           puts 'successfully resolved project'
