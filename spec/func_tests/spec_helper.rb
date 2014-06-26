@@ -1,6 +1,6 @@
 require 'logger'
 require 'rspec'
-
+require 'webmock/rspec'
 require 'simplecov'
 require 'simplecov-rcov'
 
@@ -15,4 +15,6 @@ RSpec.configure do |config|
 
   config.before(:each) do
   end
+
+  WebMock.disable_net_connect!(:allow_localhost => true)
 end
