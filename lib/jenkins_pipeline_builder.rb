@@ -35,17 +35,17 @@ require 'jenkins_pipeline_builder/generator'
 
 module JenkinsPipelineBuilder
   class << self
-    attr_accessor :credentials
+    attr_reader :client, :credentials
     def generator
       @_generator ||= Generator.new
     end
 
-    def client
-      return @_client if @_client
-      fail 'No credentails set' unless credentials
+    def credentials=(creds)
+      @credentials = creds
+      @client =
       @_client = JenkinsApi::Client.new(credentials)
       generator.logger = @_client.logger
-      @_client
+      @credentials
     end
 
     def registry

@@ -11,7 +11,6 @@ describe 'Test YAML jobs conversion to XML' do
         log_location: '/dev/null'
       }
       @generator = JenkinsPipelineBuilder.generator
-      JenkinsPipelineBuilder.client
       @generator.debug = true
       @generator.no_files = true
     end
