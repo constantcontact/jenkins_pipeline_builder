@@ -101,11 +101,11 @@ module JenkinsPipelineBuilder
 
     def execute_registry_item(registry, key, value, n_xml)
       registry_item = registry[key]
-      if registry_item.kind_of?(Hash)
+      if registry_item.is_a?(Hash)
         sub_registry = registry_item[:registry]
         method = registry_item[:method]
         method.call(sub_registry, value, n_xml)
-      elsif registry_item.kind_of?(Method) || registry_item.kind_of?(Proc)
+      elsif registry_item.is_a?(Method) || registry_item.is_a?(Proc)
         registry_item.call(value, n_xml) unless registry_item.nil?
       end
     end

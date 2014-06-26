@@ -8,9 +8,9 @@ Gem::Specification.new do |spec|
   spec.version       = JenkinsPipelineBuilder::VERSION
   spec.authors       = ['Igor Moochnick', 'Joseph Henrich']
   spec.email         = %w(igor.moochnick@gmail.com crimsonknave@gmail.com)
-  spec.description   = %q(This is a simple and easy-to-use Jenkins Pipeline generator with features focused on
-automating Job & Pipeline creation from the YAML files checked-in with your application source code)
-  spec.summary       = %q(This gem is will boostrap your Jenkins pipelines)
+  spec.description   = 'This is a simple and easy-to-use Jenkins Pipeline generator with features focused on
+automating Job & Pipeline creation from the YAML files checked-in with your application source code'
+  spec.summary       = 'This gem is will boostrap your Jenkins pipelines'
   spec.homepage      = 'https://github.com/ConstantContact/jenkins_pipeline_builder'
   spec.license       = 'MIT'
 
@@ -21,8 +21,8 @@ automating Job & Pipeline creation from the YAML files checked-in with your appl
 
   ENV['NOKOGIRI_USE_SYSTEM_LIBRARIES'] = 'true'
 
-  spec.add_dependency 'nokogiri', '~> 1.5.0'
-  spec.add_dependency 'jenkins_api_client', '~> 0.14.1'
+  spec.add_dependency 'nokogiri', '~> 1.6.0'
+  spec.add_dependency 'jenkins_api_client', '~> 1.0.0'
   spec.add_dependency 'thor', '>= 0.18.0'
   spec.add_dependency 'activesupport'
   spec.add_dependency 'archive-tar-minitar'

@@ -241,7 +241,7 @@ module JenkinsPipelineBuilder
 
     def prepare_jobs(jobs)
       jobs.map! do |job|
-        job.kind_of?(String) ? { job.to_sym => {} } : job
+        job.is_a?(String) ? { job.to_sym => {} } : job
       end
     end
 
@@ -256,7 +256,7 @@ module JenkinsPipelineBuilder
 
     def process_views(views, project, errors = {})
       views.map! do |view|
-        view.kind_of?(String) ? { view.to_sym => {} } : view
+        view.is_a?(String) ? { view.to_sym => {} } : view
       end
       views.each do |view|
         view_id = view.keys.first

@@ -31,11 +31,11 @@ module JenkinsPipelineBuilder
   class Utils
     # Code was duplicated from jeknins_api_client
     def self.symbolize_keys_deep!(h)
-      return unless h.kind_of?(Hash)
+      return unless h.is_a?(Hash)
       h.keys.each do |k|
         ks    = k.respond_to?(:to_sym) ? k.to_sym : k
         h[ks] = h.delete k # Preserve order even when k == ks
-        symbolize_keys_deep! h[ks] if h[ks].kind_of? Hash
+        symbolize_keys_deep! h[ks] if h[ks].is_a? Hash
         h[ks].each { |item| symbolize_keys_deep!(item) } if h[ks].is_a?(Array)
       end
     end
