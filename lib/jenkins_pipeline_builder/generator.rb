@@ -238,7 +238,12 @@ module JenkinsPipelineBuilder
         FileUtils.rm_r "#{file}.tar"
       end
     end
+    
+    def list_plugins
+      client.plugin.list_installed
+    end
 
+    
     def prepare_jobs(jobs)
       jobs.map! do |job|
         job.is_a?(String) ? { job.to_sym => {} } : job
@@ -434,9 +439,9 @@ module JenkinsPipelineBuilder
           end
           # Purge old jobs
           pull.purge.each do |job|
-            jobs = @client.job.list "#{job}.*"
+            jobs = client.job.list "#{job}.*"
             jobs.each do |job|
-              @client.job.delete job
+              client.job.delete job
             end
           end
         end
