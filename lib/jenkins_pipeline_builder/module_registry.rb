@@ -35,13 +35,25 @@ module JenkinsPipelineBuilder
     ENTRIES.keys.each do |key|
       # TODO: Too lazy to figure out a better way to do this
       singular_key = key.to_s.singularize.to_sym
-      define_method "register_#{singular_key}" do |name, jenkins_name, description, &block|
+      define_method "register_#{singular_key}" do |name, jenkins_name, description, plugin_id, plugin_version, &block|
         @registered_modules[key][name] = {
           jenkins_name: jenkins_name,
-          description: description
+          description: description,
+          plugin_id: plugin_id,
+          plugin_version: plugin_version
         }
-        @registry[:job][key][:registry][name] = block
+        @registry[:job][key][:registry][name] = { plugin_version => block }
       end
+    end
+
+    def register_job_attribute(name, jenkins_name, description, plugin_id, plugin_version, &block)
+      @registered_modules[:job_attributes][name] = {
+        jenkins_name: jenkins_name,
+        description: description,
+        plugin_id: plugin_id,
+        plugin_version: plugin_version
+      }
+      @registry[:job][name] = { plugin_version => block }
     end
 
     def initialize
@@ -58,14 +70,6 @@ module JenkinsPipelineBuilder
 
     def entries
       ENTRIES
-    end
-
-    def register_job_attribute(name, jenkins_name, description, &block)
-      @registered_modules[:job_attributes][name] = {
-        jenkins_name: jenkins_name,
-        description: description
-      }
-      @registry[:job][name] = block
     end
 
     def get(path)
