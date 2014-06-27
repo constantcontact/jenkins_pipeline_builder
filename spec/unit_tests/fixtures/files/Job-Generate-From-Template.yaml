@@ -1,8 +1,0 @@
----
-- job-template:
-    name: Job-{{name}}-From-Template
-    description: '{{description}}'
-    parameters:
-      - name: param1
-        description: Some description
-    shell_command: '{{command}}'

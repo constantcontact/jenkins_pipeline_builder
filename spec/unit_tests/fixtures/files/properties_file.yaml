@@ -1,8 +1,0 @@
----
-- job:
-    name: properties_file
-    wrappers:
-      - inject_env_var:
-          file: 'foo.prop'
-          content: |
-            foo=bar
