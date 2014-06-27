@@ -24,7 +24,7 @@ module JenkinsPipelineBuilder
   class Extendable
     def self.register(name, jenkins_name: 'No jenkins display name provided', description: 'No description provided', &block)
       registry = JenkinsPipelineBuilder.registry
-      registry.send(class_to_registry_method(to_s), name, jenkins_name, description, 'ansicolor', 1, &block)
+      registry.send(class_to_registry_method(to_s), name, jenkins_name, description, &block)
     end
 
     def self.class_to_registry_method(name)

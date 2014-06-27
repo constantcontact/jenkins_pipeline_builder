@@ -124,37 +124,6 @@ module JenkinsPipelineBuilder
           require file
         end
       end
-      match_extension_versions
-    end
-
-    def match_extension_versions
-      registry = @module_registry.registry[:job]
-      installed_plugins = list_plugins
-      registry.each do |registry_key, registry_value|
-        if registry_value[:registry]
-          registry_value[:registry].each do |extension_key, extension_value|
-            registry[registry_key][:registry][extension_key] = newest_compatible({ extension_key => extension_value }, installed_plugins, registry_key)
-          end
-        else
-          registry[registry_key] = newest_compatible({ registry_key => registry_value }, installed_plugins)
-        end
-      end
-    end
-
-    def newest_compatible(extension, installed_plugins, key = nil)
-      # Fetch the registrered_modules for the extension
-      registry = @module_registry.registered_modules
-      registry = key.nil? ? registry[:job_attributes] : registry[key]
-      registry = registry[extension.keys.first]
-      extension = extension.first[1]
-      keep = nil
-      keep_version = ""
-      extension.each do |version, block|
-        is_available = version.to_s <= installed_plugins[registry[:plugin_id].to_s].to_s
-        is_newer = version.to_s >= keep_version
-        keep = block if keep.nil? || (is_available && is_newer)
-      end
-      keep
     end
 
     def load_template(path, template)
