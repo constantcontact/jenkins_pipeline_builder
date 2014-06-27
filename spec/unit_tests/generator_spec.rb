@@ -60,7 +60,7 @@ describe 'Test YAML jobs conversion to XML' do
     files.each do |file|
       it "should create expected XML from YAML '#{file}'" do
         path = File.expand_path('../fixtures/files/' + file, __FILE__)
-        pp path
+
         @generator.load_collection_from_path path + '.yaml'
         job_name = @generator.job_collection.keys.first
         success, job = @generator.resolve_job_by_name(job_name)
