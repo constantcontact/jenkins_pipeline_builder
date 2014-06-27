@@ -5,8 +5,8 @@ describe JenkinsPipelineBuilder::View do
     before(:all) do
       # @creds_file = '~/.jenkins_api_client/login.yml'
       @creds_file = File.dirname(__FILE__) << '/integration_login.yml'
-      unless File.exists?(@creds_file)
-        raise "integration_login.yml file doesn't exist, please create one to run integration tests (spec/func_tests/integration_login.yml)" 
+      unless File.exist?(@creds_file)
+        fail "integration_login.yml file doesn't exist, please create one to run integration tests (spec/func_tests/integration_login.yml)"
       end
       @valid_post_responses = [200, 201, 302]
       begin

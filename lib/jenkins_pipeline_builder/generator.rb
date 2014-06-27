@@ -115,7 +115,7 @@ module JenkinsPipelineBuilder
 
     def load_extensions(path)
       path = "#{path}/extensions"
-      path = File.expand_path(path, relative_to=Dir.getwd)
+      path = File.expand_path(path, Dir.getwd)
       if File.directory?(path)
         @logger.info "Loading extensions from folder #{path}"
         @logger.info Dir.glob("#{path}/*.rb").inspect
@@ -148,7 +148,7 @@ module JenkinsPipelineBuilder
       registry = registry[extension.keys.first]
       extension = extension.first[1]
       keep = nil
-      keep_version = ""
+      keep_version = ''
       extension.each do |version, block|
         is_available = version.to_s <= installed_plugins[registry[:plugin_id].to_s].to_s
         is_newer = version.to_s >= keep_version
@@ -250,12 +250,11 @@ module JenkinsPipelineBuilder
         FileUtils.rm_r "#{file}.tar"
       end
     end
-    
+
     def list_plugins
       client.plugin.list_installed
     end
 
-    
     def prepare_jobs(jobs)
       jobs.map! do |job|
         job.is_a?(String) ? { job.to_sym => {} } : job
@@ -583,6 +582,5 @@ module JenkinsPipelineBuilder
         xml.removedJobAction 'IGNORE'
       end
     end
-
   end
 end
