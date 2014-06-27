@@ -1,0 +1,7 @@
+- job:
+    name: email_notifications
+    publishers:
+      - email_notifications:
+          recipients: 'test@example.com'
+          send_if_unstable: false
+          send_to_individuals: true

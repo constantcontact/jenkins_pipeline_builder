@@ -140,6 +140,18 @@ module JenkinsPipelineBuilder
       end
     end
 
+    register :email_notifications do |params, xml|
+      xml.send("hudson.tasks.Mailer", "plugin"=>"mailer") {
+        xml.recipients params[:recipients] || ''
+        send_unstable = false
+        if params[:send_if_unstable] == false
+          send_unstable = true
+        end
+        xml.dontNotifyEveryUnstableBuild send_unstable
+        xml.sendToIndividuals params[:send_to_individuals] if params[:send_to_individuals]
+      }
+    end
+
     def self.coverage_metric(name, params, xml)
       xml.send('hudson.plugins.rubyMetrics.rcov.model.MetricTarget') do
         xml.metric name
