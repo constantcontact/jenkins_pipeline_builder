@@ -129,7 +129,8 @@ module JenkinsPipelineBuilder
 
     def match_extension_versions
       registry = @module_registry.registry[:job]
-      installed_plugins = list_plugins
+      installed_plugins = @debug ? nil : list_plugins # Only get plugins if not in debug mode
+      @logger.debug 'Loading newest version of all plugins since we are in debug mode.'
       registry.each do |registry_key, registry_value|
         if registry_value[:registry]
           registry_value[:registry].each do |extension_key, extension_value|
@@ -150,7 +151,7 @@ module JenkinsPipelineBuilder
       keep = nil
       keep_version = ''
       extension.each do |version, block|
-        is_available = version.to_s <= installed_plugins[registry[:plugin_id].to_s].to_s
+        is_available = @debug ? true : version.to_s <= installed_plugins[registry[:plugin_id].to_s].to_s
         is_newer = version.to_s >= keep_version
         keep = block if keep.nil? || (is_available && is_newer)
       end
@@ -265,8 +266,10 @@ module JenkinsPipelineBuilder
       jobs.each do |job|
         job_id = job.keys.first
         j = get_item(job_id)
-        Utils.hash_merge!(j, job[job_id])
-        j[:value][:name] = j[:job_name] if j[:job_name]
+        if j
+          Utils.hash_merge!(j, job[job_id])
+          j[:value][:name] = j[:job_name] if j[:job_name]
+        end
       end
     end
 

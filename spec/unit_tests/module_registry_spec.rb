@@ -10,6 +10,6 @@ describe 'ModuleRegistry' do
       true
     end
     expect(registry.registry[:job][:foo][1.0]).to be_truthy
-    #TODO test registered_modules
+    # TODO test registered_modules
   end
 end
