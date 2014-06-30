@@ -1,141 +1,143 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 
-describe '#initialize' do
+describe JenkinsPipelineBuilder::Generator do
+  describe '#initialize' do
 
-end
+  end
 
-describe '#debug=' do
+  describe '#debug=' do
 
-end
+  end
 
-describe '#client' do
+  describe '#client' do
 
-end
+  end
 
-describe '#view' do
+  describe '#view' do
 
-end
+  end
 
-describe '#load_collection_from_path' do
+  describe '#load_collection_from_path' do
 
-end
+  end
 
-describe '#load_job_collection' do
+  describe '#load_job_collection' do
 
-end
+  end
 
-describe '#get_item' do
+  describe '#get_item' do
 
-end
+  end
 
-describe '#load_extensions' do
+  describe '#load_extensions' do
 
-end
+  end
 
-describe '#match_extension_versions' do
+  describe '#match_extension_versions' do
 
-end
+  end
 
-describe '#newest_compatible' do
+  describe '#newest_compatible' do
 
-end
+  end
 
-describe '#load_template' do
+  describe '#load_template' do
 
-end
+  end
 
-describe '#download_yaml' do
+  describe '#download_yaml' do
 
-end
+  end
 
-describe '#load_remote_yaml' do
+  describe '#load_remote_yaml' do
 
-end
+  end
 
-describe '#load_templates' do
+  describe '#load_templates' do
 
-end
+  end
 
-describe '#cleanup_temp_remote' do
+  describe '#cleanup_temp_remote' do
 
-end
+  end
 
-describe '#list_plugins' do
+  describe '#list_plugins' do
 
-end
+  end
 
-describe '#prepare_jobs' do
+  describe '#prepare_jobs' do
 
-end
+  end
 
-describe '#process_views' do
+  describe '#process_views' do
 
-end
+  end
 
-describe '#process_jobs' do
+  describe '#process_jobs' do
 
-end
+  end
 
-describe '#resolve_project' do
+  describe '#resolve_project' do
 
-end
+  end
 
-describe '#resolve_job_by_name' do
+  describe '#resolve_job_by_name' do
 
-end
+  end
 
-describe '#projects' do
+  describe '#projects' do
 
-end
+  end
 
-describe '#jobs' do
+  describe '#jobs' do
 
-end
+  end
 
-describe '#publish_project' do
+  describe '#publish_project' do
 
-end
+  end
 
-describe '#publish_jobs' do
+  describe '#publish_jobs' do
 
-end
+  end
 
-describe '#bootstrap' do
+  describe '#bootstrap' do
 
-end
+  end
 
-describe '#pull_request' do
-  
-end
+  describe '#pull_request' do
+    
+  end
 
-describe '#dump' do
+  describe '#dump' do
 
-end
+  end
 
-describe '#create_or_update' do
+  describe '#create_or_update' do
 
-end
+  end
 
-describe '#compile_job_to_xml' do
+  describe '#compile_job_to_xml' do
 
-end
+  end
 
-describe '#adjust_multi_project' do
+  describe '#adjust_multi_project' do
 
-end
+  end
 
-describe '#compile_freestyle_job_to_xml' do
+  describe '#compile_freestyle_job_to_xml' do
 
-end
+  end
 
-describe '#add_job_dsl' do
+  describe '#add_job_dsl' do
 
-end
+  end
 
-describe '#generate_job_dsl_body' do
+  describe '#generate_job_dsl_body' do
 
-end
+  end
 
-describe '#build_job_dsl' do
+  describe '#build_job_dsl' do
 
+  end
 end
