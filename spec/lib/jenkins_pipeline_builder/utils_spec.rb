@@ -1,5 +1,4 @@
-require 'rspec'
-require File.expand_path('../../../../lib/jenkins_pipeline_builder', __FILE__)
+require File.expand_path('../spec_helper', __FILE__)
 
 describe JenkinsPipelineBuilder::Utils do
   describe '#symbolize_keys_deep!' do
