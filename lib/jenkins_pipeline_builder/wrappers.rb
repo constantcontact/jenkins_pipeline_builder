@@ -20,126 +20,193 @@
 # THE SOFTWARE.
 #
 
-module JenkinsPipelineBuilder
-  class Wrappers < Extendable
-    register :ansicolor, jenkins_name: 'color ansi', description: 'this is a description' do |_, xml|
-      xml.send('hudson.plugins.ansicolor.AnsiColorBuildWrapper') do
-        xml.colorMapName 'xterm'
+require 'jenkins_pipeline_builder/extensions'
+
+wrapper do
+  name :ansicolor
+  plugin_id 123
+  min_version 0
+  announced false
+  jenkins_name 'color ansi'
+  description 'this is a description'
+  xml do |_|
+    send('hudson.plugins.ansicolor.AnsiColorBuildWrapper') do
+      colorMapName 'xterm'
+    end
+  end
+end
+
+wrapper do
+  name :timestamp
+  plugin_id 123
+  min_version 0
+  announced false
+
+  xml do |_|
+    send('hudson.plugins.timestamper.TimestamperBuildWrapper', 'plugin' => 'timestamper')
+  end
+end
+
+wrapper do
+  name :rvm05
+  plugin_id 123
+  min_version '0.5'
+  announced false
+
+  xml do |wrapper|
+    send('ruby-proxy-object') do
+      send('ruby-object', 'ruby-class' => 'Jenkins::Tasks::BuildWrapperProxy', 'pluginid' => 'rvm') do
+        object('ruby-class' => 'RvmWrapper', 'pluginid' => 'rvm') do
+          impl('pluginid' => 'rvm', 'ruby-class' => 'String') { text wrapper }
+        end
+        pluginid(:pluginid => 'rvm', 'ruby-class' => 'String') { text 'rvm' }
       end
     end
+  end
+end
 
-    register :timestamp do |_, xml|
-      xml.send('hudson.plugins.timestamper.TimestamperBuildWrapper', 'plugin' => 'timestamper')
-    end
+wrapper do
+  name :name
+  plugin_id 123
+  min_version 0
+  announced false
 
-    register :rvm05 do |wrapper, xml|
-      xml.send('ruby-proxy-object') do
-        xml.send('ruby-object', 'ruby-class' => 'Jenkins::Tasks::BuildWrapperProxy', 'pluginid' => 'rvm') do
-          xml.object('ruby-class' => 'RvmWrapper', 'pluginid' => 'rvm') do
-            xml.impl('pluginid' => 'rvm', 'ruby-class' => 'String') { xml.text wrapper }
+  xml do |_|
+  end
+end
+
+wrapper do
+  name :rvm
+  plugin_id 123
+  min_version 0
+  announced false
+
+  xml do |wrapper|
+    send('ruby-proxy-object') do
+      send('ruby-object', 'ruby-class' => 'Jenkins::Plugin::Proxies::BuildWrapper', 'pluginid' => 'rvm') do
+        object('ruby-class' => 'RvmWrapper', 'pluginid' => 'rvm') do
+          impl('pluginid' => 'rvm', 'ruby-class' => 'String') do
+            text wrapper
           end
-          xml.pluginid(:pluginid => 'rvm', 'ruby-class' => 'String') { xml.text 'rvm' }
         end
+        pluginid(:pluginid => 'rvm', 'ruby-class' => 'String') { text 'rvm' }
       end
     end
+  end
+end
 
-    register :rvm do |wrapper, xml|
-      xml.send('ruby-proxy-object') do
-        xml.send('ruby-object', 'ruby-class' => 'Jenkins::Plugin::Proxies::BuildWrapper', 'pluginid' => 'rvm') do
-          xml.object('ruby-class' => 'RvmWrapper', 'pluginid' => 'rvm') do
-            xml.impl('pluginid' => 'rvm', 'ruby-class' => 'String') { xml.text wrapper }
-          end
-          xml.pluginid(:pluginid => 'rvm', 'ruby-class' => 'String') { xml.text 'rvm' }
-        end
-      end
-    end
+wrapper do
+  name :inject_passwords
+  plugin_id 123
+  min_version 0
+  announced false
 
-    register :inject_passwords do |passwords, xml|
-      xml.EnvInjectPasswordWrapper do
-        xml.injectGlobalPasswords false
-        xml.passwordEntries do
-          passwords.each do |password|
-            xml.EnvInjectPasswordEntry do
-              xml.name password[:name]
-              xml.value password[:value]
-            end
+  xml do |passwords|
+    EnvInjectPasswordWrapper do
+      injectGlobalPasswords false
+      passwordEntries do
+        passwords.each do |password|
+          EnvInjectPasswordEntry do
+            name password[:name]
+            value password[:value]
           end
         end
       end
     end
+  end
+end
 
-    register :inject_env_var do |params, xml|
-      xml.EnvInjectBuildWrapper do
-        xml.info do
-          xml.propertiesFilePath params[:file] if params[:file]
-          xml.propertiesContent params[:content] if params[:content]
-          xml.loadFilesFromMaster false
-        end
+wrapper do
+  name :inject_env_var
+  plugin_id 123
+  min_version 0
+  announced false
+
+  xml do |params|
+    EnvInjectBuildWrapper do
+      info do
+        propertiesFilePath params[:file] if params[:file]
+        propertiesContent params[:content] if params[:content]
+        loadFilesFromMaster false
       end
     end
+  end
+end
 
-    register :artifactory do |wrapper, xml|
-      xml.send('org.jfrog.hudson.generic.ArtifactoryGenericConfigurator') do
-        xml.details do
-          xml.artifactoryUrl wrapper[:url]
-          xml.artifactoryName wrapper[:'artifactory-name']
-          xml.repositoryKey wrapper[:'release-repo']
-          xml.snapshotsRepositoryKey wrapper.fetch(:'snapshot-repo', wrapper[:'release-repo'])
-        end
-        xml.deployPattern wrapper[:publish]
-        xml.resolvePattern
-        xml.matrixParams wrapper[:properties]
-        xml.deployBuildInfo wrapper[:'publish-build-info']
-        xml.includeEnvVars false
-        xml.envVarsPatterns do
-          xml.includePatterns
-          xml.excludePatterns '*password*,*secret*'
-        end
-        xml.discardOldBuilds false
-        xml.discardBuildArtifacts true
+wrapper do
+  name :artifactory
+  plugin_id 123
+  min_version 0
+  announced false
+
+  xml do |wrapper|
+    send('org.jfrog.hudson.generic.ArtifactoryGenericConfigurator') do
+      details do
+        artifactoryUrl wrapper[:url]
+        artifactoryName wrapper[:'artifactory-name']
+        repositoryKey wrapper[:'release-repo']
+        snapshotsRepositoryKey wrapper.fetch(:'snapshot-repo', wrapper[:'release-repo'])
       end
+      deployPattern wrapper[:publish]
+      resolvePattern
+      matrixParams wrapper[:properties]
+      deployBuildInfo wrapper[:'publish-build-info']
+      includeEnvVars false
+      envVarsPatterns do
+        includePatterns
+        excludePatterns '*password*,*secret*'
+      end
+      discardOldBuilds false
+      discardBuildArtifacts true
     end
+  end
+end
 
-    register :maven3artifactory do |wrapper, xml|
-      xml.send('org.jfrog.hudson.maven3.ArtifactoryMaven3Configurator') do # plugin='artifactory@2.2.1'
-        xml.details do
-          xml.artifactoryUrl wrapper[:url]
-          xml.artifactoryName wrapper[:'artifactory-name']
-          xml.repositoryKey wrapper[:'release-repo']
-          xml.snapshotsRepositoryKey wrapper.fetch(:'snapshot-repo', wrapper[:'release-repo'])
-        end
-        xml.deployArtifacts wrapper.fetch(:'deploy', true)
-        xml.artifactDeploymentPatterns do
-          xml.includePatterns
-          xml.excludePatterns
-        end
-        xml.includeEnvVars false
-        xml.deployBuildInfo wrapper.fetch(:'publish-build-info', true)
-        xml.envVarsPatterns do
-          xml.includePatterns
-          xml.excludePatterns '*password*,*secret*'
-        end
-        xml.runChecks false
-        xml.violationRecipients
-        xml.includePublishArtifacts false
-        xml.scopes
-        xml.licenseAutoDiscovery true
-        xml.disableLicenseAutoDiscovery false
-        xml.discardOldBuilds false
-        xml.discardBuildArtifacts true
-        xml.matrixParams
-        xml.enableIssueTrackerIntegration false
-        xml.aggregateBuildIssues false
-        xml.blackDuckRunChecks false
-        xml.blackDuckAppName
-        xml.blackDuckAppVersion
-        xml.blackDuckReportRecipients
-        xml.blackDuckScopes
-        xml.blackDuckIncludePublishedArtifacts false
-        xml.autoCreateMissingComponentRequests true
-        xml.autoDiscardStaleComponentRequests true
-        xml.filterExcludedArtifactsFromBuild false
+wrapper do
+  name :maven3artifactory
+  plugin_id 123
+  min_version 0
+  announced false
+
+  xml do |wrapper|
+    send('org.jfrog.hudson.maven3.ArtifactoryMaven3Configurator') do # plugin='artifactory@2.2.1'
+      details do
+        artifactoryUrl wrapper[:url]
+        artifactoryName wrapper[:'artifactory-name']
+        repositoryKey wrapper[:'release-repo']
+        snapshotsRepositoryKey wrapper.fetch(:'snapshot-repo', wrapper[:'release-repo'])
       end
+      deployArtifacts wrapper.fetch(:'deploy', true)
+      artifactDeploymentPatterns do
+        includePatterns
+        excludePatterns
+      end
+      includeEnvVars false
+      deployBuildInfo wrapper.fetch(:'publish-build-info', true)
+      envVarsPatterns do
+        includePatterns
+        excludePatterns '*password*,*secret*'
+      end
+      runChecks false
+      violationRecipients
+      includePublishArtifacts false
+      scopes
+      licenseAutoDiscovery true
+      disableLicenseAutoDiscovery false
+      discardOldBuilds false
+      discardBuildArtifacts true
+      matrixParams
+      enableIssueTrackerIntegration false
+      aggregateBuildIssues false
+      blackDuckRunChecks false
+      blackDuckAppName
+      blackDuckAppVersion
+      blackDuckReportRecipients
+      blackDuckScopes
+      blackDuckIncludePublishedArtifacts false
+      autoCreateMissingComponentRequests true
+      autoDiscardStaleComponentRequests true
+      filterExcludedArtifactsFromBuild false
     end
   end
 end

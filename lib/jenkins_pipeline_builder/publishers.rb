@@ -19,134 +19,191 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
+require 'jenkins_pipeline_builder/extensions'
 
-module JenkinsPipelineBuilder
-  class Publishers < Extendable
-    register :description_setter do |params, xml|
-      xml.send('hudson.plugins.descriptionsetter.DescriptionSetterPublisher') do
-        xml.regexp params[:regexp]
-        xml.regexpForFailed params[:regexp]
-        xml.description params[:description]
-        xml.descriptionForFailed params[:description]
-        xml.setForMatrix false
-      end
+publisher do
+  name :description_setter
+  plugin_id 123
+  min_version 0
+  announced false
+
+  xml do |params|
+    send('hudson.plugins.descriptionsetter.DescriptionSetterPublisher') do
+      regexp params[:regexp]
+      regexpForFailed params[:regexp]
+      description params[:description]
+      descriptionForFailed params[:description]
+      setForMatrix false
     end
+  end
+end
 
-    register :downstream do |params, xml|
-      xml.send('hudson.plugins.parameterizedtrigger.BuildTrigger') do
-        xml.configs do
-          xml.send('hudson.plugins.parameterizedtrigger.BuildTriggerConfig') do
-            xml.configs do
-              params[:data] = [{ params: '' }] unless params[:data]
-              params[:data].each do |config|
-                if config[:params]
-                  xml.send('hudson.plugins.parameterizedtrigger.PredefinedBuildParameters') do
-                    xml.properties config[:params]
-                  end
+publisher do
+  name :downstream
+  plugin_id 123
+  min_version 0
+  announced false
+
+  xml do |params|
+    send('hudson.plugins.parameterizedtrigger.BuildTrigger') do
+      configs do
+        send('hudson.plugins.parameterizedtrigger.BuildTriggerConfig') do
+          configs do
+            params[:data] = [{ params: '' }] unless params[:data]
+            params[:data].each do |config|
+              if config[:params]
+                send('hudson.plugins.parameterizedtrigger.PredefinedBuildParameters') do
+                  properties config[:params]
                 end
-                if config[:file]
-                  xml.send('hudson.plugins.parameterizedtrigger.FileBuildParameters') do
-                    xml.propertiesFile config[:file]
-                    xml.failTriggerOnMissing false
-                  end
+              end
+              if config[:file]
+                send('hudson.plugins.parameterizedtrigger.FileBuildParameters') do
+                  propertiesFile config[:file]
+                  failTriggerOnMissing false
                 end
               end
             end
-            xml.projects params[:project]
-            xml.condition params[:condition] || 'SUCCESS'
-            xml.triggerWithNoParameters params[:trigger_with_no_parameters] || false
+          end
+          projects params[:project]
+          condition params[:condition] || 'SUCCESS'
+          triggerWithNoParameters params[:trigger_with_no_parameters] || false
+        end
+      end
+    end
+  end
+end
+
+publisher do
+  name :hipchat
+  plugin_id 101
+  min_version 0
+  announced false
+
+  xml do |params|
+    params = {} if params == true
+    send('jenkins.plugins.hipchat.HipChatNotifier') do
+      jenkinsUrl params[:jenkinsUrl] || ''
+      authToken params[:authToken] || ''
+      room params[:room] || ''
+    end
+  end
+end
+
+publisher do
+  name :git
+  plugin_id 123
+  min_version 0
+  announced false
+
+  xml do |params|
+    send('hudson.plugins.git.GitPublisher') do
+      configVersion params[:configVersion] || 2
+      pushMerge params[:'push-merge'] || false
+      pushOnlyIfSuccess params[:'push-only-if-success'] || false
+      branchesToPush do
+        send('hudson.plugins.git.GitPublisher_-BranchToPush') do
+          targetRepoName params[:targetRepoName] || 'origin'
+          branchName params[:branchName] || 'master'
+        end
+      end
+    end
+  end
+end
+
+publisher do
+  name :junit_result
+  plugin_id 123
+  min_version 0
+  announced false
+
+  xml do |params|
+    send('hudson.tasks.junit.JUnitResultArchiver') do
+      testResults params[:test_results] || ''
+      keepLongStdio false
+      testDataPublishers
+    end
+  end
+end
+
+publisher do
+  name :coverage_result
+  plugin_id 123
+  min_version 0
+  announced false
+
+  xml do |params|
+    send('hudson.plugins.rubyMetrics.rcov.RcovPublisher') do
+      reportDir params[:report_dir]
+      targets do
+        { 'TOTAL_COVERAGE' => params[:total], 'CODE_COVERAGE' => params[:code] }.each do |key, params|
+          send('hudson.plugins.rubyMetrics.rcov.model.MetricTarget') do
+            metric key
+            healthy params[:healthy]
+            unhealthy params[:unhealthy]
+            unstable params[:unstable]
           end
         end
       end
     end
+  end
+end
 
-    register :hipchat do |params, xml|
-      params = {} if params == true
-      xml.send('jenkins.plugins.hipchat.HipChatNotifier') do
-        xml.jenkinsUrl params[:jenkinsUrl] || ''
-        xml.authToken params[:authToken] || ''
-        xml.room params[:room] || ''
+publisher do
+  name :post_build_script
+  plugin_id 123
+  min_version 0
+  announced false
+
+  xml do |params|
+    send('org.jenkinsci.plugins.postbuildscript.PostBuildScript') do
+      buildSteps do
+        if params[:shell_command]
+          send('hudson.tasks.Shell') do
+            command params[:shell_command]
+          end
+        end
       end
+      scriptOnlyIfSuccess params[:on_success]
+      scriptOnlyIfFailure params[:on_failure]
+      executeOn params[:execute_on] || 'BOTH'
     end
+  end
+end
 
-    register :git do |params, xml|
-      xml.send('hudson.plugins.git.GitPublisher') do
-        xml.configVersion params[:configVersion] || 2
-        xml.pushMerge params[:'push-merge'] || false
-        xml.pushOnlyIfSuccess params[:'push-only-if-success'] || false
-        xml.branchesToPush do
-          xml.send('hudson.plugins.git.GitPublisher_-BranchToPush') do
-            xml.targetRepoName params[:targetRepoName] || 'origin'
-            xml.branchName params[:branchName] || 'master'
+publisher do
+  name :groovy_postbuild
+  plugin_id 123
+  min_version 0
+  announced false
+
+  xml do |params|
+    send('org.jvnet.hudson.plugins.groovypostbuild.GroovyPostbuildRecorder', 'plugin' => 'groovy-postbuild') do
+      groovyScript params[:groovy_script]
+      behavior params[:behavior] || '0'
+      runFormMatrixParent 'false'
+      if params[:additional_classpaths]
+        params[:additional_classpaths].each do |path|
+          send('org.jvnet.hudson.plugins.groovypostbuild.GroovyScriptPath') do
+            path path[:path] || '/'
           end
         end
       end
     end
+  end
+end
 
-    register :junit_result do |params, xml|
-      xml.send('hudson.tasks.junit.JUnitResultArchiver') do
-        xml.testResults params[:test_results] || ''
-        xml.keepLongStdio false
-        xml.testDataPublishers
-      end
-    end
+publisher do
+  name :archive_artifact
+  plugin_id 123
+  min_version 0
+  announced false
 
-    register :coverage_result do |params, xml|
-      xml.send('hudson.plugins.rubyMetrics.rcov.RcovPublisher') do
-        xml.reportDir params[:report_dir]
-        xml.targets do
-          coverage_metric('TOTAL_COVERAGE', params[:total], xml)
-          coverage_metric('CODE_COVERAGE', params[:code], xml)
-        end
-      end
-    end
-
-    register :post_build_script do |params, xml|
-      xml.send('org.jenkinsci.plugins.postbuildscript.PostBuildScript') do
-        xml.buildSteps do
-          if params[:shell_command]
-            xml.send('hudson.tasks.Shell') do
-              xml.command params[:shell_command]
-            end
-          end
-        end
-        xml.scriptOnlyIfSuccess params[:on_success]
-        xml.scriptOnlyIfFailure params[:on_failure]
-        xml.executeOn params[:execute_on] || 'BOTH'
-      end
-    end
-
-    register :groovy_postbuild do |params, xml|
-      xml.send('org.jvnet.hudson.plugins.groovypostbuild.GroovyPostbuildRecorder', 'plugin' => 'groovy-postbuild') do
-        xml.groovyScript params[:groovy_script]
-        xml.behavior params[:behavior] || '0'
-        xml.runFormMatrixParent 'false'
-        if params[:additional_classpaths]
-          params[:additional_classpaths].each do |path|
-            xml.send('org.jvnet.hudson.plugins.groovypostbuild.GroovyScriptPath') do
-              xml.path path[:path] || '/'
-            end
-          end
-        end
-      end
-    end
-
-    register :archive_artifact do |params, xml|
-      xml.send('hudson.tasks.ArtifactArchiver') do
-        xml.artifacts params[:artifacts]
-        xml.excludes params[:excludes] if params[:excludes]
-        xml.latestOnly params[:latest_only] || false
-        xml.allowEmptyArchive params[:allow_empty] || false
-      end
-    end
-
-    def self.coverage_metric(name, params, xml)
-      xml.send('hudson.plugins.rubyMetrics.rcov.model.MetricTarget') do
-        xml.metric name
-        xml.healthy params[:healthy]
-        xml.unhealthy params[:unhealthy]
-        xml.unstable params[:unstable]
-      end
+  xml do |params|
+    send('hudson.tasks.ArtifactArchiver') do
+      artifacts params[:artifacts]
+      excludes params[:excludes] if params[:excludes]
+      latestOnly params[:latest_only] || false
+      allowEmptyArchive params[:allow_empty] || false
     end
   end
 end

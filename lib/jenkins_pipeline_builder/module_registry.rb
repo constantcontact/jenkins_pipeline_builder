@@ -35,24 +35,25 @@ module JenkinsPipelineBuilder
     ENTRIES.keys.each do |key|
       # TODO: Too lazy to figure out a better way to do this
       singular_key = key.to_s.singularize.to_sym
-      define_method "register_#{singular_key}" do |name, jenkins_name, description, &block|
-        @registered_modules[key][name] = {
-          jenkins_name: jenkins_name,
-          description: description
+      define_method "register_#{singular_key}" do |extension|
+        @registered_modules[key][extension.name] = {
+          jenkins_name: extension.jenkins_name,
+          description: extension.description
         }
-        @registry[:job][key][:registry][name] = block
+        @registry[:job][key][extension.name] = extension
       end
     end
 
     def initialize
-      @registry = { job: {} }
+      @registry = {
+        job: {
+        }
+      }
       @registered_modules = { job_attributes: {} }
 
-      entries.each do |key, value|
+      entries.each do |key, _|
         @registered_modules[key] = {}
         @registry[:job][key] = {}
-        @registry[:job][key][:registry] = {}
-        @registry[:job][key][:method] = ->(registry, params, n_xml) { run_registry_on_path(value, registry, params, n_xml) }
       end
     end
 
@@ -60,12 +61,13 @@ module JenkinsPipelineBuilder
       ENTRIES
     end
 
-    def register_job_attribute(name, jenkins_name, description, &block)
-      @registered_modules[:job_attributes][name] = {
-        jenkins_name: jenkins_name,
-        description: description
+    def register_job_attribute(extension)
+      @registered_modules[:job_attributes][extension.name] = {
+        jenkins_name: extension.jenkins_name,
+        description: extension.description
       }
-      @registry[:job][name] = block
+
+      @registry[:job][extension.name] = extension
     end
 
     def get(path)
@@ -87,33 +89,26 @@ module JenkinsPipelineBuilder
 
     def traverse_registry(registry, params, n_xml)
       params.each do |key, value|
-        execute_registry_item(registry, key, value, n_xml)
+        if registry.is_a? Hash
+          next unless registry.key? key
+          if registry[key].is_a? Extension
+            execute_extension(registry[key], value, n_xml)
+          elsif value.is_a? Hash
+            traverse_registry registry[key], value, n_xml
+          elsif value.is_a? Array
+            value.each do |v|
+              traverse_registry registry[key], v, n_xml
+            end
+          end
+        end
       end
     end
 
-    def traverse_registry_param_array(registry, params, n_xml)
-      params.each do |item|
-        key = item.keys.first
-        next if key.nil?
-        execute_registry_item(registry, key, item[key], n_xml)
-      end
-    end
-
-    def execute_registry_item(registry, key, value, n_xml)
-      registry_item = registry[key]
-      if registry_item.kind_of?(Hash)
-        sub_registry = registry_item[:registry]
-        method = registry_item[:method]
-        method.call(sub_registry, value, n_xml)
-      elsif registry_item.kind_of?(Method) || registry_item.kind_of?(Proc)
-        registry_item.call(value, n_xml) unless registry_item.nil?
-      end
-    end
-
-    def run_registry_on_path(path, registry, params, n_xml)
-      n_builders = n_xml.xpath(path).first
+    def execute_extension(extension, value, n_xml)
+      n_builders = n_xml.xpath(extension.path).first
+      n_builders.instance_exec(value, &extension.before) if extension.before
       Nokogiri::XML::Builder.with(n_builders) do |xml|
-        traverse_registry_param_array(registry, params, xml)
+        xml.instance_exec value, &extension.xml
       end
     end
   end

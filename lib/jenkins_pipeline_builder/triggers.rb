@@ -19,52 +19,77 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
+require 'jenkins_pipeline_builder/extensions'
 
-module JenkinsPipelineBuilder
-  class Triggers < Extendable
-    register :git_push do |_, xml|
-      xml.send('com.cloudbees.jenkins.GitHubPushTrigger') do
-        xml.spec
-      end
+trigger do
+  name :git_push
+  plugin_id 123
+  min_version 0
+  announced false
+
+  xml do |_|
+    send('com.cloudbees.jenkins.GitHubPushTrigger') do
+      spec
     end
+  end
+end
 
-    register :scm_polling do |scm_polling, xml|
-      xml.send('hudson.triggers.SCMTrigger') do
-        xml.spec scm_polling
-        xml.ignorePostCommitHooks false
-      end
+trigger do
+  name :scm_polling
+  plugin_id 123
+  min_version 0
+  announced false
+
+  xml do |scm_polling|
+    send('hudson.triggers.SCMTrigger') do
+      spec scm_polling
+      ignorePostCommitHooks false
     end
+  end
+end
 
-    register :periodic_build do |periodic_build, xml|
-      xml.send('hudson.triggers.TimerTrigger') do
-        xml.spec periodic_build
-      end
+trigger do
+  name :periodic_build
+  plugin_id 123
+  min_version 0
+  announced false
+
+  xml do |periodic_build|
+    send('hudson.triggers.TimerTrigger') do
+      spec periodic_build
     end
+  end
+end
 
-    register :upstream do |params, xml|
-      case params[:status]
-      when 'unstable'
-        name = 'UNSTABLE'
-        ordinal = '1'
-        color = 'yellow'
-      when 'failed'
-        name = 'FAILURE'
-        ordinal = '2'
-        color = 'RED'
-      else
-        name = 'SUCCESS'
-        ordinal = '0'
-        color = 'BLUE'
-      end
-      xml.send('jenkins.triggers.ReverseBuildTrigger') do
-        xml.spec
-        xml.upstreamProjects params[:projects]
-        xml.send('threshold') do
-          xml.name name
-          xml.ordinal ordinal
-          xml.color color
-          xml.completeBuild true
-        end
+trigger do
+  name :upstream
+  plugin_id 123
+  min_version 0
+  announced false
+
+  xml do |params|
+    case params[:status]
+    when 'unstable'
+      name = 'UNSTABLE'
+      ordinal = '1'
+      color = 'yellow'
+    when 'failed'
+      name = 'FAILURE'
+      ordinal = '2'
+      color = 'RED'
+    else
+      name = 'SUCCESS'
+      ordinal = '0'
+      color = 'BLUE'
+    end
+    send('jenkins.triggers.ReverseBuildTrigger') do
+      spec
+      upstreamProjects params[:projects]
+      send('threshold') do
+        name name
+        ordinal ordinal
+        color color
+        completeBuild true
       end
     end
   end
