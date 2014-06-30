@@ -8,9 +8,7 @@ describe 'ModuleRegistry' do
     registry = JenkinsPipelineBuilder::ModuleRegistry.new
     ext = double
     allow(ext).to receive(:name).and_return :foo
-    expect(ext).to receive(:jenkins_name).and_return 'jenkins name'
-    expect(ext).to receive(:description).and_return 'description'
-    registry.register_job_attribute(ext)
+    registry.register [:job], ext
 
     expect(registry.get('job/foo').name).to eq :foo
   end

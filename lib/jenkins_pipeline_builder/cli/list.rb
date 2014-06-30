@@ -23,24 +23,24 @@
 module JenkinsPipelineBuilder
   module CLI
     class List < Thor
-      JenkinsPipelineBuilder.registry.entries.each do |entry, _path|
+      JenkinsPipelineBuilder.registry.entries.keys.each do |entry|
         desc entry, "List all #{entry}"
         define_method(entry) do
-          modules =  JenkinsPipelineBuilder.registry.registered_modules[entry]
-          modules.each { |mod, values| display_module(mod, values) }
+          extensions =  JenkinsPipelineBuilder.registry.registry[:job][entry]
+          extensions.each { |name, ext| display_module(name, ext) }
         end
       end
 
       desc 'job_attributes', 'List all job attributes'
       def job_attributes
-        modules =  JenkinsPipelineBuilder.registry.registered_modules[:job_attributes]
-        modules.each { |mod, values| display_module(mod, values) }
+        extensions =  JenkinsPipelineBuilder.registry.registry[:job]
+        extensions.each { |name, ext| display_module(name, ext) }
       end
 
       private
 
-      def display_module(mod, values)
-        puts "#{mod}: Jenkins Name: #{values[:jenkins_name]}"
+      def display_module(name, ext)
+        puts "#{name}: Jenkins Name: #{ext.jenkins_name}"
       end
     end
   end

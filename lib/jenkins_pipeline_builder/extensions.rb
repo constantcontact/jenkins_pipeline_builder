@@ -1,7 +1,7 @@
 require 'jenkins_pipeline_builder'
 JenkinsPipelineBuilder.registry.entries.each do |type, path|
-  type = type.to_s.singularize
-  define_method type do |&block|
+  singular_type = type.to_s.singularize
+  define_method singular_type do |&block|
     ext = JenkinsPipelineBuilder::Extension.new
     ext.instance_eval(&block)
     ext.path path
@@ -11,7 +11,7 @@ JenkinsPipelineBuilder.registry.entries.each do |type, path|
       puts ext.errors.map { |k, v| "#{k}: #{v}" }.join(', ')
       return false
     end
-    JenkinsPipelineBuilder.registry.send("register_#{type}", ext)
+    JenkinsPipelineBuilder.registry.register([:job, type], ext)
     puts "Successfully registered #{ext.name} for versions #{ext.min_version} and higher" if ext.announced
   end
 end
@@ -25,7 +25,7 @@ def job_attribute(&block)
     puts ext.errors.map { |k, v| "#{k}: #{v}" }.join(', ')
     return false
   end
-  JenkinsPipelineBuilder.registry.send('register_job_attribute', ext)
+  JenkinsPipelineBuilder.registry.register([:job], ext)
   puts "Successfully registered #{ext.name} for versions #{ext.min_version} and higher" if ext.announced
 end
 

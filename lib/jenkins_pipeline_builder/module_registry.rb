@@ -23,51 +23,30 @@
 module JenkinsPipelineBuilder
   class ModuleRegistry
     attr_accessor :registry, :registered_modules
-    ENTRIES = {
-      builders: '//builders',
-      publishers: '//publishers',
-      wrappers: '//buildWrappers',
-      triggers: '//triggers'
-    }
-
-    # creates register_triggers and so on
-    # we declare job attribues below since it doesn't follow the pattern
-    ENTRIES.keys.each do |key|
-      # TODO: Too lazy to figure out a better way to do this
-      singular_key = key.to_s.singularize.to_sym
-      define_method "register_#{singular_key}" do |extension|
-        @registered_modules[key][extension.name] = {
-          jenkins_name: extension.jenkins_name,
-          description: extension.description
-        }
-        @registry[:job][key][extension.name] = extension
-      end
-    end
-
     def initialize
       @registry = {
         job: {
         }
       }
-      @registered_modules = { job_attributes: {} }
-
-      entries.each do |key, _|
-        @registered_modules[key] = {}
-        @registry[:job][key] = {}
-      end
     end
 
+    # Ideally refactor this out to be derived from the registry,
+    # but I'm lazy for now
     def entries
-      ENTRIES
+      {
+        builders: '//builders',
+        publishers: '//publishers',
+        wrappers: '//buildWrappers',
+        triggers: '//triggers'
+      }
     end
 
-    def register_job_attribute(extension)
-      @registered_modules[:job_attributes][extension.name] = {
-        jenkins_name: extension.jenkins_name,
-        description: extension.description
-      }
+    def register(prefix, extension)
+      name = prefix.pop
+      root = prefix.inject(@registry, :[])
+      root[name] = {} unless root[name]
 
-      @registry[:job][extension.name] = extension
+      root[name][extension.name] = extension
     end
 
     def get(path)
