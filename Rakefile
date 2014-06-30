@@ -26,31 +26,7 @@ require 'rubocop/rake_task'
 
 RuboCop::RakeTask.new
 
-RSpec::Core::RakeTask.new(:spec, :tag) do |spec|
-  spec.pattern = '.spec/**/*_spec.rb'
-  spec.verbose = true
-  spec.fail_on_error = false
-  spec.rspec_opts = spec_output 'spec.xml'
-end
-
-def spec_output(filename)
-  "--color --format documentation --format RspecJunitFormatter --out out/#{filename}"
-end
-
-RSpec::Core::RakeTask.new(:unit_tests) do |spec|
-  spec.pattern = FileList['spec/unit_tests/*_spec.rb']
-  spec.rspec_opts = ['--color', '--format documentation']
-end
-
-RSpec::Core::RakeTask.new(:func_tests) do |spec|
-  spec.pattern = FileList['spec/func_tests/*_spec.rb']
-  spec.rspec_opts = ['--color', '--format documentation']
-end
-
-RSpec::Core::RakeTask.new(:test) do |spec|
-  spec.pattern = FileList['spec/*/*.rb']
-  spec.rspec_opts = ['--color', '--format documentation']
-end
+RSpec::Core::RakeTask.new
 
 YARD::Config.load_plugin 'thor'
 YARD::Rake::YardocTask.new do |t|

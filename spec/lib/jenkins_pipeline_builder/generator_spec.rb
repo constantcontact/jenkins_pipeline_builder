@@ -1,4 +1,5 @@
-require File.expand_path('../../../spec_helper', __FILE__)
+require 'rspec'
+require File.expand_path('../../../../lib/jenkins_pipeline_builder', __FILE__)
 
 describe JenkinsPipelineBuilder::Generator do
   describe '#initialize' do
@@ -106,7 +107,7 @@ describe JenkinsPipelineBuilder::Generator do
   end
 
   describe '#pull_request' do
-    
+
   end
 
   describe '#dump' do
