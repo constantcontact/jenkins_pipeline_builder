@@ -24,6 +24,7 @@ job_attribute do
   name :description
   plugin_id 123
   min_version 0
+  announced false
 
   before do
     xpath('//project/description').remove
@@ -38,6 +39,7 @@ job_attribute do
   name :scm_params
   plugin_id 123
   min_version 0
+  announced false
 
   # XML preprocessing
   before do |params|
@@ -82,6 +84,7 @@ job_attribute do
   name :hipchat
   plugin_id 123
   min_version 0
+  announced false
 
   xml '//properties' do |params|
     fail 'No HipChat room specified' unless params[:room]
@@ -97,6 +100,7 @@ job_attribute do
   name :priority
   plugin_id 123
   min_version 0
+  announced false
 
   xml '//properties' do |params|
     send('jenkins.advancedqueue.AdvancedQueueSorterJobProperty', 'plugin' => 'PrioritySorter') do
@@ -110,6 +114,7 @@ job_attribute do
   name :parameters
   plugin_id 123
   min_version 0
+  announced false
 
   xml '//properties' do |params|
     send('hudson.model.ParametersDefinitionProperty') do
@@ -154,6 +159,7 @@ job_attribute do
   name :discard_old
   plugin_id 123
   min_version 0
+  announced false
 
   xml '//project' do |params|
     send('logRotator', 'class' => 'hudson.tasks.LogRotator') do
@@ -169,6 +175,7 @@ job_attribute do
   name :throttle
   plugin_id 100
   min_version 0
+  announced false
 
   xml '//properties' do |params|
     cat_set = params[:option] == 'category'
@@ -188,6 +195,7 @@ job_attribute do
   name :prepare_environment
   plugin_id 123
   min_version 0
+  announced false
 
   xml '//properties' do |params|
     send('EnvInjectJobProperty') do
@@ -206,6 +214,7 @@ job_attribute do
   name :concurrent_build
   plugin_id 123
   min_version 0
+  announced false
 
   xml '//concurrentBuild' do |params|
     (params == true) ? 'true' : 'false'
