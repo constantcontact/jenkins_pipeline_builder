@@ -42,14 +42,17 @@ job_attribute do
   announced false
 
   # XML preprocessing
+  # TODO: Actually figure out how to merge using the builder DSL
+  # This delete the things we are going to add later is pretty crappy
+  # Alternately don't use/tweak the xml the api client generates
+  # (which is where I assume this is coming from)
   before do |params|
     xpath('//scm/localBranch').remove if params[:local_branch]
     xpath('//scm/recursiveSubmodules').remove if params[:recursive_update]
     xpath('//scm/wipeOutWorkspace').remove if params[:wipe_workspace]
     xpath('//scm/excludedUsers').remove if params[:excluded_users]
-    xpath('//scm/userRemoteConfigs/hudson.plugins.git.UserRemoteConfig/name').remove if params[:remote_name]
+    xpath('//scm/userRemoteConfigs').remove if params[:remote_name] || params[:refspec]
     xpath('//scm/skipTag').remove if params[:skip_tag]
-    xpath('//scm/userRemoteConfigs/hudson.plugins.git.UserRemoteConfig/refspec').remove if params[:refspec]
     xpath('//scm/excludedRegions').remove if params[:excluded_regions]
     xpath('//scm/includedRegions').remove if params[:included_regions]
 
