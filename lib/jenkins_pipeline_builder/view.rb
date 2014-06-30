@@ -43,54 +43,6 @@ module JenkinsPipelineBuilder
       end
     end
 
-    def get_mode(type)
-      case type
-      when 'listview'
-        'hudson.model.ListView'
-      when 'myview'
-        'hudson.model.MyView'
-      when 'nestedView'
-        'hudson.plugins.nested_view.NestedView'
-      when 'categorizedView'
-        'org.jenkinsci.plugins.categorizedview.CategorizedJobsView'
-      when 'dashboardView'
-        'hudson.plugins.view.dashboard.Dashboard'
-      when 'multijobView'
-        'com.tikal.jenkins.plugins.multijob.views.MultiJobView'
-      else
-        fail "Type #{type} is not supported by Jenkins."
-      end
-    end
-
-    # Creates a new empty view of the given type
-    #
-    # @param [String] view_name Name of the view to be created
-    # @param [String] type Type of view to be created. Valid options:
-    # listview, myview. Default: listview
-    #
-    def create_base_view(view_name, type = 'listview', parent_view_name = nil)
-      @logger.info "Creating a view '#{view_name}' of type '#{type}'"
-      mode = get_mode(type)
-      initial_post_params = {
-        'name' => view_name,
-        'mode' => mode,
-        'json' => {
-          'name' => view_name,
-          'mode' => mode
-        }.to_json
-      }
-
-      if @generator.debug
-        pp initial_post_params
-        return
-      end
-
-      view_path = parent_view_name.nil? ? '' : "/view/#{parent_view_name}"
-      view_path += '/createView'
-
-      @client.api_post_request(view_path, initial_post_params)
-    end
-
     # Creates a listview by accepting the given parameters hash
     #
     # @param [Hash] params options to create the new view
@@ -171,6 +123,56 @@ module JenkinsPipelineBuilder
       view_path += "/view/#{params[:name]}/configSubmit"
 
       @client.api_post_request(view_path, post_params)
+    end
+
+    private
+
+    def get_mode(type)
+      case type
+      when 'listview'
+        'hudson.model.ListView'
+      when 'myview'
+        'hudson.model.MyView'
+      when 'nestedView'
+        'hudson.plugins.nested_view.NestedView'
+      when 'categorizedView'
+        'org.jenkinsci.plugins.categorizedview.CategorizedJobsView'
+      when 'dashboardView'
+        'hudson.plugins.view.dashboard.Dashboard'
+      when 'multijobView'
+        'com.tikal.jenkins.plugins.multijob.views.MultiJobView'
+      else
+        fail "Type #{type} is not supported by Jenkins."
+      end
+    end
+
+    # Creates a new empty view of the given type
+    #
+    # @param [String] view_name Name of the view to be created
+    # @param [String] type Type of view to be created. Valid options:
+    # listview, myview. Default: listview
+    #
+    def create_base_view(view_name, type = 'listview', parent_view_name = nil)
+      @logger.info "Creating a view '#{view_name}' of type '#{type}'"
+      mode = get_mode(type)
+      initial_post_params = {
+        'name' => view_name,
+        'mode' => mode,
+        'json' => {
+          'name' => view_name,
+          'mode' => mode
+        }.to_json
+      }
+
+      if @generator.debug
+        pp initial_post_params
+        return
+      end
+
+      view_path = parent_view_name.nil? ? '' : "/view/#{parent_view_name}"
+      view_path += '/createView'
+
+      @client.api_post_request(view_path, initial_post_params)
     end
 
     def get_columns(type)
@@ -270,7 +272,7 @@ module JenkinsPipelineBuilder
     #
     # @param [String] view_name
     #
-    def exists?(view_name, parent_view = nil)
+    def endxists?(view_name, parent_view = nil)
       if parent_view
         list_children(parent_view, view_name).include?(view_name)
       else
