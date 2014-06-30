@@ -204,6 +204,24 @@ publisher do
       excludes params[:excludes] if params[:excludes]
       latestOnly params[:latest_only] || false
       allowEmptyArchive params[:allow_empty] || false
+
+    end
+  end
+end
+
+publisher do
+  name :email_notifications
+  plugin_id 123
+  min_version 0
+  announced false
+
+  xml do |params|
+    send 'hudson.tasks.Mailer', 'plugin' => 'mailer' do
+      recipients params[:recipients] || ''
+      send_unstable = false
+      send_unstable = true if params[:send_if_unstable] == false
+      dontNotifyEveryUnstableBuild send_unstable
+      sendToIndividuals params[:send_to_individuals] if params[:send_to_individuals]
     end
   end
 end

@@ -54,6 +54,7 @@ describe 'Test YAML jobs conversion to XML' do
       archive_artifact
       copy_artifact
       git_include_exclude
+      email_notifications
     )
 
     files.each do |file|
