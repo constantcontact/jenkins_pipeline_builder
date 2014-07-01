@@ -1,0 +1,5 @@
+- job:
+    name: '{{name}}-10-Commit'
+    description: '{{description}}'
+    wrappers:
+        - timestamp: true

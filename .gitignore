@@ -2,3 +2,4 @@
 out
 Gemfile.lock
 *.gem
+.DS_Store
