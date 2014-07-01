@@ -57,6 +57,7 @@ module JenkinsPipelineBuilder
         end
 
         JenkinsPipelineBuilder.credentials = creds
+        JenkinsPipelineBuilder.client
         generator = JenkinsPipelineBuilder.generator
         generator.debug = options[:debug]
         generator

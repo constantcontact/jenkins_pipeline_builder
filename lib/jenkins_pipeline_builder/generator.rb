@@ -43,38 +43,6 @@ module JenkinsPipelineBuilder
       @module_registry = ModuleRegistry.new
     end
 
-    def load_extensions(path)
-      path = "#{path}/extensions"
-      path = File.expand_path(path, Dir.getwd)
-      if File.directory?(path)
-        @logger.info "Loading extensions from folder #{path}"
-        Dir[File.join(path, '/*.yaml'), File.join(path, '/*.yml')].each do |file|
-          @logger.info "Loading file #{file}"
-          yaml = YAML.load_file(file)
-          yaml.each do |ext|
-            Utils.symbolize_keys_deep!(ext)
-            ext = ext[:extension]
-            name = ext[:name]
-            type = ext[:type]
-            function = ext[:function]
-            fail "Duplicate extension with name '#{name}' was detected." if @extensions.key?(name)
-            @extensions[name.to_s] = { name: name.to_s, type: type, function: function }
-          end
-        end
-      end
-      @extensions.each_value do |ext|
-        name = ext[:name].to_sym
-        registry = @module_registry.registry[:job]
-        function = eval "Proc.new {|params,xml| #{ext[:function]} }"
-        type = ext[:type].downcase.pluralize.to_sym if ext[:type]
-        if type
-          registry[type][:registry][name] = function
-        else
-          registry[name] = function
-        end
-      end
-    end
-
     def debug=(value)
       @debug = value
       @logger.level = (value) ? Logger::DEBUG : Logger::INFO
@@ -143,6 +111,19 @@ module JenkinsPipelineBuilder
 
     def get_item(name)
       @job_collection[name.to_s]
+    end
+
+    def load_extensions(path)
+      path = "#{path}/extensions"
+      path = File.expand_path(path, relative_to=Dir.getwd)
+      if File.directory?(path)
+        @logger.info "Loading extensions from folder #{path}"
+        @logger.info Dir.glob("#{path}/*.rb").inspect
+        Dir.glob("#{path}/*.rb").each do |file|
+          @logger.info "Loaded #{file}"
+          require file
+        end
+      end
     end
 
     def load_template(path, template)
@@ -381,6 +362,7 @@ module JenkinsPipelineBuilder
       @logger.info @job_collection
       cleanup_temp_remote
       load_extensions(path)
+      # pp @module_registry.registry
       errors = {}
       # Publish all the jobs if the projects are not found
       if projects.count == 0
@@ -398,7 +380,7 @@ module JenkinsPipelineBuilder
       @logger.info "Pull Request Generator Running from path #{path}"
       load_collection_from_path(path)
       cleanup_temp_remote
-      load_extensions(path)
+      # load_extensions(path)
       jobs = {}
       @logger.info "Project: #{projects}"
       projects.each do |project|
@@ -565,5 +547,6 @@ module JenkinsPipelineBuilder
         xml.removedJobAction 'IGNORE'
       end
     end
+
   end
 end

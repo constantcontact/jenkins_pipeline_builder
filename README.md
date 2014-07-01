@@ -334,6 +334,58 @@ If a set of Defaults is specified with the name global, that will be used by all
     param1: 'value 1'
 ```
 
+Extending the Pipeline Builder
+------------------------------
+
+Have a feature you want to test out before adding it to the source? Now you can create a quick "extension" to the pipeline builder to add new or overwrite existing functionality.
+
+To add an extension, create an "extensions" directiroy inside of "pipeline" and create a file named "myExtension.rb" (or any name). Use `JenkinsPipelineBuilder.extend` to register your extension.
+
+When registering, you must use one of the following register methods, depending on what category your change falls into:
+* register_job_attribute    
+* register_builder    
+* register_publisher    
+* register_wrapper    
+* register_trigger    
+
+For help figuring out what category your change is, examine the config.xml for a job that uses your feature. If it is a first child of the root "project" node, your change is a job_attribute. Otherwise it should be either a builder, publisher, wrapper, or trigger, depending what child node it is found in the XML tree.
+
+Here is an example of extending the pipeline builder with a new publisher:
+
+```ruby
+JenkinsPipelineBuilder.extend do |registry|
+  registry.register_publisher :yaml_name, "Jenkins UI Name", "Description of this feature" { |params, xml| apply_extension(params, xml) }
+
+  def apply_extension(params, xml)
+    xml.send("new_element") {
+      xml.property params[:value]
+    }
+  end
+end
+```
+
+OR
+
+```ruby
+JenkinsPipelineBuilder.extend do |registry|
+  registry.register_publisher :yaml_name, "Jenkins UI Name", "Description of this feature" do |params, xml|
+    xml.send("new_element") {
+      xml.property params[:value]
+    }
+  end
+end
+```
+
+Finally, you can add the new DSL in your YAML:
+
+```yaml
+- job:
+    name: 'Example-Job'
+    publishers:
+      - yaml_name:
+          value: 'example'
+```
+
 PLUGINS:
 --------
 
