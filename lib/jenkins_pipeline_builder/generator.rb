@@ -45,7 +45,11 @@ module JenkinsPipelineBuilder
 
     def debug=(value)
       @debug = value
-      @logger.level = (value) ? Logger::DEBUG : Logger::INFO
+      logger.level = (value) ? Logger::DEBUG : Logger::INFO
+    end
+
+    def logger
+      JenkinsPipelineBuilder.logger
     end
 
     def client
@@ -66,7 +70,7 @@ module JenkinsPipelineBuilder
     def load_collection_from_path(path, recursively = false, remote = false)
       path = File.expand_path(path, Dir.getwd)
       if File.directory?(path)
-        @logger.info "Generating from folder #{path}"
+        logger.info "Generating from folder #{path}"
         Dir[File.join(path, '/*.yaml'), File.join(path, '/*.yml')].each do |file|
           if File.directory?(file) # TODO: This doesn't work unless the folder contains .yml or .yaml at the end
             if recursively
@@ -75,12 +79,12 @@ module JenkinsPipelineBuilder
               next
             end
           end
-          @logger.info "Loading file #{file}"
+          logger.info "Loading file #{file}"
           yaml = YAML.load_file(file)
           load_job_collection(yaml, remote)
         end
       else
-        @logger.info "Loading file #{path}"
+        logger.info "Loading file #{path}"
         yaml = YAML.load_file(path)
         load_job_collection(yaml, remote)
       end
@@ -92,14 +96,14 @@ module JenkinsPipelineBuilder
         key = section.keys.first
         value = section[key]
         if key == :dependencies
-          @logger.info 'Resolving Dependencies for remote project'
+          logger.info 'Resolving Dependencies for remote project'
           load_remote_yaml(value)
           next
         end
         name = value[:name]
         if @job_collection.key?(name)
           if remote
-            @logger.info "Duplicate item with name '#{name}' was detected from the remote folder."
+            logger.info "Duplicate item with name '#{name}' was detected from the remote folder."
           else
             fail "Duplicate item with name '#{name}' was detected."
           end
@@ -118,10 +122,10 @@ module JenkinsPipelineBuilder
       path = File.expand_path(path, Dir.getwd)
       return unless File.directory?(path)
 
-      @logger.info "Loading extensions from folder #{path}"
-      @logger.info Dir.glob("#{path}/*.rb").inspect
+      logger.info "Loading extensions from folder #{path}"
+      logger.info Dir.glob("#{path}/*.rb").inspect
       Dir.glob("#{path}/*.rb").each do |file|
-        @logger.info "Loaded #{file}"
+        logger.info "Loaded #{file}"
         require file
       end
       match_extension_versions
@@ -130,7 +134,7 @@ module JenkinsPipelineBuilder
     def match_extension_versions
       registry = @module_registry.registry[:job]
       installed_plugins = @debug ? nil : list_plugins # Only get plugins if not in debug mode
-      @logger.debug 'Loading newest version of all plugins since we are in debug mode.'
+      logger.debug 'Loading newest version of all plugins since we are in debug mode.'
       registry.each do |registry_key, registry_value|
         if registry_value[:registry]
           registry_value[:registry].each do |extension_key, extension_value|
@@ -178,7 +182,7 @@ module JenkinsPipelineBuilder
       end
 
       if File.directory?(path)
-        @logger.info "Loading from #{path}"
+        logger.info "Loading from #{path}"
         load_collection_from_path(path, false, true)
         true
       else
@@ -188,7 +192,7 @@ module JenkinsPipelineBuilder
 
     def download_yaml(url, file)
       @remote_depends[url] = file
-      @logger.info "Downloading #{url} to #{file}.tar"
+      logger.info "Downloading #{url} to #{file}.tar"
       open("#{file}.tar", 'w') do |local_file|
         open(url) do |remote_file|
           local_file.write(Zlib::GzipReader.new(remote_file).read)
@@ -196,7 +200,7 @@ module JenkinsPipelineBuilder
       end
 
       # Extract Tar.gz to 'remote' folder
-      @logger.info "Unpacking #{file}.tar to #{file} folder"
+      logger.info "Unpacking #{file}.tar to #{file} folder"
       Archive::Tar::Minitar.unpack("#{file}.tar", file)
     end
 
@@ -216,7 +220,7 @@ module JenkinsPipelineBuilder
         path = File.expand_path(file, Dir.getwd)
         # Load templates recursively
         unless source[:templates]
-          @logger.info 'No specific template specified'
+          logger.info 'No specific template specified'
           # Try to load the folder or the pipeline folder
           path = File.join(path, 'pipeline') if Dir.entries(path).include? 'pipeline'
           return load_collection_from_path(path)
@@ -229,12 +233,12 @@ module JenkinsPipelineBuilder
     def load_templates(path, templates)
       templates.each do |template|
         version = template[:version] || 'newest'
-        @logger.info "Loading #{template[:name]} at version #{version}"
+        logger.info "Loading #{template[:name]} at version #{version}"
         # Move into the remote folder and look for the template folder
         remote = Dir.entries(path)
         if remote.include? template[:name]
           # We found the template name, load this path
-          @logger.info 'We found the template!'
+          logger.info 'We found the template!'
           load_template(path, template)
         else
           # Many cases we must dig one layer deep
@@ -312,7 +316,7 @@ module JenkinsPipelineBuilder
       project_body = project[:value]
 
       jobs = prepare_jobs(project_body[:jobs]) if project_body[:jobs]
-      @logger.info project
+      logger.info project
       process_job_changes(jobs)
       errors = process_jobs(jobs, project)
       errors = process_views(project_body[:views], project,  errors) if project_body[:views]
@@ -333,7 +337,7 @@ module JenkinsPipelineBuilder
       job = get_item(name)
       fail "Failed to locate job by name '#{name}'" if job.nil?
       job_value = job[:value]
-      @logger.debug "Compiling job #{name}"
+      logger.debug "Compiling job #{name}"
       success, payload = Compiler.compile(job_value, settings, @job_collection)
       [success, payload]
     end
@@ -395,9 +399,9 @@ module JenkinsPipelineBuilder
     end
 
     def bootstrap(path, project_name)
-      @logger.info "Bootstrapping pipeline from path #{path}"
+      logger.info "Bootstrapping pipeline from path #{path}"
       load_collection_from_path(path)
-      @logger.info @job_collection
+      logger.info @job_collection
       cleanup_temp_remote
       load_extensions(path)
       errors = {}
@@ -408,23 +412,23 @@ module JenkinsPipelineBuilder
         errors = publish_project(project_name)
       end
       errors.each do |k, v|
-        @logger.error "Encountered errors compiling: #{k}:"
-        @logger.error v
+        logger.error "Encountered errors compiling: #{k}:"
+        logger.error v
       end
     end
 
     def pull_request(path, project_name)
-      @logger.info "Pull Request Generator Running from path #{path}"
+      logger.info "Pull Request Generator Running from path #{path}"
       load_collection_from_path(path)
       cleanup_temp_remote
       load_extensions(path)
       jobs = {}
-      @logger.info "Project: #{projects}"
+      logger.info "Project: #{projects}"
       projects.each do |project|
         if project[:name] == project_name || project_name.nil?
           project_body = project[:value]
           project_jobs = project_body[:jobs] || []
-          @logger.info "Using Project #{project}"
+          logger.info "Using Project #{project}"
           pull_job = nil
           project_jobs.each do |job|
             job = job.keys.first if job.is_a? Hash
@@ -463,8 +467,8 @@ module JenkinsPipelineBuilder
     end
 
     def dump(job_name)
-      @logger.info "Debug #{@debug}"
-      @logger.info "Dumping #{job_name} into #{job_name}.xml"
+      logger.info "Debug #{@debug}"
+      logger.info "Dumping #{job_name} into #{job_name}.xml"
       xml = client.job.get_config(job_name)
       File.open(job_name + '.xml', 'w') { |f| f.write xml }
     end
@@ -472,8 +476,8 @@ module JenkinsPipelineBuilder
     def create_or_update(job, xml)
       job_name = job[:name]
       if @debug
-        @logger.info "Will create job #{job}"
-        @logger.info "#{xml}"
+        logger.info "Will create job #{job}"
+        logger.info "#{xml}"
         File.open(job_name + '.xml', 'w') { |f| f.write xml }
         return
       end
@@ -488,7 +492,7 @@ module JenkinsPipelineBuilder
     def compile_job_to_xml(job)
       fail 'Job name is not specified' unless job[:name]
 
-      @logger.info "Creating Yaml Job #{job}"
+      logger.info "Creating Yaml Job #{job}"
       job[:job_type] = 'free_style' unless job[:job_type]
       case job[:job_type]
       when 'job_dsl'
@@ -530,7 +534,9 @@ module JenkinsPipelineBuilder
       xml   = client.job.build_freestyle_config(params)
       n_xml = Nokogiri::XML(xml)
 
+      logger.debug 'Loading the required modules'
       @module_registry.traverse_registry_path('job', params, n_xml)
+      logger.debug 'Module loading complete'
 
       n_xml.to_xml
     end
@@ -555,7 +561,7 @@ module JenkinsPipelineBuilder
     end
 
     def generate_job_dsl_body(params)
-      @logger.info 'Generating pipeline'
+      logger.info 'Generating pipeline'
 
       xml = client.job.build_freestyle_config(params)
 

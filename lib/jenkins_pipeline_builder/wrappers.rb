@@ -20,8 +20,6 @@
 # THE SOFTWARE.
 #
 
-require 'jenkins_pipeline_builder/extensions'
-
 wrapper do
   name :ansicolor
   plugin_id 123
@@ -48,10 +46,11 @@ wrapper do
 end
 
 wrapper do
-  name :rvm05
+  name :rvm
   plugin_id 123
   min_version '0.5'
   announced false
+  description 'rvm plugin for versions 0.5 and greater'
 
   xml do |wrapper|
     send('ruby-proxy-object') do
@@ -78,8 +77,9 @@ end
 wrapper do
   name :rvm
   plugin_id 123
-  min_version 0
+  min_version '0'
   announced false
+  description 'rvm plugin for versions less than 0.5'
 
   xml do |wrapper|
     send('ruby-proxy-object') do

@@ -69,7 +69,7 @@ describe 'Templates resolver' do
 
     success, project = @generator.resolve_project(@generator.get_item('project-name'))
 
-    expect(success).to be_true
+    expect(success).to be true
     expect(project).to eq(
       name: 'project-name',
       type: :project,
@@ -126,7 +126,7 @@ describe 'Templates resolver' do
     @generator.load_job_collection project
 
     success, project = @generator.resolve_project(@generator.get_item('project-name'))
-    expect(success).to be_true
+    expect(success).to be true
     expect(project).to eq(
       name: 'project-name',
       type: :project,
@@ -181,7 +181,7 @@ describe 'Templates resolver' do
     @generator.load_job_collection project
 
     success, project = @generator.resolve_project(@generator.get_item('project-name'))
-    expect(success).to be_true
+    expect(success).to be true
     expect(project).to eq(
       name: 'project-name',
       type: :project,
@@ -210,19 +210,19 @@ describe 'Templates resolver' do
   describe 'compilation of templates' do
     it 'compiles String' do
       success, string = JenkinsPipelineBuilder::Compiler.compile('blah', item1: 'data1')
-      expect(success).to be_true
+      expect(success).to be true
       expect(string).to eq 'blah'
     end
 
     it 'compiles simple Hash' do
       success, hash = JenkinsPipelineBuilder::Compiler.compile({ name: 'item-{{item1}}', value: 'item1-data' }, item1: 'data1')
-      expect(success).to be_true
+      expect(success).to be true
       expect(hash).to eq(name: 'item-data1', value: 'item1-data')
     end
 
     it 'compiles nested Hash' do
       success, hash = JenkinsPipelineBuilder::Compiler.compile({ name: 'item-{{item1}}', value: { house: 'house-{{item1}}' } }, item1: 'data1')
-      expect(success).to be_true
+      expect(success).to be true
       expect(hash).to eq(name: 'item-data1', value: { house: 'house-data1' })
     end
 
@@ -233,7 +233,7 @@ describe 'Templates resolver' do
       settings = { name: 'project-name', db: 'my_own_db', :'mail-to' => 'developer@nowhere.net' }
 
       success, hash = JenkinsPipelineBuilder::Compiler.compile(template, settings)
-      expect(success).to be_true
+      expect(success).to be true
       expect(hash).to eq(
           name: 'project-name-unit-tests',
           builders: [{ shell: 'unittest' }],
@@ -249,7 +249,7 @@ describe 'Templates resolver' do
     @generator.load_job_collection project
 
     success, job = @generator.resolve_job_by_name('{{name}}-unit-tests', name: 'project-name', db: 'my_own_db', :'mail-to' => 'developer@nowhere.net')
-    expect(success).to be_true
+    expect(success).to be true
     expect(job).to eq(
       name: 'project-name-unit-tests',
       builders: [{ shell: 'unittest' }],

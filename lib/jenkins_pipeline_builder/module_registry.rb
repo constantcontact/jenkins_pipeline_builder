@@ -27,6 +27,10 @@ module JenkinsPipelineBuilder
       @registry = { job: {} }
     end
 
+    def logger
+      JenkinsPipelineBuilder.logger
+    end
+
     # Ideally refactor this out to be derived from the registry,
     # but I'm lazy for now
     def entries
@@ -43,7 +47,8 @@ module JenkinsPipelineBuilder
       root = prefix.inject(@registry, :[])
       root[name] = {} unless root[name]
 
-      root[name][extension.name] = extension
+      root[name][extension.name] = [] unless root[name][extension.name]
+      root[name][extension.name] << extension
     end
 
     def get(path)
@@ -63,17 +68,25 @@ module JenkinsPipelineBuilder
       traverse_registry(registry, params, n_xml)
     end
 
-    def traverse_registry(registry, params, n_xml)
+    def traverse_registry(registry, params, n_xml, strict = false)
       params.each do |key, value|
         if registry.is_a? Hash
-          next unless registry.key? key
-          if registry[key].is_a? Extension
-            execute_extension(registry[key], value, n_xml)
+          unless registry.key? key
+            fail "!!!! could not find key #{key} !!!!" if strict
+            next
+          end
+          reg_value = registry[key]
+          if reg_value.is_a?(Array) && reg_value.first.is_a?(Extension)
+            next unless reg_value.select { |x| x.class == Extension }.size == reg_value.size
+            # TODO: Actually compare versions installed on box here
+            reg = reg_value.sort { |x, y| x.min_version <=> y.min_version }.last
+            logger.debug "Using #{reg.type} #{reg.name} version #{reg.min_version}"
+            execute_extension(reg, value, n_xml)
           elsif value.is_a? Hash
-            traverse_registry registry[key], value, n_xml
+            traverse_registry reg_value, value, n_xml, true
           elsif value.is_a? Array
             value.each do |v|
-              traverse_registry registry[key], v, n_xml
+              traverse_registry reg_value, v, n_xml, true
             end
           end
         end
@@ -86,6 +99,7 @@ module JenkinsPipelineBuilder
       Nokogiri::XML::Builder.with(n_builders) do |xml|
         xml.instance_exec value, &extension.xml
       end
+      n_builders.instance_exec(value, &extension.after) if extension.after
     end
   end
 end
