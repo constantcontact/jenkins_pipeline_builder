@@ -115,14 +115,15 @@ module JenkinsPipelineBuilder
 
     def load_extensions(path)
       path = "#{path}/extensions"
-      path = File.expand_path(path, relative_to=Dir.getwd)
-      if File.directory?(path)
-        @logger.info "Loading extensions from folder #{path}"
-        @logger.info Dir.glob("#{path}/*.rb").inspect
-        Dir.glob("#{path}/*.rb").each do |file|
-          @logger.info "Loaded #{file}"
-          require file
-        end
+      path = File.expand_path(path, Dir.getwd)
+
+      return unless File.directory?(path)
+
+      @logger.info "Loading extensions from folder #{path}"
+      @logger.info Dir.glob("#{path}/*.rb").inspect
+      Dir.glob("#{path}/*.rb").each do |file|
+        @logger.info "Loaded #{file}"
+        require file
       end
     end
 
@@ -362,7 +363,6 @@ module JenkinsPipelineBuilder
       @logger.info @job_collection
       cleanup_temp_remote
       load_extensions(path)
-      # pp @module_registry.registry
       errors = {}
       # Publish all the jobs if the projects are not found
       if projects.count == 0
@@ -380,7 +380,7 @@ module JenkinsPipelineBuilder
       @logger.info "Pull Request Generator Running from path #{path}"
       load_collection_from_path(path)
       cleanup_temp_remote
-      # load_extensions(path)
+      load_extensions(path)
       jobs = {}
       @logger.info "Project: #{projects}"
       projects.each do |project|
@@ -547,6 +547,5 @@ module JenkinsPipelineBuilder
         xml.removedJobAction 'IGNORE'
       end
     end
-
   end
 end

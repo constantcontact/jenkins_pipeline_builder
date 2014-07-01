@@ -49,10 +49,6 @@ module JenkinsPipelineBuilder
     def registry
       generator.module_registry
     end
-
-    def extend
-      yield(registry)
-    end
   end
 end
 JenkinsPipelineBuilder.generator
