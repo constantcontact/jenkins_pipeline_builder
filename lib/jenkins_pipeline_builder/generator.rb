@@ -148,6 +148,75 @@ module JenkinsPipelineBuilder
       File.open(job_name + '.xml', 'w') { |f| f.write xml }
     end
 
+    def bootstrap(path, project_name)
+      logger.info "Bootstrapping pipeline from path #{path}"
+      load_collection_from_path(path)
+      logger.info @job_collection
+      cleanup_temp_remote
+      load_extensions(path)
+      errors = {}
+      # Publish all the jobs if the projects are not found
+      if projects.count == 0
+        errors = publish_jobs(jobs)
+      else
+        errors = publish_project(project_name)
+      end
+      errors.each do |k, v|
+        logger.error "Encountered errors compiling: #{k}:"
+        logger.error v
+      end
+    end
+
+    def pull_request(path, project_name)
+      logger.info "Pull Request Generator Running from path #{path}"
+      load_collection_from_path(path)
+      cleanup_temp_remote
+      load_extensions(path)
+      jobs = {}
+      logger.info "Project: #{projects}"
+      projects.each do |project|
+        if project[:name] == project_name || project_name.nil?
+          project_body = project[:value]
+          project_jobs = project_body[:jobs] || []
+          logger.info "Using Project #{project}"
+          pull_job = nil
+          project_jobs.each do |job|
+            job = job.keys.first if job.is_a? Hash
+            job = @job_collection[job.to_s]
+            pull_job = job if job[:value][:job_type] == 'pull_request_generator'
+          end
+          fail 'No Pull Request Found for Project' unless pull_job
+          pull_jobs = pull_job[:value][:jobs] || []
+          pull_jobs.each do |job|
+            if job.is_a? String
+              jobs[job.to_s] = @job_collection[job.to_s]
+            else
+              jobs[job.keys.first.to_s] = @job_collection[job.keys.first.to_s]
+            end
+          end
+          pull = JenkinsPipelineBuilder::PullRequestGenerator.new(project, jobs, pull_job)
+          # Build the jobs
+          @job_collection.merge! pull.jobs
+          pull.create.each do |project|
+            success, compiled_project = resolve_project(project)
+            compiled_project[:value][:jobs].each do |i|
+              job = i[:result]
+              success, payload = compile_job_to_xml(job)
+              create_or_update(job, payload) if success
+            end
+          end
+          # Purge old jobs
+          pull.purge.each do |job|
+            jobs = client.job.list "#{job}.*"
+            jobs.each do |job|
+              client.job.delete job
+            end
+          end
+        end
+      end
+    end
+
+
     #
     # BEGIN PRIVATE METHODS
     #
@@ -480,74 +549,6 @@ module JenkinsPipelineBuilder
         end
       end
       errors
-    end
-
-    def bootstrap(path, project_name)
-      logger.info "Bootstrapping pipeline from path #{path}"
-      load_collection_from_path(path)
-      logger.info @job_collection
-      cleanup_temp_remote
-      load_extensions(path)
-      errors = {}
-      # Publish all the jobs if the projects are not found
-      if projects.count == 0
-        errors = publish_jobs(jobs)
-      else
-        errors = publish_project(project_name)
-      end
-      errors.each do |k, v|
-        logger.error "Encountered errors compiling: #{k}:"
-        logger.error v
-      end
-    end
-
-    def pull_request(path, project_name)
-      logger.info "Pull Request Generator Running from path #{path}"
-      load_collection_from_path(path)
-      cleanup_temp_remote
-      load_extensions(path)
-      jobs = {}
-      logger.info "Project: #{projects}"
-      projects.each do |project|
-        if project[:name] == project_name || project_name.nil?
-          project_body = project[:value]
-          project_jobs = project_body[:jobs] || []
-          logger.info "Using Project #{project}"
-          pull_job = nil
-          project_jobs.each do |job|
-            job = job.keys.first if job.is_a? Hash
-            job = @job_collection[job.to_s]
-            pull_job = job if job[:value][:job_type] == 'pull_request_generator'
-          end
-          fail 'No Pull Request Found for Project' unless pull_job
-          pull_jobs = pull_job[:value][:jobs] || []
-          pull_jobs.each do |job|
-            if job.is_a? String
-              jobs[job.to_s] = @job_collection[job.to_s]
-            else
-              jobs[job.keys.first.to_s] = @job_collection[job.keys.first.to_s]
-            end
-          end
-          pull = JenkinsPipelineBuilder::PullRequestGenerator.new(project, jobs, pull_job)
-          # Build the jobs
-          @job_collection.merge! pull.jobs
-          pull.create.each do |project|
-            success, compiled_project = resolve_project(project)
-            compiled_project[:value][:jobs].each do |i|
-              job = i[:result]
-              success, payload = compile_job_to_xml(job)
-              create_or_update(job, payload) if success
-            end
-          end
-          # Purge old jobs
-          pull.purge.each do |job|
-            jobs = client.job.list "#{job}.*"
-            jobs.each do |job|
-              client.job.delete job
-            end
-          end
-        end
-      end
     end
 
     def dump(job_name)
