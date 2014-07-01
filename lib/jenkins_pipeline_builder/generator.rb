@@ -116,7 +116,6 @@ module JenkinsPipelineBuilder
     def load_extensions(path)
       path = "#{path}/extensions"
       path = File.expand_path(path, Dir.getwd)
-
       return unless File.directory?(path)
 
       @logger.info "Loading extensions from folder #{path}"
@@ -125,6 +124,38 @@ module JenkinsPipelineBuilder
         @logger.info "Loaded #{file}"
         require file
       end
+      match_extension_versions
+    end
+
+    def match_extension_versions
+      registry = @module_registry.registry[:job]
+      installed_plugins = @debug ? nil : list_plugins # Only get plugins if not in debug mode
+      @logger.debug 'Loading newest version of all plugins since we are in debug mode.'
+      registry.each do |registry_key, registry_value|
+        if registry_value[:registry]
+          registry_value[:registry].each do |extension_key, extension_value|
+            registry[registry_key][:registry][extension_key] = newest_compatible({ extension_key => extension_value }, installed_plugins, registry_key)
+          end
+        else
+          registry[registry_key] = newest_compatible({ registry_key => registry_value }, installed_plugins)
+        end
+      end
+    end
+
+    def newest_compatible(extension, installed_plugins, key = nil)
+      # Fetch the registrered_modules for the extension
+      registry = @module_registry.registered_modules
+      registry = key.nil? ? registry[:job_attributes] : registry[key]
+      registry = registry[extension.keys.first]
+      extension = extension.first[1]
+      keep = nil
+      keep_version = ''
+      extension.each do |version, block|
+        is_available = @debug ? true : version.to_s <= installed_plugins[registry[:plugin_id].to_s].to_s
+        is_newer = version.to_s >= keep_version
+        keep = block if keep.nil? || (is_available && is_newer)
+      end
+      keep
     end
 
     def load_template(path, template)
@@ -221,9 +252,13 @@ module JenkinsPipelineBuilder
       end
     end
 
+    def list_plugins
+      client.plugin.list_installed
+    end
+
     def prepare_jobs(jobs)
       jobs.map! do |job|
-        job.kind_of?(String) ? { job.to_sym => {} } : job
+        job.is_a?(String) ? { job.to_sym => {} } : job
       end
     end
 
@@ -231,14 +266,16 @@ module JenkinsPipelineBuilder
       jobs.each do |job|
         job_id = job.keys.first
         j = get_item(job_id)
-        Utils.hash_merge!(j, job[job_id])
-        j[:value][:name] = j[:job_name] if j[:job_name]
+        if j
+          Utils.hash_merge!(j, job[job_id])
+          j[:value][:name] = j[:job_name] if j[:job_name]
+        end
       end
     end
 
     def process_views(views, project, errors = {})
       views.map! do |view|
-        view.kind_of?(String) ? { view.to_sym => {} } : view
+        view.is_a?(String) ? { view.to_sym => {} } : view
       end
       views.each do |view|
         view_id = view.keys.first
@@ -416,9 +453,9 @@ module JenkinsPipelineBuilder
           end
           # Purge old jobs
           pull.purge.each do |job|
-            jobs = @client.job.list "#{job}.*"
+            jobs = client.job.list "#{job}.*"
             jobs.each do |job|
-              @client.job.delete job
+              client.job.delete job
             end
           end
         end

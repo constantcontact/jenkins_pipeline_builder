@@ -48,10 +48,10 @@ module JenkinsPipelineBuilder
     def self.get_settings_bag(item_bag, settings_bag = {})
       item = item_bag[:value]
       bag = {}
-      return unless item.kind_of?(Hash)
+      return unless item.is_a?(Hash)
       item.keys.each do |k|
         val = item[k]
-        if val.kind_of? String
+        if val.is_a? String
           new_value = resolve_value(val, settings_bag, {})
           return nil if new_value.nil?
           bag[k] = new_value

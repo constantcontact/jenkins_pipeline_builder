@@ -24,10 +24,7 @@ module JenkinsPipelineBuilder
   class ModuleRegistry
     attr_accessor :registry, :registered_modules
     def initialize
-      @registry = {
-        job: {
-        }
-      }
+      @registry = { job: {} }
     end
 
     # Ideally refactor this out to be derived from the registry,
