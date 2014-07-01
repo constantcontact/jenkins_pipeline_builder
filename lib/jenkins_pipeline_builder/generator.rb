@@ -82,11 +82,14 @@ module JenkinsPipelineBuilder
         @logger.error "Encountered errors compiling: #{k}:"
         @logger.error v
       end
+      errors
     end
 
     def pull_request(path, project_name)
+      success = false
       @logger.info "Pull Request Generator Running from path #{path}"
       load_collection_from_path(path)
+      # pp @job_collection
       cleanup_temp_remote
       # load_extensions(path)
       jobs = {}
@@ -113,7 +116,6 @@ module JenkinsPipelineBuilder
           end
           pull = JenkinsPipelineBuilder::PullRequestGenerator.new(project, jobs, pull_job)
           # Build the jobs
-          # THIS CAN PROBABLY BE REFACTORED
           @job_collection.merge! pull.jobs
           pull.create.each do |project|
             success, compiled_project = resolve_project(project)
@@ -132,6 +134,7 @@ module JenkinsPipelineBuilder
           end
         end
       end
+      success
     end
 
     def dump(job_name)
@@ -399,7 +402,6 @@ module JenkinsPipelineBuilder
       process_job_changes(jobs)
       errors = process_jobs(jobs, project)
       errors = process_views(project_body[:views], project,  errors) if project_body[:views]
-
       errors.each do |k, v|
         puts "Encountered errors processing: #{k}:"
         v.each do |key, error|
@@ -442,10 +444,9 @@ module JenkinsPipelineBuilder
         next unless project_name.nil? || project[:name] == project_name
         success, payload = resolve_project(project)
         if success
-          puts 'successfully resolved project'
+          @logger.info 'successfully resolved project'
           compiled_project = payload
         else
-          puts payload
           return false
         end
 
@@ -464,7 +465,7 @@ module JenkinsPipelineBuilder
 
     def publish_jobs(jobs, errors = {})
       jobs.each do |i|
-        puts "Processing #{i}"
+        @logger.info "Processing #{i}"
         job = i[:result]
         fail "Result is empty for #{i}" if job.nil?
         success, payload = compile_job_to_xml(job)

@@ -12,11 +12,10 @@ describe JenkinsPipelineBuilder::Generator do
     }
     JenkinsPipelineBuilder.client
     @generator = JenkinsPipelineBuilder.generator
-    # @generator.debug = true
-    # @generator.no_files = true
   end
 
-  after(:each)  do
+  after(:each) do
+    @generator.debug = false
     @generator.job_collection = {}
   end
 
@@ -68,7 +67,16 @@ describe JenkinsPipelineBuilder::Generator do
   end
 
   describe '#bootstrap' do
-    it "produces no errors while creating a pipeline" 
+    it "produces no errors while creating pipeline SamplePipeline" do
+      @generator.debug = true
+      job_name = 'SamplePipeline'
+      path = File.expand_path("../fixtures/generator_tests", __FILE__)
+      errors = @generator.bootstrap(path, job_name)
+      expect(errors.empty?).to be true
+      Dir["#{job_name}*.xml"].each do |file|
+        File.delete(file)
+      end
+    end
     # Things to check for:
     # Fail - Finds duplicate job names (load_job_collection)
     # Extension fails to register?
@@ -77,7 +85,16 @@ describe JenkinsPipelineBuilder::Generator do
   end
 
   describe '#pull_request' do
-    it "purges old PR jobs through the client" 
+    it "produces no errors while creating pipeline PullRequest" do
+      @generator.debug = true
+      job_name = 'PullRequest'
+      path = File.expand_path("../fixtures/generator_tests", __FILE__)
+      success = @generator.pull_request(path, job_name)
+      expect(success).to be true
+      Dir["#{job_name}*.xml"].each do |file|
+        File.delete(file)
+      end
+    end
     # Things to check for
     # Fail - no PR job type found
     # Encounters failure during build process
@@ -86,6 +103,8 @@ describe JenkinsPipelineBuilder::Generator do
 
   describe '#dump' do
     it "writes a job's config XML to a file" do
+      skip
+      @generator.debug = true
       job_name = "testing"
       @generator.dump(job_name) # This method uses client. Do we want to stub this somehow?
       expect(File.exists?("#{job_name}.xml")).to be true

@@ -54,6 +54,7 @@ module JenkinsPipelineBuilder
     # args[:git_org] The Orig user ex. igorshare
     # @return = array of pull request numbers
     def check_for_pull(args)
+      pp args
       fail 'Please specify all arguments' unless args[:git_url] && args[:git_org] && args[:git_repo]
       # Build the Git URL
       git_url = "#{args[:git_url]}api/v3/repos/#{args[:git_org]}/#{args[:git_repo]}/pulls"
