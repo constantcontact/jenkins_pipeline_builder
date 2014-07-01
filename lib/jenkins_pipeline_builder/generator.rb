@@ -21,7 +21,6 @@
 #
 
 require 'yaml'
-require 'pp'
 
 module JenkinsPipelineBuilder
   class Generator
@@ -74,7 +73,6 @@ module JenkinsPipelineBuilder
       @logger.info @job_collection
       cleanup_temp_remote
       load_extensions(path)
-      # pp @module_registry.registry
       errors = {}
       # Publish all the jobs if the projects are not found
       if projects.count == 0
@@ -93,7 +91,6 @@ module JenkinsPipelineBuilder
       success = false
       @logger.info "Pull Request Generator Running from path #{path}"
       load_collection_from_path(path)
-      # pp @job_collection
       cleanup_temp_remote
       # load_extensions(path)
       jobs = {}
