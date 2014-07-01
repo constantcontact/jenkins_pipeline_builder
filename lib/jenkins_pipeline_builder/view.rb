@@ -43,6 +43,88 @@ module JenkinsPipelineBuilder
       end
     end
 
+    # Creates a listview by accepting the given parameters hash
+    #
+    # @param [Hash] params options to create the new view
+    # @option params [String] :name Name of the view
+    # @option params [String] :type Description of the view
+    # @option params [String] :description Description of the view
+    # @option params [String] :status_filter Filter jobs based on the status.
+    #         Valid options: all_selected_jobs, enabled_jobs_only,
+    #         disabled_jobs_only. Default: all_selected_jobs
+    # @option params [Boolean] :filter_queue true or false
+    # @option params [Boolean] :filter_executors true or false
+    # @option params [String] :regex Regular expression to filter jobs that
+    #         are to be added to the view
+    #
+    # @raise [ArgumentError] if the required parameter +:name+ is not
+    #   specified
+    #
+    def create(params)
+      # Name is a required parameter. Raise an error if not specified
+      fail ArgumentError, 'Name is required for creating view' unless params.is_a?(Hash) && params[:name]
+      unless @generator.debug
+        # If we have a parent view, we need to do some additional checks
+        if params[:parent_view]
+          # If there is no current parent view, create it
+          unless exists?(params[:parent_view])
+            create_base_view(params[:parent_view], 'nestedView')
+          end
+          # If the view currently exists, delete it
+          if exists?(params[:name], params[:parent_view])
+            delete(params[:name], params[:parent_view])
+          end
+        else
+          delete(params[:name]) if exists?(params[:name])
+        end
+      end
+      params[:type] = 'listview' unless params[:type]
+      create_base_view(params[:name], params[:type], params[:parent_view])
+      @logger.debug "Creating a #{params[:type]} view with params: #{params.inspect}"
+      status_filter = case params[:status_filter]
+                      when 'all_selected_jobs'
+                        ''
+                      when 'enabled_jobs_only'
+                        '1'
+                      when 'disabled_jobs_only'
+                        '2'
+                      else
+                        ''
+                      end
+
+      json = {
+        'name' => params[:name],
+        'description' => params[:description],
+        'mode' => get_mode(params[:type]),
+        'statusFilter' => '',
+        'columns' => get_columns(params[:type])
+      }
+      json.merge!('groupingRules' => params[:groupingRules]) if params[:groupingRules]
+      post_params = {
+        'name' => params[:name],
+        'mode' => get_mode(params[:type]),
+        'description' => params[:description],
+        'statusFilter' => status_filter,
+        'json' => json.to_json
+      }
+      post_params.merge!('filterQueue' => 'on') if params[:filter_queue]
+      post_params.merge!('filterExecutors' => 'on') if params[:filter_executors]
+      post_params.merge!('useincluderegex' => 'on',
+                         'includeRegex' => params[:regex]) if params[:regex]
+
+      if @generator.debug
+        pp post_params
+        return
+      end
+
+      view_path = params[:parent_view].nil? ? '' : "/view/#{params[:parent_view]}"
+      view_path += "/view/#{params[:name]}/configSubmit"
+
+      @client.api_post_request(view_path, post_params)
+    end
+
+    private
+
     def get_mode(type)
       case type
       when 'listview'
@@ -89,88 +171,6 @@ module JenkinsPipelineBuilder
       view_path += '/createView'
 
       @client.api_post_request(view_path, initial_post_params)
-    end
-
-    # Creates a listview by accepting the given parameters hash
-    #
-    # @param [Hash] params options to create the new view
-    # @option params [String] :name Name of the view
-    # @option params [String] :type Description of the view
-    # @option params [String] :description Description of the view
-    # @option params [String] :status_filter Filter jobs based on the status.
-    #         Valid options: all_selected_jobs, enabled_jobs_only,
-    #         disabled_jobs_only. Default: all_selected_jobs
-    # @option params [Boolean] :filter_queue true or false
-    # @option params [Boolean] :filter_executors true or false
-    # @option params [String] :regex Regular expression to filter jobs that
-    #         are to be added to the view
-    #
-    # @raise [ArgumentError] if the required parameter +:name+ is not
-    #   specified
-    #
-    def create(params)
-      # Name is a required parameter. Raise an error if not specified
-      fail ArgumentError, 'Name is required for creating view' unless params.is_a?(Hash) && params[:name]
-      unless @generator.debug
-        # If we have a parent view, we need to do some additional checks
-        if params[:parent_view]
-          # If there is no current parent view, create it
-          unless @client.view.exists?(params[:parent_view])
-            create_base_view(params[:parent_view], 'nestedView')
-          end
-          # If the view currently exists, delete it
-          if exists?(params[:name], params[:parent_view])
-            delete(params[:name], params[:parent_view])
-          end
-        else
-          if @client.view.exists?(params[:name])
-            @client.view.delete(params[:name])
-          end
-        end
-      end
-      params[:type] = 'listview' unless params[:type]
-      create_base_view(params[:name], params[:type], params[:parent_view])
-      @logger.debug "Creating a #{params[:type]} view with params: #{params.inspect}"
-      status_filter = case params[:status_filter]
-                      when 'all_selected_jobs'
-                        ''
-                      when 'enabled_jobs_only'
-                        '1'
-                      when 'disabled_jobs_only'
-                        '2'
-                      else
-                        ''
-                      end
-
-      json = {
-        'name' => params[:name],
-        'description' => params[:description],
-        'mode' => get_mode(params[:type]),
-        'statusFilter' => '',
-        'columns' => get_columns(params[:type])
-      }
-      json.merge!('groupingRules' => params[:groupingRules]) if params[:groupingRules]
-      post_params = {
-        'name' => params[:name],
-        'mode' => get_mode(params[:type]),
-        'description' => params[:description],
-        'statusFilter' => status_filter,
-        'json' => json.to_json
-      }
-      post_params.merge!('filterQueue' => 'on') if params[:filter_queue]
-      post_params.merge!('filterExecutors' => 'on') if params[:filter_executors]
-      post_params.merge!('useincluderegex' => 'on',
-                         'includeRegex' => params[:regex]) if params[:regex]
-
-      if @generator.debug
-        pp post_params
-        return
-      end
-
-      view_path = params[:parent_view].nil? ? '' : "/view/#{params[:parent_view]}"
-      view_path += "/view/#{params[:name]}/configSubmit"
-
-      @client.api_post_request(view_path, post_params)
     end
 
     def get_columns(type)
@@ -231,10 +231,6 @@ module JenkinsPipelineBuilder
       result
     end
 
-    def path_encode(path)
-      URI.escape(path.encode(Encoding::UTF_8))
-    end
-
     # This method lists all views
     #
     # @param [String] parent_view a name of the parent view
@@ -274,7 +270,7 @@ module JenkinsPipelineBuilder
       if parent_view
         list_children(parent_view, view_name).include?(view_name)
       else
-        list(view_name).include?(view_name)
+        @client.view.list(view_name).include?(view_name)
       end
     end
   end

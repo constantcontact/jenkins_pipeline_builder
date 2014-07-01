@@ -1,0 +1,2 @@
+- job:
+    name: '{{name}}-10-SampleJob'
