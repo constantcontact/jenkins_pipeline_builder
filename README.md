@@ -339,20 +339,20 @@ PLUGINS:
 
 A number of the DSL options rely on Jenkins plugins, including:
 
-* ansicolor - "AnsiColor"    
+* ansicolor - "AnsiColor"
 * (view) type: 'categorizedView' - "categorized-view"
-* hipchat - "HipChat Plugin"    
-* inject_env_vars - "Environment Injector Plugin"    
-* priority - "Priority Sorter plugin"    
-* downstream - "Parameterized Trigger plugin"    
-* rvm - "Rvm"    
-* throttle - "Throttle Concurrent Builds Plug-in"    
-* timestamp - "Timestamper"  
-* groovy_postbuild - "Groovy Postbuild"  
+* hipchat - "HipChat Plugin"
+* inject_env_vars - "Environment Injector Plugin"
+* priority - "Priority Sorter plugin"
+* downstream - "Parameterized Trigger plugin"
+* rvm - "Rvm"
+* throttle - "Throttle Concurrent Builds Plug-in"
+* timestamp - "Timestamper"
+* groovy_postbuild - "Groovy Postbuild"
 
 Just about every plugin above can be installed through Jenkins (Manage Jenkins > Manage Plugins > Available)
 
-Exceptions:
+For a list of all currently supported plugins run `generate list` or `generate list type` to see all of a specific type
 
 CONTRIBUTING:
 ----------------
