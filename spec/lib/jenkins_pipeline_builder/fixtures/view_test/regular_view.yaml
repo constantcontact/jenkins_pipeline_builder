@@ -1,0 +1,5 @@
+- view:
+    name: 'RegularView'
+    type: 'listview'
+    description: 'ViewTest'
+    status_filter: enabled_jobs_only

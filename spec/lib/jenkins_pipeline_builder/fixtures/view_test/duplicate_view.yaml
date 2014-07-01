@@ -1,0 +1,4 @@
+- view:
+    name: 'duplicate_view'
+    type: 'categorizedView'
+    description: 'ViewTest'
