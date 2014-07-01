@@ -1,0 +1,3 @@
+- job:
+    name: '{{name}}-20-Acceptance'
+    description: '{{description}}'
