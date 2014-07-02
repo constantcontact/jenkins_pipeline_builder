@@ -223,13 +223,13 @@ module JenkinsPipelineBuilder
     def load_extensions(path)
       path = "#{path}/extensions"
       path = File.expand_path(path, Dir.getwd)
-      return unless File.directory?(path)
-
-      logger.info "Loading extensions from folder #{path}"
-      logger.info Dir.glob("#{path}/*.rb").inspect
-      Dir.glob("#{path}/*.rb").each do |file|
-        logger.info "Loaded #{file}"
-        require file
+      unless File.directory?(path)
+        logger.info "Loading extensions from folder #{path}"
+        logger.info Dir.glob("#{path}/*.rb").inspect
+        Dir.glob("#{path}/*.rb").each do |file|
+          logger.info "Loaded #{file}"
+          require file
+        end
       end
       match_extension_versions
     end
@@ -238,31 +238,33 @@ module JenkinsPipelineBuilder
       registry = @module_registry.registry[:job]
       installed_plugins = @debug ? nil : list_plugins # Only get plugins if not in debug mode
       @logger.debug 'Loading newest version of all plugins since we are in debug mode.'
-      puts "LOLOL"
-      pp registry
       registry.each do |registry_key, registry_value|
-        if registry_value[:registry]
-          registry_value[:registry].each do |extension_key, extension_value|
-            registry[registry_key][:registry][extension_key] = newest_compatible({ extension_key => extension_value }, installed_plugins, registry_key)
+        if registry_value.count > 1
+          registry_value.each do |extension_key, extension_value|
+            registry[registry_key][extension_key] = newest_compatible(extension_key, installed_plugins, registry_key)
           end
         else
-          registry[registry_key] = newest_compatible({ registry_key => registry_value }, installed_plugins)
+          registry[registry_key] = newest_compatible(registry_key, installed_plugins)
         end
       end
     end
 
     def newest_compatible(extension, installed_plugins, key = nil)
       # Fetch the registrered_modules for the extension
-      registry = @module_registry.registered_modules
-      registry = key.nil? ? registry[:job_attributes] : registry[key]
-      registry = registry[extension.keys.first]
-      extension = extension.first[1]
+      registry = @module_registry.registry[:job]
+      registry = registry[key] unless key.nil?
+      registry = registry[extension]
       keep = nil
       keep_version = ''
-      extension.each do |version, block|
-        is_available = @debug ? true : version.to_s <= installed_plugins[registry[:plugin_id].to_s].to_s
-        is_newer = version.to_s >= keep_version
-        keep = block if keep.nil? || (is_available && is_newer)
+      registry.each do |ex|
+        puts "here we go:"
+        pp ex
+        is_available = @debug ? true : ex.min_version.to_s <= installed_plugins[ex.plugin_id.to_s].to_s
+        is_newer = ex.min_version.to_s >= keep_version
+        if keep.nil? || (is_available && is_newer)
+          keep = ex
+          keep_version = ex.min_version
+        end
       end
       keep
     end
