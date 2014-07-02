@@ -25,9 +25,8 @@ require 'pp'
 
 module JenkinsPipelineBuilder
   class Generator
-
     attr_reader :debug
-    attr_accessor:no_files, :job_templates, :job_collection, :logger, :module_registry, :remote_depends
+    attr_accessor :no_files, :job_templates, :job_collection, :logger, :module_registry, :remote_depends
 
     # Initialize a Client object with Jenkins Api Client
     #
@@ -101,23 +100,25 @@ module JenkinsPipelineBuilder
           @logger.info "Using Project #{project}"
           pull_job = find_pull_request_generator(project)
           p_success, p_payload = compile_pull_request_generator(pull_job[:name], project)
-          jobs = filter_pull_request_jobs(pull_job)
-          pull = JenkinsPipelineBuilder::PullRequestGenerator.new(project, jobs, p_payload)
-          # Build the jobs
-          @job_collection.merge! pull.jobs
-          pull.create.each do |project|
-            success, compiled_project = resolve_project(project)
-            compiled_project[:value][:jobs].each do |i|
-              job = i[:result]
-              success, payload = compile_job_to_xml(job)
-              create_or_update(job, payload) if success
+          if p_success
+            jobs = filter_pull_request_jobs(pull_job)
+            pull = JenkinsPipelineBuilder::PullRequestGenerator.new(project, jobs, p_payload)
+            # Build the jobs
+            @job_collection.merge! pull.jobs
+            pull.create.each do |project|
+              success, compiled_project = resolve_project(project)
+              compiled_project[:value][:jobs].each do |i|
+                job = i[:result]
+                success, payload = compile_job_to_xml(job)
+                create_or_update(job, payload) if success
+              end
             end
-          end
-          # Purge old jobs
-          pull.purge.each do |job|
-            jobs = client.job.list "#{job}.*"
-            jobs.each do |job|
-              client.job.delete job
+            # Purge old jobs
+            pull.purge.each do |job|
+              jobs = client.job.list "#{job}.*"
+              jobs.each do |job|
+                client.job.delete job
+              end
             end
           end
         end
@@ -135,6 +136,7 @@ module JenkinsPipelineBuilder
     #
     # BEGIN PRIVATE METHODS
     #
+
     private
 
     def find_pull_request_generator(project)
@@ -233,7 +235,7 @@ module JenkinsPipelineBuilder
       @logger.debug 'Loading newest version of all plugins since we are in debug mode.'
       registry.each do |registry_key, registry_value|
         if registry_value.count > 1
-          registry_value.each do |extension_key, extension_value|
+          registry_value.each_key do |extension_key|
             registry[registry_key][extension_key] = newest_compatible(extension_key, installed_plugins, registry_key)
           end
         else
@@ -250,8 +252,6 @@ module JenkinsPipelineBuilder
       keep = nil
       keep_version = ''
       registry.each do |ex|
-        puts "here we go:"
-        pp ex
         is_available = @debug ? true : ex.min_version.to_s <= installed_plugins[ex.plugin_id.to_s].to_s
         is_newer = ex.min_version.to_s >= keep_version
         if keep.nil? || (is_available && is_newer)
@@ -291,12 +291,10 @@ module JenkinsPipelineBuilder
     end
 
     def download_yaml(url, file)
-      puts "AAAAA #{file}"
       @remote_depends[url] = file
       logger.info "Downloading #{url} to #{file}.tar"
       open("#{file}.tar", 'w') do |local_file|
         open(url) do |remote_file|
-          puts "BBBBB #{remote_file}"
           local_file.write(Zlib::GzipReader.new(remote_file).read)
         end
       end

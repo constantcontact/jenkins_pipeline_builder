@@ -4,14 +4,12 @@
 
 - dependencies: 
     - source: 
-        url: 'https://github.roving.com/devops/jenkins-pipeline-templates/archive.master.tar.gz'
+        url: 'spec/lib/jenkins_pipeline_builder/fixtures/generator_tests/template_pipeline/jobs.tar.gz'
         templates:
-          - name: buildflow
+          - name: test_temp
 
 - project:
     name: TemplatePipeline
     jobs:
       - '{{name}}-10'
-      - '{{name}}-15-Provision'
-      - '{{name}}-16-HealthCheck'
-      - '{{name}}-17-Cleanup'
+      - '{{name}}-11'
