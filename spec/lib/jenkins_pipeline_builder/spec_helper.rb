@@ -1,6 +1,8 @@
 require 'rspec'
 
 require 'simplecov'
+require 'simplecov-rcov'
+require 'webmock/rspec'
 
 require File.expand_path('../../../../lib/jenkins_pipeline_builder', __FILE__)
 

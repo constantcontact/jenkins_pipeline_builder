@@ -5,13 +5,6 @@
     git_org: 'bencentra'
     git_repo: 'generator_tests'
 
-- project:
-    name: SamplePipeline
-    jobs:
-      - '{{name}}-10-Commit'
-      - '{{name}}-20-Acceptance'
-      - '{{name}}-30-Release'
-
 - project: 
     name: PullRequest
     jobs:

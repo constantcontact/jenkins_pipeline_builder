@@ -16,7 +16,11 @@ describe JenkinsPipelineBuilder::Generator do
 
   after(:each) do
     @generator.debug = false
+    @generator.job_templates = {}
     @generator.job_collection = {}
+    @generator.remote_depends = {}
+    @generator.extensions = {}
+    @generator.module_registry = JenkinsPipelineBuilder::ModuleRegistry.new
   end
 
   describe 'initialized in before(:example)' do
@@ -67,10 +71,31 @@ describe JenkinsPipelineBuilder::Generator do
   end
 
   describe '#bootstrap' do
+
+    # it "AAAAAAAA" do
+    #   dbl = double
+    #   allow(dbl).to receive(:download_yaml)
+    #   expect(dbl.download_yaml).to be_nil
+    # end
+
     it "produces no errors while creating pipeline SamplePipeline" do
       @generator.debug = true
       job_name = 'SamplePipeline'
-      path = File.expand_path("../fixtures/generator_tests", __FILE__)
+      path = File.expand_path("../fixtures/generator_tests/sample_pipeline", __FILE__)
+      errors = @generator.bootstrap(path, job_name)
+      expect(errors.empty?).to be true
+      Dir["#{job_name}*.xml"].each do |file|
+        File.delete(file)
+      end
+    end
+
+    it "produces no errors while creating pipeline TemplatePipeline" do
+      @generator.debug = true
+      job_name = 'TemplatePipeline'
+      path = File.expand_path("../fixtures/generator_tests/template_pipeline", __FILE__)
+      stub_request(:get, "https://github.roving.com/devops/jenkins-pipeline-templates/archive.master.tar.gz").
+        with(:headers => {'Accept'=>'*/*', 'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3', 'User-Agent'=>'Ruby'}).
+        to_return(:status => 200, :body => "", :headers => {})
       errors = @generator.bootstrap(path, job_name)
       expect(errors.empty?).to be true
       Dir["#{job_name}*.xml"].each do |file|
@@ -88,11 +113,14 @@ describe JenkinsPipelineBuilder::Generator do
     it "produces no errors while creating pipeline PullRequest" do
       @generator.debug = true
       job_name = 'PullRequest'
-      path = File.expand_path("../fixtures/generator_tests", __FILE__)
+      path = File.expand_path("../fixtures/generator_tests/pullrequest_pipeline", __FILE__)
+      # stub_request(:get, "http://github.comapi/v3/repos/bencentra/generator_tests/pulls").
+      #    with(:headers => {'Accept'=>'*/*', 'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3', 'Host'=>'github.comapi', 'User-Agent'=>'Ruby'}).
+      #    to_return(:status => 200, :body => "", :headers => {})
       success = @generator.pull_request(path, job_name)
-      expect(success).to be true
+      expect(success).to be_truthy
       Dir["#{job_name}*.xml"].each do |file|
-        File.delete(file)
+        # File.delete(file)
       end
     end
     # Things to check for
@@ -103,9 +131,18 @@ describe JenkinsPipelineBuilder::Generator do
 
   describe '#dump' do
     it "writes a job's config XML to a file" do
-      skip
       @generator.debug = true
-      job_name = "testing"
+      job_name = "test_job"
+      body = ""
+      test_path = File.expand_path("../fixtures/generator_tests", __FILE__)
+      File.open("#{test_path}/#{job_name}.xml", "r") do |f|
+        f.each_line do |line|
+          body << line
+        end
+      end
+      stub_request(:get, "http://username:password@127.0.0.1:8080/job/test_job/config.xml").
+         with(:headers => {'Accept'=>'*/*', 'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3', 'User-Agent'=>'Ruby'}).
+         to_return(:status => 200, :body => "#{body}", :headers => {})
       @generator.dump(job_name) # This method uses client. Do we want to stub this somehow?
       expect(File.exists?("#{job_name}.xml")).to be true
       File.delete("#{job_name}.xml")
