@@ -19,8 +19,6 @@ describe JenkinsPipelineBuilder::Generator do
     @generator.job_templates = {}
     @generator.job_collection = {}
     @generator.remote_depends = {}
-    @generator.extensions = {}
-    @generator.module_registry = JenkinsPipelineBuilder::ModuleRegistry.new
   end
 
   describe 'initialized in before(:example)' do

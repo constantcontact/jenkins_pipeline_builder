@@ -27,7 +27,7 @@ module JenkinsPipelineBuilder
   class Generator
 
     attr_reader :debug
-    attr_accessor :no_files, :job_templates, :job_collection, :logger, :module_registry, :extensions, :remote_depends
+    attr_accessor:no_files, :job_templates, :job_collection, :logger, :module_registry, :remote_depends
 
     # Initialize a Client object with Jenkins Api Client
     #
