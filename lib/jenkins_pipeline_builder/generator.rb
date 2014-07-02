@@ -572,14 +572,7 @@ module JenkinsPipelineBuilder
       end
       errors
     end
-
-    def dump(job_name)
-      logger.info "Debug #{@debug}"
-      logger.info "Dumping #{job_name} into #{job_name}.xml"
-      xml = client.job.get_config(job_name)
-      File.open(job_name + '.xml', 'w') { |f| f.write xml }
-    end
-
+    
     def create_or_update(job, xml)
       job_name = job[:name]
       if @debug

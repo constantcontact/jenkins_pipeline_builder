@@ -17,6 +17,9 @@ describe JenkinsPipelineBuilder::Generator do
   after(:each) do
     @generator.debug = false
     @generator.job_collection = {}
+    @generator.remote_depends = {}
+    @generator.module_registry = JenkinsPipelineBuilder::ModuleRegistry.new
+    JenkinsPipelineBuilder.load_registry
   end
 
   describe 'initialized in before(:example)' do
@@ -82,7 +85,7 @@ describe JenkinsPipelineBuilder::Generator do
       end
     end
 
-    xit "produces no errors while creating pipeline TemplatePipeline" do
+    it "produces no errors while creating pipeline TemplatePipeline" do
       @generator.debug = true
       job_name = 'TemplatePipeline'
       path = File.expand_path("../fixtures/generator_tests/template_pipeline", __FILE__)
