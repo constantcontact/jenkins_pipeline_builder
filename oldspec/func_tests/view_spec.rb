@@ -3,7 +3,6 @@ require File.expand_path('../spec_helper', __FILE__)
 describe JenkinsPipelineBuilder::View do
   context 'With properly initialized client' do
     before(:all) do
-      # @creds_file = '~/.jenkins_api_client/login.yml'
       @creds_file = File.dirname(__FILE__) << '/integration_login.yml'
       unless File.exist?(@creds_file)
         fail "integration_login.yml file doesn't exist, please create one to run integration tests (spec/func_tests/integration_login.yml)"
@@ -11,7 +10,6 @@ describe JenkinsPipelineBuilder::View do
       @valid_post_responses = [200, 201, 302]
       begin
         JenkinsPipelineBuilder.credentials = YAML.load_file(@creds_file)
-        JenkinsPipelineBuilder.client
         @generator = JenkinsPipelineBuilder.generator
         @generator.no_files = true
       rescue StandardError => e

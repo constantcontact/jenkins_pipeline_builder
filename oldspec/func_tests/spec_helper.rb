@@ -2,9 +2,6 @@ require 'logger'
 require 'rspec'
 require 'webmock/rspec'
 require 'simplecov'
-require 'simplecov-rcov'
-
-SimpleCov.start if ENV['COVERAGE']
 
 require File.expand_path('../../../lib/jenkins_pipeline_builder', __FILE__)
 

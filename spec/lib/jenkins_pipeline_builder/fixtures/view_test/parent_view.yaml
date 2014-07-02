@@ -1,0 +1,9 @@
+- view:
+    name: 'view'
+    parent_view: 'ParentView'
+    type: 'categorizedView'
+    description: 'ViewTest'
+    regex: 'ViewTest.*'
+    groupingRules: 
+      - groupRegex: "ViewTest-1.*"
+        namingRule: "1. Commit Stage"

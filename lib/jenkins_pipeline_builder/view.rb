@@ -67,7 +67,7 @@ module JenkinsPipelineBuilder
         # If we have a parent view, we need to do some additional checks
         if params[:parent_view]
           # If there is no current parent view, create it
-          unless @client.view.exists?(params[:parent_view])
+          unless exists?(params[:parent_view])
             create_base_view(params[:parent_view], 'nestedView')
           end
           # If the view currently exists, delete it
@@ -75,9 +75,7 @@ module JenkinsPipelineBuilder
             delete(params[:name], params[:parent_view])
           end
         else
-          if @client.view.exists?(params[:name])
-            @client.view.delete(params[:name])
-          end
+          delete(params[:name]) if exists?(params[:name])
         end
       end
       params[:type] = 'listview' unless params[:type]
@@ -233,10 +231,6 @@ module JenkinsPipelineBuilder
       result
     end
 
-    def path_encode(path)
-      URI.escape(path.encode(Encoding::UTF_8))
-    end
-
     # This method lists all views
     #
     # @param [String] parent_view a name of the parent view
@@ -272,11 +266,11 @@ module JenkinsPipelineBuilder
     #
     # @param [String] view_name
     #
-    def endxists?(view_name, parent_view = nil)
+    def exists?(view_name, parent_view = nil)
       if parent_view
         list_children(parent_view, view_name).include?(view_name)
       else
-        list(view_name).include?(view_name)
+        @client.view.list(view_name).include?(view_name)
       end
     end
   end

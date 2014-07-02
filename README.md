@@ -251,6 +251,10 @@ Here's a high level overview of what's available:
           exclude: '' # Optional, exclude string/pattern
           latest_only: false # Optional, true or false, defaults to false
           allow_empty: false # Optional, true or false, defaults to false
+      - email_notifications:
+          recipients: 'test@example.com' # Whitepace-delimited list of recipients
+          send_if_unstable: false # Optional, default to true
+          send_to_individuals: true # Optional, default to false
     triggers:
       - git_push: true
       - scm_polling: 'H/5 * * * *'
@@ -387,20 +391,20 @@ PLUGINS:
 
 A number of the DSL options rely on Jenkins plugins, including:
 
-* ansicolor - "AnsiColor"    
+* ansicolor - "AnsiColor"
 * (view) type: 'categorizedView' - "categorized-view"
-* hipchat - "HipChat Plugin"    
-* inject_env_vars - "Environment Injector Plugin"    
-* priority - "Priority Sorter plugin"    
-* downstream - "Parameterized Trigger plugin"    
-* rvm - "Rvm"    
-* throttle - "Throttle Concurrent Builds Plug-in"    
-* timestamp - "Timestamper"  
-* groovy_postbuild - "Groovy Postbuild"  
+* hipchat - "HipChat Plugin"
+* inject_env_vars - "Environment Injector Plugin"
+* priority - "Priority Sorter plugin"
+* downstream - "Parameterized Trigger plugin"
+* rvm - "Rvm"
+* throttle - "Throttle Concurrent Builds Plug-in"
+* timestamp - "Timestamper"
+* groovy_postbuild - "Groovy Postbuild"
 
 Just about every plugin above can be installed through Jenkins (Manage Jenkins > Manage Plugins > Available)
 
-Exceptions:
+For a list of all currently supported plugins run `generate list` or `generate list type` to see all of a specific type
 
 CONTRIBUTING:
 ----------------

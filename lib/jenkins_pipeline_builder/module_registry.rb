@@ -23,53 +23,32 @@
 module JenkinsPipelineBuilder
   class ModuleRegistry
     attr_accessor :registry, :registered_modules
-    ENTRIES = {
-      builders: '//builders',
-      publishers: '//publishers',
-      wrappers: '//buildWrappers',
-      triggers: '//triggers'
-    }
-
-    # creates register_triggers and so on
-    # we declare job attribues below since it doesn't follow the pattern
-    ENTRIES.keys.each do |key|
-      # TODO: Too lazy to figure out a better way to do this
-      singular_key = key.to_s.singularize.to_sym
-      define_method "register_#{singular_key}" do |name, jenkins_name, description, plugin_id, plugin_version, &block|
-        @registered_modules[key][name] = {
-          jenkins_name: jenkins_name,
-          description: description,
-          plugin_id: plugin_id,
-          plugin_version: plugin_version
-        }
-        @registry[:job][key][:registry][name] = { plugin_version => block }
-      end
-    end
-
-    def register_job_attribute(name, jenkins_name, description, plugin_id, plugin_version, &block)
-      @registered_modules[:job_attributes][name] = {
-        jenkins_name: jenkins_name,
-        description: description,
-        plugin_id: plugin_id,
-        plugin_version: plugin_version
-      }
-      @registry[:job][name] = { plugin_version => block }
-    end
-
     def initialize
       @registry = { job: {} }
-      @registered_modules = { job_attributes: {} }
-
-      entries.each do |key, value|
-        @registered_modules[key] = {}
-        @registry[:job][key] = {}
-        @registry[:job][key][:registry] = {}
-        @registry[:job][key][:method] = ->(registry, params, n_xml) { run_registry_on_path(value, registry, params, n_xml) }
-      end
     end
 
+    def logger
+      JenkinsPipelineBuilder.logger
+    end
+
+    # Ideally refactor this out to be derived from the registry,
+    # but I'm lazy for now
     def entries
-      ENTRIES
+      {
+        builders: '//builders',
+        publishers: '//publishers',
+        wrappers: '//buildWrappers',
+        triggers: '//triggers'
+      }
+    end
+
+    def register(prefix, extension)
+      name = prefix.pop
+      root = prefix.inject(@registry, :[])
+      root[name] = {} unless root[name]
+
+      root[name][extension.name] = [] unless root[name][extension.name]
+      root[name][extension.name] << extension
     end
 
     def get(path)
@@ -89,36 +68,38 @@ module JenkinsPipelineBuilder
       traverse_registry(registry, params, n_xml)
     end
 
-    def traverse_registry(registry, params, n_xml)
+    def traverse_registry(registry, params, n_xml, strict = false)
       params.each do |key, value|
-        execute_registry_item(registry, key, value, n_xml)
+        if registry.is_a? Hash
+          unless registry.key? key
+            fail "!!!! could not find key #{key} !!!!" if strict
+            next
+          end
+          reg_value = registry[key]
+          if reg_value.is_a?(Array) && reg_value.first.is_a?(Extension)
+            next unless reg_value.select { |x| x.class == Extension }.size == reg_value.size
+            # TODO: Actually compare versions installed on box here
+            reg = reg_value.sort { |x, y| x.min_version <=> y.min_version }.last
+            logger.debug "Using #{reg.type} #{reg.name} version #{reg.min_version}"
+            execute_extension(reg, value, n_xml)
+          elsif value.is_a? Hash
+            traverse_registry reg_value, value, n_xml, true
+          elsif value.is_a? Array
+            value.each do |v|
+              traverse_registry reg_value, v, n_xml, true
+            end
+          end
+        end
       end
     end
 
-    def traverse_registry_param_array(registry, params, n_xml)
-      params.each do |item|
-        key = item.keys.first
-        next if key.nil?
-        execute_registry_item(registry, key, item[key], n_xml)
-      end
-    end
-
-    def execute_registry_item(registry, key, value, n_xml)
-      registry_item = registry[key]
-      if registry_item.is_a?(Hash)
-        sub_registry = registry_item[:registry]
-        method = registry_item[:method]
-        method.call(sub_registry, value, n_xml)
-      elsif registry_item.is_a?(Method) || registry_item.is_a?(Proc)
-        registry_item.call(value, n_xml) unless registry_item.nil?
-      end
-    end
-
-    def run_registry_on_path(path, registry, params, n_xml)
-      n_builders = n_xml.xpath(path).first
+    def execute_extension(extension, value, n_xml)
+      n_builders = n_xml.xpath(extension.path).first
+      n_builders.instance_exec(value, &extension.before) if extension.before
       Nokogiri::XML::Builder.with(n_builders) do |xml|
-        traverse_registry_param_array(registry, params, xml)
+        xml.instance_exec value, &extension.xml
       end
+      n_builders.instance_exec(value, &extension.after) if extension.after
     end
   end
 end

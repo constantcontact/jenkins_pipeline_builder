@@ -22,22 +22,24 @@
 
 module JenkinsPipelineBuilder
   module CLI
-    JenkinsPipelineBuilder.registry.entries.each do |entry, _path|
+    JenkinsPipelineBuilder.registry.entries.keys.each do |entry|
       klass_name = entry.to_s.classify
       klass = Class.new(Thor) do
 
-        modules =  JenkinsPipelineBuilder.registry.registered_modules[entry]
-        modules.each do |mod, values|
-          desc mod, "Details for #{mod}"
-          define_method(mod) do
-            display_module(mod, values)
+        extensions = JenkinsPipelineBuilder.registry.registry[:job][entry]
+        extensions.each do |key, exts|
+          # TODO: don't just take the first
+          ext = exts.first
+          desc key, "Details for #{ext.name}"
+          define_method(ext.name) do
+            display_module(ext)
           end
         end
 
         private
 
-        def display_module(mod, values)
-          puts "#{mod}: #{values[:description]}"
+        def display_module(ext)
+          puts "#{ext.name}: #{ext.description}"
         end
       end
       Module.const_set(klass_name, klass)

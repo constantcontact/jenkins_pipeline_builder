@@ -20,137 +20,206 @@
 # THE SOFTWARE.
 #
 
-module JenkinsPipelineBuilder
-  class JobBuilder < Extendable
-    register :description do |description, n_xml|
-      desc = n_xml.xpath('//description').first
-      desc.content = "#{description}"
-    end
+job_attribute do
+  name :description
+  plugin_id 123
+  min_version 0
+  announced false
 
-    register :scm_params do |params, n_xml|
-      XmlHelper.update_node_text(n_xml, '//scm/localBranch', params[:local_branch]) if params[:local_branch]
-      XmlHelper.update_node_text(n_xml, '//scm/recursiveSubmodules', params[:recursive_update]) if params[:recursive_update]
-      XmlHelper.update_node_text(n_xml, '//scm/wipeOutWorkspace', params[:wipe_workspace]) if params[:wipe_workspace]
-      XmlHelper.update_node_text(n_xml, '//scm/excludedUsers', params[:excluded_users]) if params[:excluded_users]
-      XmlHelper.update_node_text(n_xml, '//scm/userRemoteConfigs/hudson.plugins.git.UserRemoteConfig/name', params[:remote_name]) if params[:remote_name]
-      XmlHelper.update_node_text(n_xml, '//scm/skipTag', params[:skip_tag]) if params[:skip_tag]
-      XmlHelper.update_node_text(n_xml, '//scm/userRemoteConfigs/hudson.plugins.git.UserRemoteConfig/refspec', params[:refspec]) if params[:refspec]
-      XmlHelper.update_node_text(n_xml, '//scm/excludedRegions', params[:excluded_regions]) if params[:excluded_regions]
-      XmlHelper.update_node_text(n_xml, '//scm/includedRegions', params[:included_regions]) if params[:included_regions]
-    end
+  before do
+    xpath('//project/description').remove
+  end
 
-    register :hipchat do |params, n_xml|
-      fail 'No HipChat room specified' unless params[:room]
+  xml('//project') do |description|
+    description "#{description}"
+  end
+end
 
-      properties = n_xml.xpath('//properties').first
-      Nokogiri::XML::Builder.with(properties) do |xml|
-        xml.send('jenkins.plugins.hipchat.HipChatNotifier_-HipChatJobProperty') do
-          xml.room params[:room]
-          xml.startNotification params[:'start-notify'] || false
+job_attribute do
+  name :scm_params
+  plugin_id 123
+  min_version 0
+  announced false
+
+  # XML preprocessing
+  # TODO: Actually figure out how to merge using the builder DSL
+  # This delete the things we are going to add later is pretty crappy
+  # Alternately don't use/tweak the xml the api client generates
+  # (which is where I assume this is coming from)
+  before do |params|
+    xpath('//scm/localBranch').remove if params[:local_branch]
+    xpath('//scm/recursiveSubmodules').remove if params[:recursive_update]
+    xpath('//scm/wipeOutWorkspace').remove if params[:wipe_workspace]
+    xpath('//scm/excludedUsers').remove if params[:excluded_users]
+    xpath('//scm/userRemoteConfigs').remove if params[:remote_name] || params[:refspec]
+    xpath('//scm/skipTag').remove if params[:skip_tag]
+    xpath('//scm/excludedRegions').remove if params[:excluded_regions]
+    xpath('//scm/includedRegions').remove if params[:included_regions]
+
+  end
+
+  xml '//scm' do |params|
+    localBranch params[:local_branch] if params[:local_branch]
+    recursiveSubmodules params[:recursive_update] if params[:recursive_update]
+    wipeOutWorkspace params[:wipe_workspace] if params[:wipe_workspace]
+    excludedUsers params[:excluded_users] if params[:excluded_users]
+    if params[:remote_name]
+      userRemoteConfigs do
+        send('hudson.plugins.git.UserRemoteConfig') do
+          name params[:remote_name]
         end
       end
     end
-
-    register :priority do |params, n_xml|
-      n_builders = n_xml.xpath('//properties').first
-      Nokogiri::XML::Builder.with(n_builders) do |xml|
-        xml.send('jenkins.advancedqueue.AdvancedQueueSorterJobProperty', 'plugin' => 'PrioritySorter') do
-          xml.useJobPriority params[:use_priority]
-          xml.priority params[:job_priority] || -1
+    skipTag params[:skip_tag] if params[:skip_tag]
+    if params[:refspec]
+      userRemoteConfigs do
+        send 'hudson.plugins.git.UserRemoteConfig' do
+          refspec params[:refspec]
         end
       end
     end
+    excludedRegions params[:excluded_regions] if params[:excluded_regions]
+    includedRegions params[:included_regions] if params[:included_regions]
+  end
+end
 
-    register :parameters do |params, n_xml|
-      n_builders = n_xml.xpath('//properties').first
-      Nokogiri::XML::Builder.with(n_builders) do |xml|
-        xml.send('hudson.model.ParametersDefinitionProperty') do
-          xml.parameterDefinitions do
-            param_proc = lambda do |xml, params, type|
-              xml.send(type) do
-                xml.name params[:name]
-                xml.description params[:description]
-                xml.defaultValue params[:default]
-                if params[:type] == 'choice'
-                  xml.choices('class' => 'java.util.Arrays$ArrayList') do
-                    xml.a('class' => 'string-array') do
-                      params[:values].each do |value|
-                        xml.string value
-                      end
-                    end
+job_attribute do
+  name :hipchat
+  plugin_id 123
+  min_version 0
+  announced false
+
+  xml '//properties' do |params|
+    fail 'No HipChat room specified' unless params[:room]
+
+    send('jenkins.plugins.hipchat.HipChatNotifier_-HipChatJobProperty') do
+      room params[:room]
+      startNotification params[:'start-notify'] || false
+    end
+  end
+end
+
+job_attribute do
+  name :priority
+  plugin_id 123
+  min_version 0
+  announced false
+
+  xml '//properties' do |params|
+    send('jenkins.advancedqueue.AdvancedQueueSorterJobProperty', 'plugin' => 'PrioritySorter') do
+      useJobPriority params[:use_priority]
+      priority params[:job_priority] || -1
+    end
+  end
+end
+
+job_attribute do
+  name :parameters
+  plugin_id 123
+  min_version 0
+  announced false
+
+  xml '//properties' do |params|
+    send('hudson.model.ParametersDefinitionProperty') do
+      parameterDefinitions do
+        params.each do |param|
+          case param[:type]
+          when 'string'
+            paramType = 'hudson.model.StringParameterDefinition'
+          when 'bool'
+            paramType = 'hudson.model.BooleanParameterDefinition'
+          when 'text'
+            paramType = 'hudson.model.TextParameterDefinition'
+          when 'password'
+            paramType = 'hudson.model.PasswordParameterDefinition'
+          when 'choice'
+            paramType = 'hudson.model.ChoiceParameterDefinition'
+          else
+            paramType = 'hudson.model.StringParameterDefinition'
+          end
+
+          send(paramType) do
+            name param[:name]
+            description param[:description]
+            defaultValue param[:default]
+            if param[:type] == 'choice'
+              choices('class' => 'java.util.Arrays$ArrayList') do
+                a('class' => 'string-array') do
+                  param[:values].each do |value|
+                    string value
                   end
                 end
               end
             end
-            params.each do |param|
-              case param[:type]
-              when 'string'
-                paramType = 'hudson.model.StringParameterDefinition'
-              when 'bool'
-                paramType = 'hudson.model.BooleanParameterDefinition'
-              when 'text'
-                paramType = 'hudson.model.TextParameterDefinition'
-              when 'password'
-                paramType = 'hudson.model.PasswordParameterDefinition'
-              when 'choice'
-                paramType = 'hudson.model.ChoiceParameterDefinition'
-              else
-                paramType = 'hudson.model.StringParameterDefinition'
-              end
-
-              param_proc.call xml, param, paramType
-            end
           end
         end
       end
     end
+  end
+end
 
-    register :discard_old do |params, n_xml|
-      properties = n_xml.child
-      Nokogiri::XML::Builder.with(properties) do |xml|
-        xml.send('logRotator', 'class' => 'hudson.tasks.LogRotator') do
-          xml.daysToKeep params[:days] if params[:days]
-          xml.numToKeep params[:number] || -1
-          xml.artifactDaysToKeep params[:artifact_days] || -1
-          xml.artifactNumToKeep params[:artifact_number] || -1
-        end
+job_attribute do
+  name :discard_old
+  plugin_id 123
+  min_version 0
+  announced false
+
+  xml '//project' do |params|
+    send('logRotator', 'class' => 'hudson.tasks.LogRotator') do
+      daysToKeep params[:days] if params[:days]
+      numToKeep params[:number] || -1
+      artifactDaysToKeep params[:artifact_days] || -1
+      artifactNumToKeep params[:artifact_number] || -1
+    end
+  end
+end
+
+job_attribute do
+  name :throttle
+  plugin_id 100
+  min_version 0
+  announced false
+
+  xml '//properties' do |params|
+    cat_set = params[:option] == 'category'
+    send('hudson.plugins.throttleconcurrents.ThrottleJobProperty', 'plugin' => 'throttle-concurrents') do
+      maxConcurrentPerNode params[:max_per_node] || 0
+      maxConcurrentTotal params[:max_total] || 0
+      throttleEnabled true
+      throttleOption params[:option] || 'alone'
+      categories do
+        string params[:category] if cat_set
       end
     end
+  end
+end
 
-    register :throttle do |params, n_xml|
-      properties = n_xml.xpath('//properties').first
-      cat_set = params[:option] == 'category'
-      Nokogiri::XML::Builder.with(properties) do |xml|
-        xml.send('hudson.plugins.throttleconcurrents.ThrottleJobProperty', 'plugin' => 'throttle-concurrents') do
-          xml.maxConcurrentPerNode params[:max_per_node] || 0
-          xml.maxConcurrentTotal params[:max_total] || 0
-          xml.throttleEnabled true
-          xml.throttleOption params[:option] || 'alone'
-          xml.categories do
-            xml.string params[:category] if cat_set
-          end
-        end
+job_attribute do
+  name :prepare_environment
+  plugin_id 123
+  min_version 0
+  announced false
+
+  xml '//properties' do |params|
+    send('EnvInjectJobProperty') do
+      info do
+        propertiesContent params[:properties_content] if params[:properties_content]
+        loadFilesFromMaster params[:load_from_master] if params[:load_from_master]
       end
+      on true
+      keepJenkinsSystemVariables params[:keep_environment] if params[:keep_environment]
+      keepBuildVariables params[:keep_build] if params[:keep_build]
     end
+  end
+end
 
-    register :prepare_environment do |params, n_xml|
-      properties = n_xml.xpath('//properties').first
-      Nokogiri::XML::Builder.with(properties) do |xml|
-        xml.send('EnvInjectJobProperty') do
-          xml.info do
-            xml.propertiesContent params[:properties_content] if params[:properties_content]
-            xml.loadFilesFromMaster params[:load_from_master] if params[:load_from_master]
-          end
-          xml.on true
-          xml.keepJenkinsSystemVariables params[:keep_environment] if params[:keep_environment]
-          xml.keepBuildVariables params[:keep_build] if params[:keep_build]
-        end
-      end
-    end
+job_attribute do
+  name :concurrent_build
+  plugin_id 123
+  min_version 0
+  announced false
 
-    register :concurrent_build do |params, n_xml|
-      concurrentBuild = n_xml.xpath('//concurrentBuild').first
-      concurrentBuild.content = (params == true) ? 'true' : 'false'
-    end
+  xml '//concurrentBuild' do |params|
+    (params == true) ? 'true' : 'false'
   end
 end

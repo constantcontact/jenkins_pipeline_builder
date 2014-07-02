@@ -4,21 +4,15 @@ require 'simplecov'
 require 'simplecov-rcov'
 require 'webmock/rspec'
 
-SimpleCov.profiles.define 'spec' do
-  add_group 'jenkins_pipeline_builder', '/lib/'
-  coverage_dir 'out/coverage'
-  formatter SimpleCov::Formatter::MultiFormatter[
-                SimpleCov::Formatter::Console,
-                SimpleCov::Formatter::RcovFormatter,
-            ]
-end
+require File.expand_path('../../../../lib/jenkins_pipeline_builder', __FILE__)
 
-class SimpleCov::Formatter::Console
-  def format(result)
-    print "COVERAGE: #{result.covered_percent.round(2)}%\n"
+RSpec::Matchers.define :have_min_version do |version|
+  match do |base|
+    @exts = base
+    !base.select { |ext| ext.min_version == version }.empty?
+  end
+
+  failure_message_for_should do
+    "Expected to find extension #{@exts.first.name} with version #{version}, found #{@exts.map { |x| x.min_version }.join(', ')} instead"
   end
 end
-
-SimpleCov.start 'spec'
-
-require File.expand_path('../../../../lib/jenkins_pipeline_builder', __FILE__)

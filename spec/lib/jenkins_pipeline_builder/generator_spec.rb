@@ -14,14 +14,9 @@ describe JenkinsPipelineBuilder::Generator do
     @generator = JenkinsPipelineBuilder.generator
   end
 
-  before(:each) do
-    @dbl_reg = @generator.module_registry.clone
-  end
-
   after(:each) do
     @generator.debug = false
     @generator.job_collection = {}
-    @generator.module_registry = @dbl_reg
   end
 
   describe 'initialized in before(:example)' do
