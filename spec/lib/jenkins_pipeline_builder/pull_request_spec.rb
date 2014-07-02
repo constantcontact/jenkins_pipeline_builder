@@ -37,8 +37,8 @@ describe JenkinsPipelineBuilder::PullRequest do
   describe '#initialize' do
     it 'process pull_request' do
       pull = pull_request_class.new(project, 2, jobs, pull_request)
-      post_jobs = { "{{name}}-10" => { name: "{{name}}-10", type: :"job-template", value: { name: "{{name}}-10", description: "{{description}}", publishers: [{ downstream: { project: "{{job@{{name}}-11}}"}}], scm_branch: "origin/pr/2/head", scm_params: { refspec: "refs/pull/*:refs/remotes/origin/pr/*" } } }, "{{name}}-11" => { name: "{{name}}-11", type: :"job-template", value: { name: "{{name}}-11", description: "{{description}}", scm_branch: "origin/pr/2/head", scm_params: { refspec: "refs/pull/*:refs/remotes/origin/pr/*" } } } }
-      post_project = { name: "pull_req_test-PR2", type: :project, value: { name: "pull_req_test-PR2", jobs: ["{{name}}-00", "{{name}}-10", "{{name}}-11"]}}
+      post_jobs = { '{{name}}-10' => { name: '{{name}}-10', type: :'job-template', value: { name: '{{name}}-10', description: '{{description}}', publishers: [{ downstream: { project: '{{job@{{name}}-11}}' } }], scm_branch: 'origin/pr/2/head', scm_params: { refspec: 'refs/pull/*:refs/remotes/origin/pr/*' } } }, '{{name}}-11' => { name: '{{name}}-11', type: :'job-template', value: { name: '{{name}}-11', description: '{{description}}', scm_branch: 'origin/pr/2/head', scm_params: { refspec: 'refs/pull/*:refs/remotes/origin/pr/*' } } } }
+      post_project = { name: 'pull_req_test-PR2', type: :project, value: { name: 'pull_req_test-PR2', jobs: ['{{name}}-00', '{{name}}-10', '{{name}}-11'] } }
 
       expect(pull.project).to eq(post_project)
       expect(pull.jobs).to eq(post_jobs)
