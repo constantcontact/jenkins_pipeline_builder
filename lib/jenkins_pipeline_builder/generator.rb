@@ -27,7 +27,7 @@ module JenkinsPipelineBuilder
   class Generator
 
     attr_reader :debug
-    attr_accessor :no_files, :job_templates, :job_collection, :logger, :module_registry, :extensions, :remote_depends
+    attr_accessor :no_files, :job_collection, :logger, :module_registry
 
     # Initialize a Client object with Jenkins Api Client
     #
@@ -89,7 +89,7 @@ module JenkinsPipelineBuilder
       success = false
       @logger.info "Pull Request Generator Running from path #{path}"
       load_collection_from_path(path)
-      pp @job_collection
+      # pp @job_collection
       cleanup_temp_remote
       load_extensions(path)
       @logger.info "Project: #{projects}"
@@ -98,8 +98,6 @@ module JenkinsPipelineBuilder
           @logger.info "Using Project #{project}"
           pull_job = find_pull_request_generator(project)
           p_success, p_payload = compile_pull_request_generator(pull_job[:name], project)
-          puts "SUCCESS: #{p_success}"
-          pp p_payload
           jobs = filter_pull_request_jobs(pull_job)
           pull = JenkinsPipelineBuilder::PullRequestGenerator.new(project, jobs, p_payload)
           # Build the jobs
@@ -237,6 +235,8 @@ module JenkinsPipelineBuilder
       registry = @module_registry.registry[:job]
       installed_plugins = @debug ? nil : list_plugins # Only get plugins if not in debug mode
       @logger.debug 'Loading newest version of all plugins since we are in debug mode.'
+      puts "LOLOL"
+      pp registry
       registry.each do |registry_key, registry_value|
         if registry_value[:registry]
           registry_value[:registry].each do |extension_key, extension_value|

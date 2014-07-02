@@ -14,21 +14,19 @@ describe JenkinsPipelineBuilder::Generator do
     @generator = JenkinsPipelineBuilder.generator
   end
 
+  before(:each) do
+    @dbl_reg = @generator.module_registry.clone
+  end
+
   after(:each) do
     @generator.debug = false
-    @generator.job_templates = {}
     @generator.job_collection = {}
-    @generator.remote_depends = {}
-    @generator.extensions = {}
-    @generator.module_registry = JenkinsPipelineBuilder::ModuleRegistry.new
+    @generator.module_registry = @dbl_reg
   end
 
   describe 'initialized in before(:example)' do
     it "creates a new generator" do
-      # expect(@generator.job_templates).to be_empty
       expect(@generator.job_collection).to be_empty
-      # expect(@generator.extensions).to be_empty
-      # expect(@generator.remote_depends).to be_empty
       expect(@generator.module_registry).not_to be_nil
     end
 
@@ -78,7 +76,7 @@ describe JenkinsPipelineBuilder::Generator do
     #   expect(dbl.download_yaml).to be_nil
     # end
 
-    it "produces no errors while creating pipeline SamplePipeline" do
+    it "produces no errors while creating pipeline SamplePipeline with view" do
       @generator.debug = true
       job_name = 'SamplePipeline'
       path = File.expand_path("../fixtures/generator_tests/sample_pipeline", __FILE__)
@@ -89,7 +87,7 @@ describe JenkinsPipelineBuilder::Generator do
       end
     end
 
-    it "produces no errors while creating pipeline TemplatePipeline" do
+    xit "produces no errors while creating pipeline TemplatePipeline" do
       @generator.debug = true
       job_name = 'TemplatePipeline'
       path = File.expand_path("../fixtures/generator_tests/template_pipeline", __FILE__)
@@ -111,16 +109,42 @@ describe JenkinsPipelineBuilder::Generator do
 
   describe '#pull_request' do
     it "produces no errors while creating pipeline PullRequest" do
+      # Dummy data
+      purge = []
+      create = [ 
+        {
+          :name=>"PullRequest-PR1",
+          :type=>:project,
+          :value=>{
+            :name=>"PullRequest-PR1",
+            :jobs=>[
+              "{{name}}-10-SampleJob"
+            ]
+          }
+        }
+      ]
+      jobs = {
+        "{{name}}-10-SampleJob"=>{
+          :name=>"{{name}}-10-SampleJob",
+          :type=>:job,
+          :value=>{
+            :name=>"{{name}}-10-SampleJob",
+            :scm_branch=>"origin/pr/2/head",
+            :scm_params=>{
+              :refspec=>'refs/pull/*:refs/remotes/origin/pr/*'
+            }
+          }
+        }
+      }
+      # Run the test
       @generator.debug = true
       job_name = 'PullRequest'
       path = File.expand_path("../fixtures/generator_tests/pullrequest_pipeline", __FILE__)
-      # stub_request(:get, "http://github.comapi/v3/repos/bencentra/generator_tests/pulls").
-      #    with(:headers => {'Accept'=>'*/*', 'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3', 'Host'=>'github.comapi', 'User-Agent'=>'Ruby'}).
-      #    to_return(:status => 200, :body => "", :headers => {})
+      JenkinsPipelineBuilder::PullRequestGenerator.should_receive(:new).once.and_return( double(purge: purge, create: create, jobs: jobs) )
       success = @generator.pull_request(path, job_name)
       expect(success).to be_truthy
       Dir["#{job_name}*.xml"].each do |file|
-        # File.delete(file)
+        File.delete(file)
       end
     end
     # Things to check for
@@ -143,7 +167,7 @@ describe JenkinsPipelineBuilder::Generator do
       stub_request(:get, "http://username:password@127.0.0.1:8080/job/test_job/config.xml").
          with(:headers => {'Accept'=>'*/*', 'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3', 'User-Agent'=>'Ruby'}).
          to_return(:status => 200, :body => "#{body}", :headers => {})
-      @generator.dump(job_name) # This method uses client. Do we want to stub this somehow?
+      @generator.dump(job_name)
       expect(File.exists?("#{job_name}.xml")).to be true
       File.delete("#{job_name}.xml")
     end

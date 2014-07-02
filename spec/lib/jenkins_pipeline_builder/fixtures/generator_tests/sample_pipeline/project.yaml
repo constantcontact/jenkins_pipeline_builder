@@ -8,3 +8,5 @@
       - '{{name}}-10-Commit'
       - '{{name}}-20-Acceptance'
       - '{{name}}-30-Release'
+    views:
+      - '{{name}} View'
