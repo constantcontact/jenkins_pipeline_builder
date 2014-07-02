@@ -1,0 +1,17 @@
+- defaults:
+    name: global
+    description: 'Test pipeline for generator_spec.rb'
+
+- dependencies: 
+    - source: 
+        url: 'https://github.roving.com/devops/jenkins-pipeline-templates/archive.master.tar.gz'
+        templates:
+          - name: buildflow
+
+- project:
+    name: TemplatePipeline
+    jobs:
+      - '{{name}}-10'
+      - '{{name}}-15-Provision'
+      - '{{name}}-16-HealthCheck'
+      - '{{name}}-17-Cleanup'

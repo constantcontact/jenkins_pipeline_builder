@@ -2,6 +2,7 @@ require 'rspec'
 
 require 'simplecov'
 require 'simplecov-rcov'
+require 'webmock/rspec'
 
 SimpleCov.profiles.define 'spec' do
   add_group 'jenkins_pipeline_builder', '/lib/'

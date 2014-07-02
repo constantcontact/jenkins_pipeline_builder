@@ -26,22 +26,22 @@ module JenkinsPipelineBuilder
     attr_reader :create
     attr_reader :jobs
 
-    def initialize(project, job_collection, generator_job)
+    def initialize(project, jobs, pull_job)
       @purge = []
       @create = []
       @jobs = {}
 
-      pull_requests = check_for_pull generator_job[:value]
+      pull_requests = check_for_pull pull_job
       purge_old(pull_requests, project)
       pull_requests.each do |number|
         # Manipulate the YAML
-        req = JenkinsPipelineBuilder::PullRequest.new(project, number, job_collection, generator_job)
+        req = JenkinsPipelineBuilder::PullRequest.new(project, number, jobs, pull_job)
         @jobs.merge! req.jobs
-        project_t = req.project
+        project_new = req.project
 
         # Overwrite the jobs from the generator to the project
-        project_t[:value][:jobs] = generator_job[:value][:jobs]
-        @create << project_t
+        project_new[:value][:jobs] = req.jobs.keys
+        @create << project_new
       end
     end
 
@@ -54,7 +54,7 @@ module JenkinsPipelineBuilder
     # args[:git_org] The Orig user ex. igorshare
     # @return = array of pull request numbers
     def check_for_pull(args)
-      pp args
+      # pp args
       fail 'Please specify all arguments' unless args[:git_url] && args[:git_org] && args[:git_repo]
       # Build the Git URL
       git_url = "#{args[:git_url]}api/v3/repos/#{args[:git_org]}/#{args[:git_repo]}/pulls"
@@ -128,7 +128,7 @@ module JenkinsPipelineBuilder
         name = job[:name]
         changes = nil
         # Search the generator for changes
-        @generator[:value][:jobs].each do |gen|
+        @generator[:jobs].each do |gen|
           changes = gen[name.to_sym] if gen.is_a?(Hash) && gen.keys[0] == name.to_sym
         end
         # Apply changes

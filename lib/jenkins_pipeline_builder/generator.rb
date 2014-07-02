@@ -27,7 +27,7 @@ module JenkinsPipelineBuilder
   class Generator
 
     attr_reader :debug
-    attr_accessor :no_files, :job_collection, :logger, :module_registry
+    attr_accessor :no_files, :job_templates, :job_collection, :logger, :module_registry, :extensions, :remote_depends
 
     # Initialize a Client object with Jenkins Api Client
     #
@@ -67,7 +67,7 @@ module JenkinsPipelineBuilder
     def bootstrap(path, project_name)
       @logger.info "Bootstrapping pipeline from path #{path}"
       load_collection_from_path(path)
-      @logger.info @job_collection
+      # @logger.info @job_collection
       cleanup_temp_remote
       load_extensions(path)
       # pp @module_registry.registry
@@ -89,32 +89,19 @@ module JenkinsPipelineBuilder
       success = false
       @logger.info "Pull Request Generator Running from path #{path}"
       load_collection_from_path(path)
-      # pp @job_collection
+      pp @job_collection
       cleanup_temp_remote
-      # load_extensions(path)
-      jobs = {}
+      load_extensions(path)
       @logger.info "Project: #{projects}"
       projects.each do |project|
         if project[:name] == project_name || project_name.nil?
-          project_body = project[:value]
-          project_jobs = project_body[:jobs] || []
           @logger.info "Using Project #{project}"
-          pull_job = nil
-          project_jobs.each do |job|
-            job = job.keys.first if job.is_a? Hash
-            job = @job_collection[job.to_s]
-            pull_job = job if job[:value][:job_type] == 'pull_request_generator'
-          end
-          fail 'No Pull Request Found for Project' unless pull_job
-          pull_jobs = pull_job[:value][:jobs] || []
-          pull_jobs.each do |job|
-            if job.is_a? String
-              jobs[job.to_s] = @job_collection[job.to_s]
-            else
-              jobs[job.keys.first.to_s] = @job_collection[job.keys.first.to_s]
-            end
-          end
-          pull = JenkinsPipelineBuilder::PullRequestGenerator.new(project, jobs, pull_job)
+          pull_job = find_pull_request_generator(project)
+          p_success, p_payload = compile_pull_request_generator(pull_job[:name], project)
+          puts "SUCCESS: #{p_success}"
+          pp p_payload
+          jobs = filter_pull_request_jobs(pull_job)
+          pull = JenkinsPipelineBuilder::PullRequestGenerator.new(project, jobs, p_payload)
           # Build the jobs
           @job_collection.merge! pull.jobs
           pull.create.each do |project|
@@ -148,6 +135,39 @@ module JenkinsPipelineBuilder
     # BEGIN PRIVATE METHODS
     #
     private
+
+    def find_pull_request_generator(project)
+      project_jobs = project[:value][:jobs] || []
+      pull_job = nil
+      project_jobs.each do |job|
+        job = job.keys.first if job.is_a? Hash
+        job = @job_collection[job.to_s]
+        pull_job = job if job[:value][:job_type] == 'pull_request_generator'
+      end
+      fail 'No Pull Request Found for Project' unless pull_job
+      pull_job
+    end
+
+    def filter_pull_request_jobs(pull_job)
+      jobs = {}
+      pull_jobs = pull_job[:value][:jobs] || []
+      pull_jobs.each do |job|
+        if job.is_a? String
+          jobs[job.to_s] = @job_collection[job.to_s]
+        else
+          jobs[job.keys.first.to_s] = @job_collection[job.keys.first.to_s]
+        end
+      end
+      fail 'No jobs found for pull request' if jobs.empty?
+      jobs
+    end
+
+    def compile_pull_request_generator(pull_job, project)
+      defaults = get_item('global')
+      settings = defaults.nil? ? {} : defaults[:value] || {}
+      settings = Compiler.get_settings_bag(project, settings)
+      resolve_job_by_name(pull_job, settings)
+    end
 
     def load_collection_from_path(path, recursively = false, remote = false)
       path = File.expand_path(path, Dir.getwd)
@@ -273,10 +293,12 @@ module JenkinsPipelineBuilder
     end
 
     def download_yaml(url, file)
+      puts "AAAAA #{file}"
       @remote_depends[url] = file
       @logger.info "Downloading #{url} to #{file}.tar"
       open("#{file}.tar", 'w') do |local_file|
         open(url) do |remote_file|
+          puts "BBBBB #{remote_file}"
           local_file.write(Zlib::GzipReader.new(remote_file).read)
         end
       end
