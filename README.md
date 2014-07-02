@@ -169,7 +169,6 @@ Here's a high level overview of what's available:
             - params: |
                 param1
                 param2
-          condition: FAILURE
           trigger_with_no_parameters: false
           # Below is Optional, values can be SUCCESS, FAILURE, UNSTABLE, never
           fail: FAILURE # Fail this build step if the triggered build is worse or equal to

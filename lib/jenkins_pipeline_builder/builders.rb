@@ -126,7 +126,7 @@ builder do
             end
           end
           projects params[:project]
-          condition params[:condition] || 'SUCCESS'
+          condition 'ALWAYS'
           triggerWithNoParameters params[:trigger_with_no_parameters] || false
           block do
             if params[:fail] && colors.include?(params[:fail])
