@@ -170,18 +170,11 @@ module JenkinsPipelineBuilder
       resolve_job_by_name(pull_job, settings)
     end
 
-    def load_collection_from_path(path, recursively = false, remote = false)
+    def load_collection_from_path(path, remote = false)
       path = File.expand_path(path, Dir.getwd)
       if File.directory?(path)
         logger.info "Generating from folder #{path}"
         Dir[File.join(path, '/*.yaml'), File.join(path, '/*.yml')].each do |file|
-          if File.directory?(file) # TODO: This doesn't work unless the folder contains .yml or .yaml at the end
-            if recursively
-              load_collection_from_path(File.join(path, file), recursively)
-            else
-              next
-            end
-          end
           logger.info "Loading file #{file}"
           yaml = YAML.load_file(file)
           load_job_collection(yaml, remote)
@@ -290,7 +283,7 @@ module JenkinsPipelineBuilder
 
       if File.directory?(path)
         logger.info "Loading from #{path}"
-        load_collection_from_path(path, false, true)
+        load_collection_from_path(path, true)
         true
       else
         false
