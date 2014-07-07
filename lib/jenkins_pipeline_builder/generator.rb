@@ -94,32 +94,17 @@ module JenkinsPipelineBuilder
       load_extensions(path)
       @logger.info "Project: #{projects}"
       projects.each do |project|
-        if project[:name] == project_name || project_name.nil?
-          @logger.info "Using Project #{project}"
-          pull_job = find_pull_request_generator(project)
-          p_success, p_payload = compile_pull_request_generator(pull_job[:name], project)
-          if p_success
-            jobs = filter_pull_request_jobs(pull_job)
-            pull = JenkinsPipelineBuilder::PullRequestGenerator.new(project, jobs, p_payload)
-            # Build the jobs
-            @job_collection.merge! pull.jobs
-            pull.create.each do |project|
-              success, compiled_project = resolve_project(project)
-              compiled_project[:value][:jobs].each do |i|
-                job = i[:result]
-                success, payload = compile_job_to_xml(job)
-                create_or_update(job, payload) if success
-              end
-            end
-            # Purge old jobs
-            pull.purge.each do |job|
-              jobs = client.job.list "#{job}.*"
-              jobs.each do |job|
-                client.job.delete job
-              end
-            end
-          end
-        end
+        next unless project[:name] == project_name || project_name.nil?
+        @logger.info "Using Project #{project}"
+        pull_job = find_pull_request_generator(project)
+        p_success, p_payload = compile_pull_request_generator(pull_job[:name], project)
+        next unless p_success
+        jobs = filter_pull_request_jobs(pull_job)
+        pull = JenkinsPipelineBuilder::PullRequestGenerator.new(project, jobs, p_payload)
+
+        @job_collection.merge! pull.jobs
+        success = create_pull_request_jobs(pull)
+        purge_pull_request_jobs(pull)
       end
       success
     end
@@ -136,6 +121,28 @@ module JenkinsPipelineBuilder
     #
 
     private
+
+    def purge_pull_request_jobs(pull)
+      pull.purge.each do |purge_job|
+        jobs = client.job.list "#{purge_job}.*"
+        jobs.each do |job|
+          client.job.delete job
+        end
+      end
+    end
+
+    def create_pull_request_jobs(pull)
+      success = false
+      pull.create.each do |pull_project|
+        success, compiled_project = resolve_project(pull_project)
+        compiled_project[:value][:jobs].each do |i|
+          job = i[:result]
+          success, payload = compile_job_to_xml(job)
+          create_or_update(job, payload) if success
+        end
+      end
+      success
+    end
 
     def find_pull_request_generator(project)
       project_jobs = project[:value][:jobs] || []
@@ -252,10 +259,11 @@ module JenkinsPipelineBuilder
       registry.each do |ex|
         is_available = @debug ? true : ex.min_version.to_s <= installed_plugins[ex.plugin_id.to_s].to_s
         is_newer = ex.min_version.to_s >= keep_version
-        if keep.nil? || (is_available && is_newer)
-          keep = ex
-          keep_version = ex.min_version
-        end
+
+        next unless keep.nil? || (is_available && is_newer)
+
+        keep = ex
+        keep_version = ex.min_version
       end
       keep
     end
@@ -269,10 +277,7 @@ module JenkinsPipelineBuilder
         # If we are looking for the newest version or no version was set
         if (template[:version].nil? || template[:version] == 'newest') && File.directory?(path)
           folders = Dir.entries(path)
-          highest = '0' # Default to v1
-          folders.each do |f|
-            highest = f if f > highest # Note: to_i returns any integers in the folder name
-          end
+          highest = folders.max
           template[:version] = highest unless highest == 0
         end
         path = File.join(path, template[:version]) unless template[:version].nil?
@@ -368,10 +373,11 @@ module JenkinsPipelineBuilder
       jobs.each do |job|
         job_id = job.keys.first
         j = get_item(job_id)
-        if j
-          Utils.hash_merge!(j, job[job_id])
-          j[:value][:name] = j[:job_name] if j[:job_name]
-        end
+
+        next unless j
+
+        Utils.hash_merge!(j, job[job_id])
+        j[:value][:name] = j[:job_name] if j[:job_name]
       end
     end
 
@@ -466,14 +472,11 @@ module JenkinsPipelineBuilder
           return false
         end
 
-        if compiled_project[:value][:jobs]
-          errors = publish_jobs(compiled_project[:value][:jobs])
-        end
-        if compiled_project[:value][:views]
-          compiled_project[:value][:views].each do |v|
-            compiled_view = v[:result]
-            view.create(compiled_view)
-          end
+        errors = publish_jobs(compiled_project[:value][:jobs]) if compiled_project[:value][:jobs]
+        next unless compiled_project[:value][:views]
+        compiled_project[:value][:views].each do |v|
+          compiled_view = v[:result]
+          view.create(compiled_view)
         end
       end
       errors
@@ -565,8 +568,8 @@ module JenkinsPipelineBuilder
     def add_job_dsl(job, xml)
       n_xml = Nokogiri::XML(xml)
       n_xml.root.name = 'com.cloudbees.plugins.flow.BuildFlow'
-      Nokogiri::XML::Builder.with(n_xml.root) do |xml|
-        xml.dsl job[:build_flow]
+      Nokogiri::XML::Builder.with(n_xml.root) do |b_xml|
+        b_xml.dsl job[:build_flow]
       end
       n_xml.to_xml
     end
@@ -575,8 +578,8 @@ module JenkinsPipelineBuilder
     def update_job_dsl(job, xml)
       n_xml      = Nokogiri::XML(xml)
       n_builders = n_xml.xpath('//builders').first
-      Nokogiri::XML::Builder.with(n_builders) do |xml|
-        build_job_dsl(job, xml)
+      Nokogiri::XML::Builder.with(n_builders) do |b_xml|
+        build_job_dsl(job, b_xml)
       end
       n_xml.to_xml
     end

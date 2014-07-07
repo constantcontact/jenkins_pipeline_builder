@@ -24,6 +24,7 @@ module JenkinsPipelineBuilder
   module CLI
     JenkinsPipelineBuilder.registry.entries.keys.each do |entry|
       klass_name = entry.to_s.classify
+      # rubocop:disable Style/AccessModifierIndentation
       klass = Class.new(Thor) do
 
         extensions = JenkinsPipelineBuilder.registry.registry[:job][entry]
@@ -42,6 +43,7 @@ module JenkinsPipelineBuilder
           puts "#{ext.name}: #{ext.description}"
         end
       end
+      # rubocop:enable Style/AccessModifierIndentation
       Module.const_set(klass_name, klass)
     end
     class Describe < Thor

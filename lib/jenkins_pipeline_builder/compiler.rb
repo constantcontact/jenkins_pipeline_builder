@@ -51,66 +51,79 @@ module JenkinsPipelineBuilder
       return unless item.is_a?(Hash)
       item.keys.each do |k|
         val = item[k]
-        if val.is_a? String
-          new_value = resolve_value(val, settings_bag, {})
-          return nil if new_value.nil?
-          bag[k] = new_value
-        end
+        next unless val.is_a? String
+        new_value = resolve_value(val, settings_bag, {})
+        return nil if new_value.nil?
+        bag[k] = new_value
       end
       my_settings_bag = settings_bag.clone
       my_settings_bag.merge(bag)
     end
 
     def self.compile(item, settings = {}, job_collection = {})
-      errors = {}
       case item
       when String
-        new_value = resolve_value(item, settings, job_collection)
-        errors[item] =  "Failed to resolve #{item}" if new_value.nil?
-        return false, errors unless errors.empty?
-        return true, new_value
+        return compile_string item, settings, job_collection
       when Hash
-        result = {}
-        item.each do |key, value|
-          if value.nil?
-            errors[key] = "key: #{key} has a nil value, this is likely a yaml syntax error. Skipping children and siblings"
-            break
-          end
-          success, payload = compile(value, settings, job_collection)
-          unless success
-            errors.merge!(payload)
-            next
-          end
-          if payload.nil?
-            errors[key] = "Failed to resolve:\n===>key: #{key}\n\n===>value: #{value}\n\n===>of: #{item}"
-            next
-          end
-          result[key] = payload
-        end
-        return false, errors unless errors.empty?
-        return true, result
+        return compile_hash item, settings, job_collection
       when Array
-        result = []
-        item.each do |value|
-          if value.nil?
-            errors[item] = "found a nil value when processing following array:\n #{item.inspect}"
-            break
-          end
-          success, payload = compile(value, settings, job_collection)
-          unless success
-            errors.merge!(payload)
-            next
-          end
-          if payload.nil?
-            errors[value] = "Failed to resolve:\n===>item #{value}\n\n===>of list: #{item}"
-            next
-          end
-          result << payload
-        end
-        return false, errors unless errors.empty?
-        return true, result
+        return compile_array item, settings, job_collection
       end
       [true, item]
+    end
+
+    def self.compile_string(item, settings, job_collection)
+      errors = {}
+      new_value = resolve_value(item, settings, job_collection)
+      errors[item] =  "Failed to resolve #{item}" if new_value.nil?
+      return false, errors unless errors.empty?
+      [true, new_value]
+    end
+
+    def self.compile_array(item, settings, job_collection)
+      errors = {}
+      result = []
+      item.each do |value|
+        if value.nil?
+          errors[item] = "found a nil value when processing following array:\n #{item.inspect}"
+          break
+        end
+        success, payload = compile(value, settings, job_collection)
+        unless success
+          errors.merge!(payload)
+          next
+        end
+        if payload.nil?
+          errors[value] = "Failed to resolve:\n===>item #{value}\n\n===>of list: #{item}"
+          next
+        end
+        result << payload
+      end
+      return false, errors unless errors.empty?
+      [true, result]
+    end
+
+    def self.compile_hash(item, settings, job_collection)
+      errors = {}
+      result = {}
+      item.each do |key, value|
+        if value.nil?
+          errors[key] = "key: #{key} has a nil value, this is often a yaml syntax error. Skipping children and siblings"
+          break
+        end
+        success, payload = compile(value, settings, job_collection)
+        unless success
+          errors.merge!(payload)
+          next
+        end
+        if payload.nil?
+          errors[key] = "Failed to resolve:\n===>key: #{key}\n\n===>value: #{value}\n\n===>of: #{item}"
+          next
+        end
+        result[key] = payload
+      end
+      return false, errors unless errors.empty?
+      [true, result]
     end
   end
 end

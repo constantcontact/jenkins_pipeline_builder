@@ -63,34 +63,36 @@ module JenkinsPipelineBuilder
     def create(params)
       # Name is a required parameter. Raise an error if not specified
       fail ArgumentError, 'Name is required for creating view' unless params.is_a?(Hash) && params[:name]
-      unless @generator.debug
-        # If we have a parent view, we need to do some additional checks
-        if params[:parent_view]
-          # If there is no current parent view, create it
-          unless exists?(params[:parent_view])
-            create_base_view(params[:parent_view], 'nestedView')
-          end
-          # If the view currently exists, delete it
-          if exists?(params[:name], params[:parent_view])
-            delete(params[:name], params[:parent_view])
-          end
-        else
-          delete(params[:name]) if exists?(params[:name])
-        end
-      end
-      params[:type] = 'listview' unless params[:type]
+      clean_up_views(params) unless @generator.debug
+      params[:type] ||= 'listview'
       create_base_view(params[:name], params[:type], params[:parent_view])
       @logger.debug "Creating a #{params[:type]} view with params: #{params.inspect}"
-      status_filter = case params[:status_filter]
-                      when 'all_selected_jobs'
-                        ''
-                      when 'enabled_jobs_only'
-                        '1'
-                      when 'disabled_jobs_only'
-                        '2'
-                      else
-                        ''
-                      end
+
+      if @generator.debug
+        # pp post_params(params)
+        return
+      end
+
+      view_path = params[:parent_view].nil? ? '' : "/view/#{params[:parent_view]}"
+      view_path += "/view/#{params[:name]}/configSubmit"
+
+      @client.api_post_request(view_path, post_params(params))
+    end
+
+    private
+
+    def clean_up_views(params)
+      # If we have a parent view, we need to do some additional checks
+      if params[:parent_view]
+        create_base_view(params[:parent_view], 'nestedView') unless exists?(params[:parent_view])
+        delete(params[:name], params[:parent_view]) if exists?(params[:name], params[:parent_view])
+      else
+        delete(params[:name]) if exists?(params[:name])
+      end
+    end
+
+    def post_params(params)
+      statuses = { 'enabled_jobs_only' => '1', 'disabled_jobs_only' => '2' }
 
       json = {
         'name' => params[:name],
@@ -100,30 +102,18 @@ module JenkinsPipelineBuilder
         'columns' => get_columns(params[:type])
       }
       json.merge!('groupingRules' => params[:groupingRules]) if params[:groupingRules]
-      post_params = {
+      payload = {
         'name' => params[:name],
         'mode' => get_mode(params[:type]),
         'description' => params[:description],
-        'statusFilter' => status_filter,
+        'statusFilter' => statuses.fetch(params[:status_filter], ''),
         'json' => json.to_json
       }
-      post_params.merge!('filterQueue' => 'on') if params[:filter_queue]
-      post_params.merge!('filterExecutors' => 'on') if params[:filter_executors]
-      post_params.merge!('useincluderegex' => 'on',
-                         'includeRegex' => params[:regex]) if params[:regex]
-
-      if @generator.debug
-        # pp post_params
-        return
-      end
-
-      view_path = params[:parent_view].nil? ? '' : "/view/#{params[:parent_view]}"
-      view_path += "/view/#{params[:name]}/configSubmit"
-
-      @client.api_post_request(view_path, post_params)
+      payload.merge!('filterQueue' => 'on') if params[:filter_queue]
+      payload.merge!('filterExecutors' => 'on') if params[:filter_executors]
+      payload.merge!('useincluderegex' => 'on', 'includeRegex' => params[:regex]) if params[:regex]
+      payload
     end
-
-    private
 
     def get_mode(type)
       case type
@@ -174,61 +164,46 @@ module JenkinsPipelineBuilder
     end
 
     def get_columns(type)
-      columns_repository = {
-        'Status' =>
-        {
-          'stapler-class' => 'hudson.views.StatusColumn',
-          'kind' => 'hudson.views.StatusColumn'
-        },
-        'Weather' =>
-        {
-          'stapler-class' => 'hudson.views.WeatherColumn',
-          'kind' => 'hudson.views.WeatherColumn'
-        },
-        'Name' =>
-        {
-          'stapler-class' => 'hudson.views.JobColumn',
-          'kind' => 'hudson.views.JobColumn'
-        },
-        'Last Success' =>
-        {
-          'stapler-class' => 'hudson.views.LastSuccessColumn',
-          'kind' => 'hudson.views.LastSuccessColumn'
-        },
-        'Last Failure' =>
-        {
-          'stapler-class' => 'hudson.views.LastFailureColumn',
-          'kind' => 'hudson.views.LastFailureColumn'
-        },
-        'Last Duration' =>
-        {
-          'stapler-class' => 'hudson.views.LastDurationColumn',
-          'kind' => 'hudson.views.LastDurationColumn'
-        },
-        'Build Button' =>
-        {
-          'stapler-class' => 'hudson.views.BuildButtonColumn',
-          'kind' => 'hudson.views.BuildButtonColumn'
-        },
-        'Categorized - Job' =>
-        {
-          'stapler-class' => 'org.jenkinsci.plugins.categorizedview.IndentedJobColumn',
-          'kind' => 'org.jenkinsci.plugins.categorizedview.IndentedJobColumn'
-        }
-      }
-
-      column_names = case type
-                     when 'categorizedView'
-                       ['Status', 'Weather', 'Categorized - Job', 'Last Success', 'Last Failure', 'Last Duration', 'Build Button']
-                     else
-                       ['Status', 'Weather', 'Name', 'Last Success', 'Last Failure', 'Last Duration', 'Build Button']
-                     end
+      column_names = ['Status', 'Weather', 'Last Success', 'Last Failure', 'Last Duration', 'Build Button']
+      if type == 'categorizedView'
+        column_names << 'Categorized - Job'
+      else
+        column_names << 'Name'
+      end
 
       result = []
       column_names.each do |name|
         result << columns_repository[name]
       end
       result
+    end
+
+    def columns_repository
+      {
+        'Status' => { 'stapler-class' => 'hudson.views.StatusColumn', 'kind' => 'hudson.views.StatusColumn' },
+        'Weather' => { 'stapler-class' => 'hudson.views.WeatherColumn', 'kind' => 'hudson.views.WeatherColumn' },
+        'Name' => { 'stapler-class' => 'hudson.views.JobColumn', 'kind' => 'hudson.views.JobColumn' },
+        'Last Success' => {
+          'stapler-class' => 'hudson.views.LastSuccessColumn',
+          'kind' => 'hudson.views.LastSuccessColumn'
+        },
+        'Last Failure' => {
+          'stapler-class' => 'hudson.views.LastFailureColumn',
+          'kind' => 'hudson.views.LastFailureColumn'
+        },
+        'Last Duration' => {
+          'stapler-class' => 'hudson.views.LastDurationColumn',
+          'kind' => 'hudson.views.LastDurationColumn'
+        },
+        'Build Button' => {
+          'stapler-class' => 'hudson.views.BuildButtonColumn',
+          'kind' => 'hudson.views.BuildButtonColumn'
+        },
+        'Categorized - Job' => {
+          'stapler-class' => 'org.jenkinsci.plugins.categorizedview.IndentedJobColumn',
+          'kind' => 'org.jenkinsci.plugins.categorizedview.IndentedJobColumn'
+        }
+      }
     end
 
     # This method lists all views

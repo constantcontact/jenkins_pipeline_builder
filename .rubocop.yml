@@ -7,63 +7,48 @@
 
 #######
 # WIP
-# Offense count: 17
-Style/LineLength:
-  Enabled: false
-  Max: 120
-
-# Offense count: 8
-# Configuration parameters: CountComments.
-Style/MethodLength:
-  Enabled: false
-  Max: 30
+Style/CyclomaticComplexity:
+  Max: 9
 
 ########
 # Fix these later
-# Offense count: 1
-Lint/Eval:
-  Enabled: false
-
-# Offense count: 6
-Lint/ShadowingOuterLocalVariable:
-  Enabled: false
-
-# Offense count: 2
-# Configuration parameters: EnforcedStyle, SupportedStyles.
-Style/ClassAndModuleChildren:
-  Enabled: false
-
-# Offense count: 6
 # Configuration parameters: CountComments.
 Style/ClassLength:
-  Enabled: false
-  Max: 506
+  #Enabled: false
+  Max: 500
 
-# Offense count: 12
-Style/CyclomaticComplexity:
-  Max: 20
+#######
+# Finalized settings
 
-# Offense count: 17
+Style/LineLength:
+  Max: 120
+  Exclude:
+    - 'spec/lib/jenkins_pipeline_builder/compiler_spec.rb'
+    - 'spec/lib/jenkins_pipeline_builder/view_spec.rb'
+    - 'spec/lib/jenkins_pipeline_builder/pull_request_spec.rb'
+
+# Configuration parameters: CountComments.
+Style/MethodLength:
+  Max: 25
+
 Style/Documentation:
   Enabled: false
 
-Style/AccessModifierIndentation:
-  Enabled: false
-
-#######
-# We actually want these off
-
-# Offense count: 2
-Lint/UselessSetterCall:
-  Enabled: false
-
-# Offense count: 9
 # Configuration parameters: EnforcedStyle, SupportedStyles.
 Style/Next:
-  Enabled: false
+  Exclude:
+    - 'lib/jenkins_pipeline_builder/publishers.rb'
+    - 'lib/jenkins_pipeline_builder/triggers.rb'
+    - 'lib/jenkins_pipeline_builder/wrappers.rb'
+    - 'lib/jenkins_pipeline_builder/builders.rb'
+    - 'lib/jenkins_pipeline_builder/job_builder.rb'
 
-# Offense count: 7
 # Configuration parameters: EnforcedStyle, SupportedStyles.
 Style/VariableName:
-  Enabled: false
+  Exclude:
+    - 'lib/jenkins_pipeline_builder/publishers.rb'
+    - 'lib/jenkins_pipeline_builder/triggers.rb'
+    - 'lib/jenkins_pipeline_builder/wrappers.rb'
+    - 'lib/jenkins_pipeline_builder/builders.rb'
+    - 'lib/jenkins_pipeline_builder/job_builder.rb'
 #######

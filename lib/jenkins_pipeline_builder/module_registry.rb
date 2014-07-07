@@ -70,24 +70,23 @@ module JenkinsPipelineBuilder
 
     def traverse_registry(registry, params, n_xml, strict = false)
       params.each do |key, value|
-        if registry.is_a? Hash
-          unless registry.key? key
-            fail "!!!! could not find key #{key} !!!!" if strict
-            next
-          end
-          reg_value = registry[key]
-          if reg_value.is_a?(Array) && reg_value.first.is_a?(Extension)
-            next unless reg_value.select { |x| x.class == Extension }.size == reg_value.size
-            # TODO: Actually compare versions installed on box here
-            reg = reg_value.sort { |x, y| x.min_version <=> y.min_version }.last
-            logger.debug "Using #{reg.type} #{reg.name} version #{reg.min_version}"
-            execute_extension(reg, value, n_xml)
-          elsif value.is_a? Hash
-            traverse_registry reg_value, value, n_xml, true
-          elsif value.is_a? Array
-            value.each do |v|
-              traverse_registry reg_value, v, n_xml, true
-            end
+        next unless registry.is_a? Hash
+        unless registry.key? key
+          fail "!!!! could not find key #{key} !!!!" if strict
+          next
+        end
+        reg_value = registry[key]
+        if reg_value.is_a?(Array) && reg_value.first.is_a?(Extension)
+          next unless reg_value.select { |x| x.class == Extension }.size == reg_value.size
+          # TODO: Actually compare versions installed on box here
+          reg = reg_value.sort { |x, y| x.min_version <=> y.min_version }.last
+          logger.debug "Using #{reg.type} #{reg.name} version #{reg.min_version}"
+          execute_extension(reg, value, n_xml)
+        elsif value.is_a? Hash
+          traverse_registry reg_value, value, n_xml, true
+        elsif value.is_a? Array
+          value.each do |v|
+            traverse_registry reg_value, v, n_xml, true
           end
         end
       end

@@ -129,7 +129,9 @@ describe JenkinsPipelineBuilder::Generator do
       @generator.debug = true
       job_name = 'PullRequest'
       path = File.expand_path('../fixtures/generator_tests/pullrequest_pipeline', __FILE__)
-      JenkinsPipelineBuilder::PullRequestGenerator.should_receive(:new).once.and_return(double(purge: purge, create: create, jobs: jobs))
+      JenkinsPipelineBuilder::PullRequestGenerator.should_receive(:new).once.and_return(
+        double(purge: purge, create: create, jobs: jobs)
+      )
       success = @generator.pull_request(path, job_name)
       expect(success).to be_truthy
       Dir["#{job_name}*.xml"].each do |file|

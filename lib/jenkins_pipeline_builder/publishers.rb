@@ -133,12 +133,12 @@ publisher do
     send('hudson.plugins.rubyMetrics.rcov.RcovPublisher') do
       reportDir params[:report_dir]
       targets do
-        { 'TOTAL_COVERAGE' => params[:total], 'CODE_COVERAGE' => params[:code] }.each do |key, params|
+        { 'TOTAL_COVERAGE' => params[:total], 'CODE_COVERAGE' => params[:code] }.each do |key, inner_params|
           send('hudson.plugins.rubyMetrics.rcov.model.MetricTarget') do
             metric key
-            healthy params[:healthy]
-            unhealthy params[:unhealthy]
-            unstable params[:unstable]
+            healthy inner_params[:healthy]
+            unhealthy inner_params[:unhealthy]
+            unstable inner_params[:unstable]
           end
         end
       end

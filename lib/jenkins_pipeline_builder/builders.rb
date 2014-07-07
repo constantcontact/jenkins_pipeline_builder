@@ -104,7 +104,11 @@ builder do
   announced false
 
   xml do |params|
-    colors = { 'SUCCESS' => { ordinal:  0, color:  'BLUE' }, 'FAILURE' => { ordinal:  2, color:  'RED' }, 'UNSTABLE' => { ordinal:  1, color:  'YELLOW' } }
+    colors = {
+      'SUCCESS' => { ordinal:  0, color:  'BLUE' },
+      'FAILURE' => { ordinal:  2, color:  'RED' },
+      'UNSTABLE' => { ordinal:  1, color:  'YELLOW' }
+    }
     send('hudson.plugins.parameterizedtrigger.TriggerBuilder', 'plugin' => 'parameterized-trigger') do
       configs do
         send('hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig') do
@@ -169,7 +173,10 @@ builder do
 
   xml do |params|
     param_list = params[:parameters][:content].split("\n") if params[:parameters] && params[:parameters][:content]
-    send('org.jenkinsci.plugins.ParameterizedRemoteTrigger.RemoteBuildConfiguration', 'plugin' => 'Parameterized-Remote-Trigger') do
+    send(
+      'org.jenkinsci.plugins.ParameterizedRemoteTrigger.RemoteBuildConfiguration',
+      'plugin' => 'Parameterized-Remote-Trigger'
+    ) do
       remoteJenkinsName params[:server]
       job params[:job_name]
       shouldNotFailBuild params[:continue_on_remote_failure] if params[:continue_on_remote_failure]

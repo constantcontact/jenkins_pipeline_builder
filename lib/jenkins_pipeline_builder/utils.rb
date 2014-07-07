@@ -20,14 +20,14 @@
 # THE SOFTWARE.
 #
 
-module JenkinsPipelineBuilder
-  class ::Hash
-    def deep_merge(second)
-      merger = proc { |_key, v1, v2| v1.is_a?(Hash) && v2.is_a?(Hash) ? v1.merge(v2, &merger) : v2 }
-      merge(second, &merger)
-    end
+class Hash
+  def deep_merge(second)
+    merger = proc { |_key, v1, v2| v1.is_a?(Hash) && v2.is_a?(Hash) ? v1.merge(v2, &merger) : v2 }
+    merge(second, &merger)
   end
+end
 
+module JenkinsPipelineBuilder
   class Utils
     # Code was duplicated from jeknins_api_client
     def self.symbolize_keys_deep!(h)
@@ -39,8 +39,8 @@ module JenkinsPipelineBuilder
         h[ks].each { |item| symbolize_keys_deep!(item) } if h[ks].is_a?(Array)
       end
     end
-    def self.hash_merge!(old, new)
-      old.merge!(new) do |_key, old, new|
+    def self.hash_merge!(old_hash, new_hash)
+      old_hash.merge!(new_hash) do |_key, old, new|
         if old.is_a?(Hash) && new.is_a?(Hash)
           hash_merge!(old, new)
         else

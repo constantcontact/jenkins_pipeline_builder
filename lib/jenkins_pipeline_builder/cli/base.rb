@@ -31,7 +31,7 @@ module JenkinsPipelineBuilder
       class_option :server_ip, aliases:  '-s', desc:  'Jenkins server IP address'
       class_option :server_port, aliases:  '-o', desc:  'Jenkins port'
       class_option :creds_file, aliases:  '-c', desc:  'Credentials file for communicating with Jenkins server'
-      class_option :debug, type:  :boolean, aliases:  '-d', desc:  'Run in debug mode (no Jenkins changes)', default:  false
+      class_option :debug, type: :boolean, aliases: '-d', desc: 'Run in debug mode (no Jenkins changes)', default: false
 
       map '-v' => :version
 
