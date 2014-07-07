@@ -1,7 +1,0 @@
----
-- job-template:
-    name: '{{name}}-10'
-    description: '{{description}}'
-    publishers:
-      - downstream:
-          project: '{{job@{{name}}-15-Provision}}'

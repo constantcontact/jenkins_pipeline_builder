@@ -113,7 +113,7 @@ module JenkinsPipelineBuilder
                          'includeRegex' => params[:regex]) if params[:regex]
 
       if @generator.debug
-        pp post_params
+        # pp post_params
         return
       end
 
@@ -163,7 +163,7 @@ module JenkinsPipelineBuilder
       }
 
       if @generator.debug
-        pp initial_post_params
+        # pp initial_post_params
         return
       end
 

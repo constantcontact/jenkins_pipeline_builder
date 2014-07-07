@@ -1,0 +1,12 @@
+- defaults:
+    name: global
+    description: 'Test pipeline for generator_spec.rb'
+    git_url: 'https://github.com'
+    git_org: 'bencentra'
+    git_repo: 'generator_tests'
+
+- project: 
+    name: PullRequest
+    jobs:
+      - '{{name}}-10-SampleJob'
+      - '{{name}}-40-PullRequestGenerator'

@@ -24,9 +24,8 @@ require 'yaml'
 
 module JenkinsPipelineBuilder
   class Generator
-
     attr_reader :debug
-    attr_accessor :no_files, :job_collection, :logger, :module_registry
+    attr_accessor :no_files, :job_templates, :job_collection, :logger, :module_registry, :remote_depends
 
     # Initialize a Client object with Jenkins Api Client
     #
@@ -70,7 +69,7 @@ module JenkinsPipelineBuilder
     def bootstrap(path, project_name)
       @logger.info "Bootstrapping pipeline from path #{path}"
       load_collection_from_path(path)
-      @logger.info @job_collection
+      # @logger.info @job_collection
       cleanup_temp_remote
       load_extensions(path)
       errors = {}
@@ -92,45 +91,32 @@ module JenkinsPipelineBuilder
       @logger.info "Pull Request Generator Running from path #{path}"
       load_collection_from_path(path)
       cleanup_temp_remote
-      # load_extensions(path)
-      jobs = {}
+      load_extensions(path)
       @logger.info "Project: #{projects}"
       projects.each do |project|
         if project[:name] == project_name || project_name.nil?
-          project_body = project[:value]
-          project_jobs = project_body[:jobs] || []
           @logger.info "Using Project #{project}"
-          pull_job = nil
-          project_jobs.each do |job|
-            job = job.keys.first if job.is_a? Hash
-            job = @job_collection[job.to_s]
-            pull_job = job if job[:value][:job_type] == 'pull_request_generator'
-          end
-          fail 'No Pull Request Found for Project' unless pull_job
-          pull_jobs = pull_job[:value][:jobs] || []
-          pull_jobs.each do |job|
-            if job.is_a? String
-              jobs[job.to_s] = @job_collection[job.to_s]
-            else
-              jobs[job.keys.first.to_s] = @job_collection[job.keys.first.to_s]
+          pull_job = find_pull_request_generator(project)
+          p_success, p_payload = compile_pull_request_generator(pull_job[:name], project)
+          if p_success
+            jobs = filter_pull_request_jobs(pull_job)
+            pull = JenkinsPipelineBuilder::PullRequestGenerator.new(project, jobs, p_payload)
+            # Build the jobs
+            @job_collection.merge! pull.jobs
+            pull.create.each do |project|
+              success, compiled_project = resolve_project(project)
+              compiled_project[:value][:jobs].each do |i|
+                job = i[:result]
+                success, payload = compile_job_to_xml(job)
+                create_or_update(job, payload) if success
+              end
             end
-          end
-          pull = JenkinsPipelineBuilder::PullRequestGenerator.new(project, jobs, pull_job)
-          # Build the jobs
-          @job_collection.merge! pull.jobs
-          pull.create.each do |project|
-            success, compiled_project = resolve_project(project)
-            compiled_project[:value][:jobs].each do |i|
-              job = i[:result]
-              success, payload = compile_job_to_xml(job)
-              create_or_update(job, payload) if success
-            end
-          end
-          # Purge old jobs
-          pull.purge.each do |job|
-            jobs = client.job.list "#{job}.*"
-            jobs.each do |job|
-              client.job.delete job
+            # Purge old jobs
+            pull.purge.each do |job|
+              jobs = client.job.list "#{job}.*"
+              jobs.each do |job|
+                client.job.delete job
+              end
             end
           end
         end
@@ -145,92 +131,50 @@ module JenkinsPipelineBuilder
       File.open(job_name + '.xml', 'w') { |f| f.write xml }
     end
 
-    def bootstrap(path, project_name)
-      logger.info "Bootstrapping pipeline from path #{path}"
-      load_collection_from_path(path)
-      logger.info @job_collection
-      cleanup_temp_remote
-      load_extensions(path)
-      errors = {}
-      # Publish all the jobs if the projects are not found
-      if projects.count == 0
-        errors = publish_jobs(jobs)
-      else
-        errors = publish_project(project_name)
-      end
-      errors.each do |k, v|
-        logger.error "Encountered errors compiling: #{k}:"
-        logger.error v
-      end
-    end
-
-    def pull_request(path, project_name)
-      logger.info "Pull Request Generator Running from path #{path}"
-      load_collection_from_path(path)
-      cleanup_temp_remote
-      load_extensions(path)
-      jobs = {}
-      logger.info "Project: #{projects}"
-      projects.each do |project|
-        if project[:name] == project_name || project_name.nil?
-          project_body = project[:value]
-          project_jobs = project_body[:jobs] || []
-          logger.info "Using Project #{project}"
-          pull_job = nil
-          project_jobs.each do |job|
-            job = job.keys.first if job.is_a? Hash
-            job = @job_collection[job.to_s]
-            pull_job = job if job[:value][:job_type] == 'pull_request_generator'
-          end
-          fail 'No Pull Request Found for Project' unless pull_job
-          pull_jobs = pull_job[:value][:jobs] || []
-          pull_jobs.each do |job|
-            if job.is_a? String
-              jobs[job.to_s] = @job_collection[job.to_s]
-            else
-              jobs[job.keys.first.to_s] = @job_collection[job.keys.first.to_s]
-            end
-          end
-          pull = JenkinsPipelineBuilder::PullRequestGenerator.new(project, jobs, pull_job)
-          # Build the jobs
-          @job_collection.merge! pull.jobs
-          pull.create.each do |project|
-            success, compiled_project = resolve_project(project)
-            compiled_project[:value][:jobs].each do |i|
-              job = i[:result]
-              success, payload = compile_job_to_xml(job)
-              create_or_update(job, payload) if success
-            end
-          end
-          # Purge old jobs
-          pull.purge.each do |job|
-            jobs = client.job.list "#{job}.*"
-            jobs.each do |job|
-              client.job.delete job
-            end
-          end
-        end
-      end
-    end
-
-
     #
     # BEGIN PRIVATE METHODS
     #
+
     private
 
-    def load_collection_from_path(path, recursively = false, remote = false)
+    def find_pull_request_generator(project)
+      project_jobs = project[:value][:jobs] || []
+      pull_job = nil
+      project_jobs.each do |job|
+        job = job.keys.first if job.is_a? Hash
+        job = @job_collection[job.to_s]
+        pull_job = job if job[:value][:job_type] == 'pull_request_generator'
+      end
+      fail 'No Pull Request Found for Project' unless pull_job
+      pull_job
+    end
+
+    def filter_pull_request_jobs(pull_job)
+      jobs = {}
+      pull_jobs = pull_job[:value][:jobs] || []
+      pull_jobs.each do |job|
+        if job.is_a? String
+          jobs[job.to_s] = @job_collection[job.to_s]
+        else
+          jobs[job.keys.first.to_s] = @job_collection[job.keys.first.to_s]
+        end
+      end
+      fail 'No jobs found for pull request' if jobs.empty?
+      jobs
+    end
+
+    def compile_pull_request_generator(pull_job, project)
+      defaults = get_item('global')
+      settings = defaults.nil? ? {} : defaults[:value] || {}
+      settings = Compiler.get_settings_bag(project, settings)
+      resolve_job_by_name(pull_job, settings)
+    end
+
+    def load_collection_from_path(path, remote = false)
       path = File.expand_path(path, Dir.getwd)
       if File.directory?(path)
         logger.info "Generating from folder #{path}"
         Dir[File.join(path, '/*.yaml'), File.join(path, '/*.yml')].each do |file|
-          if File.directory?(file) # TODO: This doesn't work unless the folder contains .yml or .yaml at the end
-            if recursively
-              load_collection_from_path(File.join(path, file), recursively)
-            else
-              next
-            end
-          end
           logger.info "Loading file #{file}"
           yaml = YAML.load_file(file)
           load_job_collection(yaml, remote)
@@ -272,13 +216,13 @@ module JenkinsPipelineBuilder
     def load_extensions(path)
       path = "#{path}/extensions"
       path = File.expand_path(path, Dir.getwd)
-      return unless File.directory?(path)
-
-      logger.info "Loading extensions from folder #{path}"
-      logger.info Dir.glob("#{path}/*.rb").inspect
-      Dir.glob("#{path}/*.rb").each do |file|
-        logger.info "Loaded #{file}"
-        require file
+      unless File.directory?(path)
+        logger.info "Loading extensions from folder #{path}"
+        logger.info Dir.glob("#{path}/*.rb").inspect
+        Dir.glob("#{path}/*.rb").each do |file|
+          logger.info "Loaded #{file}"
+          require file
+        end
       end
       match_extension_versions
     end
@@ -286,30 +230,32 @@ module JenkinsPipelineBuilder
     def match_extension_versions
       registry = @module_registry.registry[:job]
       installed_plugins = @debug ? nil : list_plugins # Only get plugins if not in debug mode
-      logger.debug 'Loading newest version of all plugins since we are in debug mode.'
+      @logger.debug 'Loading newest version of all plugins since we are in debug mode.'
       registry.each do |registry_key, registry_value|
-        if registry_value[:registry]
-          registry_value[:registry].each do |extension_key, extension_value|
-            registry[registry_key][:registry][extension_key] = newest_compatible({ extension_key => extension_value }, installed_plugins, registry_key)
+        if registry_value.count > 1
+          registry_value.each_key do |extension_key|
+            registry[registry_key][extension_key] = newest_compatible(extension_key, installed_plugins, registry_key)
           end
         else
-          registry[registry_key] = newest_compatible({ registry_key => registry_value }, installed_plugins)
+          registry[registry_key] = newest_compatible(registry_key, installed_plugins)
         end
       end
     end
 
     def newest_compatible(extension, installed_plugins, key = nil)
       # Fetch the registrered_modules for the extension
-      registry = @module_registry.registered_modules
-      registry = key.nil? ? registry[:job_attributes] : registry[key]
-      registry = registry[extension.keys.first]
-      extension = extension.first[1]
+      registry = @module_registry.registry[:job]
+      registry = registry[key] unless key.nil?
+      registry = registry[extension]
       keep = nil
       keep_version = ''
-      extension.each do |version, block|
-        is_available = @debug ? true : version.to_s <= installed_plugins[registry[:plugin_id].to_s].to_s
-        is_newer = version.to_s >= keep_version
-        keep = block if keep.nil? || (is_available && is_newer)
+      registry.each do |ex|
+        is_available = @debug ? true : ex.min_version.to_s <= installed_plugins[ex.plugin_id.to_s].to_s
+        is_newer = ex.min_version.to_s >= keep_version
+        if keep.nil? || (is_available && is_newer)
+          keep = ex
+          keep_version = ex.min_version
+        end
       end
       keep
     end
@@ -335,7 +281,7 @@ module JenkinsPipelineBuilder
 
       if File.directory?(path)
         logger.info "Loading from #{path}"
-        load_collection_from_path(path, false, true)
+        load_collection_from_path(path, true)
         true
       else
         false
@@ -546,13 +492,6 @@ module JenkinsPipelineBuilder
         end
       end
       errors
-    end
-
-    def dump(job_name)
-      logger.info "Debug #{@debug}"
-      logger.info "Dumping #{job_name} into #{job_name}.xml"
-      xml = client.job.get_config(job_name)
-      File.open(job_name + '.xml', 'w') { |f| f.write xml }
     end
 
     def create_or_update(job, xml)

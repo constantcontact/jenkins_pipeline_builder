@@ -10,7 +10,6 @@ describe JenkinsPipelineBuilder::View do
       log_location: '/dev/null'
     }
     generator = JenkinsPipelineBuilder.generator
-    generator.no_files = true
     @view = JenkinsPipelineBuilder::View.new(generator)
   end
   let(:path) { File.expand_path('../fixtures/view_test/', __FILE__) }
