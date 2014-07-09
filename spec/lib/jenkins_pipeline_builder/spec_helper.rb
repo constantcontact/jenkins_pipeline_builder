@@ -17,3 +17,9 @@ RSpec::Matchers.define :have_min_version do |version|
     "Expected to find extension #{@exts.first.name} with version #{version}, found #{versions} instead"
   end
 end
+
+RSpec.configure do |config|
+  config.expect_with :rspec do |c|
+    c.syntax = :expect
+  end
+end
