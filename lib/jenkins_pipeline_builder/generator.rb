@@ -73,11 +73,10 @@ module JenkinsPipelineBuilder
       cleanup_temp_remote
       load_extensions(path)
       errors = {}
-      # Publish all the jobs if the projects are not found
-      if projects.count == 0
-        errors = publish_jobs(jobs)
-      else
+      if projects.any?
         errors = publish_project(project_name)
+      else
+        errors = publish_jobs(jobs)
       end
       errors.each do |k, v|
         @logger.error "Encountered errors compiling: #{k}:"
@@ -223,49 +222,13 @@ module JenkinsPipelineBuilder
     def load_extensions(path)
       path = "#{path}/extensions"
       path = File.expand_path(path, Dir.getwd)
-      unless File.directory?(path)
-        logger.info "Loading extensions from folder #{path}"
-        logger.info Dir.glob("#{path}/*.rb").inspect
-        Dir.glob("#{path}/*.rb").each do |file|
-          logger.info "Loaded #{file}"
-          require file
-        end
+      return unless File.directory?(path)
+      logger.info "Loading extensions from folder #{path}"
+      logger.info Dir.glob("#{path}/*.rb").inspect
+      Dir.glob("#{path}/*.rb").each do |file|
+        logger.info "Loaded #{file}"
+        require file
       end
-      match_extension_versions
-    end
-
-    def match_extension_versions
-      registry = @module_registry.registry[:job]
-      installed_plugins = @debug ? nil : list_plugins # Only get plugins if not in debug mode
-      @logger.debug 'Loading newest version of all plugins since we are in debug mode.'
-      registry.each do |registry_key, registry_value|
-        if registry_value.count > 1
-          registry_value.each_key do |extension_key|
-            registry[registry_key][extension_key] = newest_compatible(extension_key, installed_plugins, registry_key)
-          end
-        else
-          registry[registry_key] = newest_compatible(registry_key, installed_plugins)
-        end
-      end
-    end
-
-    def newest_compatible(extension, installed_plugins, key = nil)
-      # Fetch the registrered_modules for the extension
-      registry = @module_registry.registry[:job]
-      registry = registry[key] unless key.nil?
-      registry = registry[extension]
-      keep = nil
-      keep_version = ''
-      registry.each do |ex|
-        is_available = @debug ? true : ex.min_version.to_s <= installed_plugins[ex.plugin_id.to_s].to_s
-        is_newer = ex.min_version.to_s >= keep_version
-
-        next unless keep.nil? || (is_available && is_newer)
-
-        keep = ex
-        keep_version = ex.min_version
-      end
-      keep
     end
 
     def load_template(path, template)

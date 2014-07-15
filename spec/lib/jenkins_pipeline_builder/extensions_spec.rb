@@ -42,12 +42,6 @@ describe JenkinsPipelineBuilder::Extension do
         expect(extension.plugin_id).to eq 'foo'
       end
     end
-    context 'min_version' do
-      it 'sets the min_version if a parameter is provided' do
-        extension.min_version('foo')
-        expect(extension.min_version).to eq 'foo'
-      end
-    end
     context 'jenkins_name' do
       it 'sets the jenkins_name if a parameter is provided' do
         extension.jenkins_name('foo')
@@ -78,51 +72,39 @@ describe JenkinsPipelineBuilder::Extension do
         expect(extension.type).to eq 'foo'
       end
     end
+    context 'min_version' do
+      it 'sets the min_version if a parameter is provided' do
+        extension.min_version('foo')
+        expect(extension.min_version).to eq 'foo'
+      end
+    end
     context 'xml' do
       it 'saves the block' do
-        extension.xml do
-          true
-        end
+        extension.xml -> { true }
         expect(extension.xml.call).to be true
       end
-      it 'uses the path if provided' do
-        extension.xml('foo') do
-          true
-        end
-        expect(extension.path).to eq 'foo'
-      end
       it 'returns the saved block if there none is provided' do
-        extension.xml do
-          true
-        end
+        extension.xml -> { true }
         expect(extension.xml).to be_kind_of Proc
       end
     end
     context 'after' do
       it 'saves the block' do
-        extension.after do
-          true
-        end
+        extension.after -> { true }
         expect(extension.after.call).to be true
       end
       it 'returns the saved block if there none is provided' do
-        extension.after do
-          true
-        end
+        extension.after -> { true }
         expect(extension.after).to be_kind_of Proc
       end
     end
     context 'before' do
       it 'saves the block' do
-        extension.before do
-          true
-        end
+        extension.before -> { true }
         expect(extension.before.call).to be true
       end
       it 'returns the saved block if there none is provided' do
-        extension.before do
-          true
-        end
+        extension.before -> { true }
         expect(extension.before).to be_kind_of Proc
       end
     end
@@ -130,7 +112,8 @@ describe JenkinsPipelineBuilder::Extension do
       it 'returns true if errors is empty' do
         extension.name 'foo'
         extension.plugin_id 'foo'
-        extension.min_version 'foo'
+        extension.min_version '0.2'
+        extension.xml -> { true }
         extension.type 'foo'
         extension.path 'foo'
         expect(extension.errors).to be_empty
@@ -140,6 +123,25 @@ describe JenkinsPipelineBuilder::Extension do
         expect(extension.errors).to_not be_empty
         expect(extension.valid?).to be false
       end
+    end
+  end
+end
+
+describe JenkinsPipelineBuilder::ExtensionSet do
+  subject(:set) { JenkinsPipelineBuilder::ExtensionSet.new }
+  context 'xml' do
+    it 'returns the block for the correct version'
+    it 'sets the min_version if a parameter is provided' do
+      set.xml version: '0.2' do
+        true
+      end
+      expect(set.blocks).to have_key '0.2'
+    end
+    it 'uses the path if provided' do
+      set.xml path: 'foo' do
+        true
+      end
+      expect(set.blocks['0'][:path]).to eq 'foo'
     end
   end
 end

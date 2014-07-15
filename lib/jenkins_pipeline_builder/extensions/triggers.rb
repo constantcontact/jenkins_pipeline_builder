@@ -22,7 +22,6 @@
 trigger do
   name :git_push
   plugin_id 123
-  min_version 0
   announced false
 
   xml do |_|
@@ -35,7 +34,6 @@ end
 trigger do
   name :scm_polling
   plugin_id 123
-  min_version 0
   announced false
 
   xml do |scm_polling|
@@ -49,7 +47,6 @@ end
 trigger do
   name :periodic_build
   plugin_id 123
-  min_version 0
   announced false
 
   xml do |periodic_build|
@@ -62,7 +59,6 @@ end
 trigger do
   name :upstream
   plugin_id 123
-  min_version 0
   announced false
 
   xml do |params|

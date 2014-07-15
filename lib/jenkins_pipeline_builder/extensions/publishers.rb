@@ -22,7 +22,6 @@
 publisher do
   name :description_setter
   plugin_id 123
-  min_version 0
   announced false
 
   xml do |params|
@@ -39,7 +38,6 @@ end
 publisher do
   name :downstream
   plugin_id 123
-  min_version 0
   announced false
 
   xml do |params|
@@ -74,7 +72,6 @@ end
 publisher do
   name :hipchat
   plugin_id 101
-  min_version 0
   announced false
 
   xml do |params|
@@ -90,7 +87,6 @@ end
 publisher do
   name :git
   plugin_id 123
-  min_version 0
   announced false
 
   xml do |params|
@@ -111,7 +107,6 @@ end
 publisher do
   name :junit_result
   plugin_id 123
-  min_version 0
   announced false
 
   xml do |params|
@@ -126,7 +121,6 @@ end
 publisher do
   name :coverage_result
   plugin_id 123
-  min_version 0
   announced false
 
   xml do |params|
@@ -149,7 +143,6 @@ end
 publisher do
   name :post_build_script
   plugin_id 123
-  min_version 0
   announced false
 
   xml do |params|
@@ -171,7 +164,6 @@ end
 publisher do
   name :groovy_postbuild
   plugin_id 123
-  min_version 0
   announced false
 
   xml do |params|
@@ -193,7 +185,6 @@ end
 publisher do
   name :archive_artifact
   plugin_id 123
-  min_version 0
   announced false
 
   xml do |params|
@@ -210,7 +201,6 @@ end
 publisher do
   name :email_notifications
   plugin_id 123
-  min_version 0
   announced false
 
   xml do |params|

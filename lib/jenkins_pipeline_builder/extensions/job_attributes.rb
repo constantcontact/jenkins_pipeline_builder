@@ -23,14 +23,13 @@
 job_attribute do
   name :description
   plugin_id 123
-  min_version 0
   announced false
 
   before do
     xpath('//project/description').remove
   end
 
-  xml('//project') do |description|
+  xml path: '//project' do |description|
     description "#{description}"
   end
 end
@@ -38,7 +37,6 @@ end
 job_attribute do
   name :scm_params
   plugin_id 123
-  min_version 0
   announced false
 
   # XML preprocessing
@@ -58,7 +56,7 @@ job_attribute do
 
   end
 
-  xml '//scm' do |params|
+  xml path: '//scm' do |params|
     localBranch params[:local_branch] if params[:local_branch]
     recursiveSubmodules params[:recursive_update] if params[:recursive_update]
     wipeOutWorkspace params[:wipe_workspace] if params[:wipe_workspace]
@@ -86,10 +84,9 @@ end
 job_attribute do
   name :hipchat
   plugin_id 123
-  min_version 0
   announced false
 
-  xml '//properties' do |params|
+  xml path: '//properties' do |params|
     fail 'No HipChat room specified' unless params[:room]
 
     send('jenkins.plugins.hipchat.HipChatNotifier_-HipChatJobProperty') do
@@ -102,10 +99,9 @@ end
 job_attribute do
   name :priority
   plugin_id 123
-  min_version 0
   announced false
 
-  xml '//properties' do |params|
+  xml path: '//properties' do |params|
     send('jenkins.advancedqueue.AdvancedQueueSorterJobProperty', 'plugin' => 'PrioritySorter') do
       useJobPriority params[:use_priority]
       priority params[:job_priority] || -1
@@ -116,10 +112,9 @@ end
 job_attribute do
   name :parameters
   plugin_id 123
-  min_version 0
   announced false
 
-  xml '//properties' do |params|
+  xml path: '//properties' do |params|
     send('hudson.model.ParametersDefinitionProperty') do
       parameterDefinitions do
         params.each do |param|
@@ -161,10 +156,9 @@ end
 job_attribute do
   name :discard_old
   plugin_id 123
-  min_version 0
   announced false
 
-  xml '//project' do |params|
+  xml path: '//project' do |params|
     send('logRotator', 'class' => 'hudson.tasks.LogRotator') do
       daysToKeep params[:days] if params[:days]
       numToKeep params[:number] || -1
@@ -177,10 +171,9 @@ end
 job_attribute do
   name :throttle
   plugin_id 100
-  min_version 0
   announced false
 
-  xml '//properties' do |params|
+  xml path: '//properties' do |params|
     cat_set = params[:option] == 'category'
     send('hudson.plugins.throttleconcurrents.ThrottleJobProperty', 'plugin' => 'throttle-concurrents') do
       maxConcurrentPerNode params[:max_per_node] || 0
@@ -197,10 +190,9 @@ end
 job_attribute do
   name :prepare_environment
   plugin_id 123
-  min_version 0
   announced false
 
-  xml '//properties' do |params|
+  xml path: '//properties' do |params|
     send('EnvInjectJobProperty') do
       info do
         propertiesContent params[:properties_content] if params[:properties_content]
@@ -216,10 +208,9 @@ end
 job_attribute do
   name :concurrent_build
   plugin_id 123
-  min_version 0
   announced false
 
-  xml '//concurrentBuild' do |params|
+  xml path: '//concurrentBuild' do |params|
     (params == true) ? 'true' : 'false'
   end
 end

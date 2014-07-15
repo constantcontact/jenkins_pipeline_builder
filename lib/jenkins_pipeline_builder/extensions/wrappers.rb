@@ -23,7 +23,6 @@
 wrapper do
   name :ansicolor
   plugin_id 123
-  min_version 0
   announced false
   jenkins_name 'color ansi'
   description 'this is a description'
@@ -37,7 +36,6 @@ end
 wrapper do
   name :timestamp
   plugin_id 123
-  min_version 0
   announced false
 
   xml do |_|
@@ -48,11 +46,10 @@ end
 wrapper do
   name :rvm
   plugin_id 123
-  min_version '0.5'
   announced false
-  description 'rvm plugin for versions 0.5 and greater'
+  description 'rvm plugin'
 
-  xml do |wrapper|
+  xml version: '0.5' do |wrapper|
     send('ruby-proxy-object') do
       send('ruby-object', 'ruby-class' => 'Jenkins::Tasks::BuildWrapperProxy', 'pluginid' => 'rvm') do
         object('ruby-class' => 'RvmWrapper', 'pluginid' => 'rvm') do
@@ -62,24 +59,6 @@ wrapper do
       end
     end
   end
-end
-
-wrapper do
-  name :name
-  plugin_id 123
-  min_version 0
-  announced false
-
-  xml do |_|
-  end
-end
-
-wrapper do
-  name :rvm
-  plugin_id 123
-  min_version '0'
-  announced false
-  description 'rvm plugin for versions less than 0.5'
 
   xml do |wrapper|
     send('ruby-proxy-object') do
@@ -98,7 +77,6 @@ end
 wrapper do
   name :inject_passwords
   plugin_id 123
-  min_version 0
   announced false
 
   xml do |passwords|
@@ -119,7 +97,6 @@ end
 wrapper do
   name :inject_env_var
   plugin_id 123
-  min_version 0
   announced false
 
   xml do |params|
@@ -136,7 +113,6 @@ end
 wrapper do
   name :artifactory
   plugin_id 123
-  min_version 0
   announced false
 
   xml do |wrapper|
@@ -165,7 +141,6 @@ end
 wrapper do
   name :maven3artifactory
   plugin_id 123
-  min_version 0
   announced false
 
   xml do |wrapper|

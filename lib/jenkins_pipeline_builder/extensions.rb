@@ -23,74 +23,114 @@ require 'jenkins_pipeline_builder'
 JenkinsPipelineBuilder.registry.entries.each do |type, path|
   singular_type = type.to_s.singularize
   define_method singular_type do |&block|
-    ext = JenkinsPipelineBuilder::Extension.new
-    ext.instance_eval(&block)
-    ext.path path
-    ext.type singular_type
-    unless ext.valid?
-      name = ext.name || 'A plugin with no name provided'
+    set = JenkinsPipelineBuilder::ExtensionSet.new
+    set.instance_eval(&block)
+    set.blocks.each do |version, settings|
+      ext = JenkinsPipelineBuilder::Extension.new
+      ext.min_version version
+      ext.type singular_type
+      set.settings.merge(settings).each do |key, value|
+        ext.send key, value
+      end
+      ext.path path unless ext.path
+      set.extensions << ext
+    end
+    unless set.valid?
+      name = set.name || 'A plugin with no name provided'
       puts "Encountered errors while registering #{name}"
-      puts ext.errors.map { |k, v| "#{k}: #{v}" }.join(', ')
+      puts set.errors.map { |k, v| "#{k}: #{v}" }.join(', ')
       return false
     end
-    JenkinsPipelineBuilder.registry.register([:job, type], ext)
-    puts "Successfully registered #{ext.name} for versions #{ext.min_version} and higher" if ext.announced
+    JenkinsPipelineBuilder.registry.register([:job, type], set)
+    versions = set.extensions.map { |ext| ext.min_version }
+    puts "Successfully registered #{set.name} for versions #{versions}" if set.announced
   end
 end
 
 def job_attribute(&block)
-  ext = JenkinsPipelineBuilder::Extension.new
-  ext.instance_eval(&block)
-  ext.type :job_attribute
-  unless ext.valid?
-    name = ext.name || 'A plugin with no name provided'
+  set = JenkinsPipelineBuilder::ExtensionSet.new
+  set.instance_eval(&block)
+  set.blocks.each do |version, settings|
+    ext = JenkinsPipelineBuilder::Extension.new
+    ext.min_version version
+    ext.type :job_attribute
+    set.settings.merge(settings).each do |key, value|
+      ext.send key, value
+    end
+    set.extensions << ext
+  end
+  unless set.valid?
+    name = set.name || 'A plugin with no name provided'
     puts "Encountered errors while registering #{name}"
-    puts ext.errors.map { |k, v| "#{k}: #{v}" }.join(', ')
+    puts set.errors.map { |k, v| "#{k}: #{v}" }.join(', ')
     return false
   end
-  JenkinsPipelineBuilder.registry.register([:job], ext)
-  puts "Successfully registered #{ext.name} for versions #{ext.min_version} and higher" if ext.announced
+  JenkinsPipelineBuilder.registry.register([:job], set)
+  puts "Successfully registered #{set.name} for versions #{set.min_version} and higher" if set.announced
 end
 
 module JenkinsPipelineBuilder
-  class Extension
-    DSL_METHODS = {
-      name: false,
-      plugin_id: false,
-      min_version: false,
-      jenkins_name: 'No jenkins display name set',
-      description: 'No description set',
-      path: false,
-      announced: true,
-      type: false
-    }
-    DSL_METHODS.keys.each do |method_name|
+  class ExtensionSet
+    SET_METHODS = [
+      :name,
+      :plugin_id,
+      :jenkins_name,
+      :description,
+      :announced,
+      :type
+    ]
+    SET_METHODS.each do |method_name|
       define_method method_name do |value = nil|
-        return instance_variable_get("@#{method_name}") if value.nil?
-        instance_variable_set("@#{method_name}", value)
+        return settings[method_name] if value.nil?
+        settings[method_name] = value
       end
     end
 
-    def xml(path = false, &block)
-      @path = path if path
-      return @xml unless block
-      @xml = block
-    end
-
-    def after(&block)
-      return @after unless block
-      @after = block
-    end
-
-    def before(&block)
-      return @before unless block
-      @before = block
-    end
+    attr_accessor :blocks, :extensions, :settings
 
     def initialize
-      DSL_METHODS.each do |key, value|
-        instance_variable_set("@#{key}", value) if value
+      @blocks = {}
+      @settings = {}
+      @extensions = []
+    end
+
+    def get_extension(version = '0')
+      extensions.first
+    end
+
+    def merge(other_set)
+      mismatch = []
+      SET_METHODS.each do |method_name|
+        val1 = settings[method_name]
+        val2 = other_set.settings[method_name]
+        mismatch << "The values for #{method_name} do not match #{val1} : #{val2}" unless val1 == val2
       end
+      mismatch.each do |error|
+        puts error
+      end
+      fail 'Values did not match, cannot merge exception sets' if mismatch.any?
+
+      blocks.merge other_set.blocks
+    end
+
+    def xml(path: false, version: '0', &block)
+      unless block
+        fail "no block found for version #{version}" unless blocks.key version
+        return blocks[version][:block]
+      end
+      blocks[version] = { xml: block, path: path }
+    end
+
+    def after(version: '0', &block)
+      return @after unless block
+      blocks[version] = {} unless blocks[version]
+      blocks[version][:after] = block
+    end
+
+    def before(version: '0', &block)
+      return @before unless block
+      blocks[version] = {} unless blocks[version]
+      blocks[version][:before] = block
     end
 
     def valid?
@@ -99,7 +139,52 @@ module JenkinsPipelineBuilder
 
     def errors
       errors = {}
-      DSL_METHODS.keys.each do |name|
+      extensions.each do |ext|
+        ver = ext.min_version || 'unknown'
+        errors["#{ext.name} version #{ver}"] = ext.errors unless ext.valid?
+      end
+      errors
+    end
+  end
+end
+
+module JenkinsPipelineBuilder
+  class Extension
+    EXT_METHODS = {
+      name: false,
+      plugin_id: false,
+      jenkins_name: 'No jenkins display name set',
+      description: 'No description set',
+      announced: true,
+      min_version: false,
+      path: false,
+      type: false,
+      before: false,
+      after: false,
+      xml: false
+    }
+    EXT_METHODS.keys.each do |method_name|
+      define_method method_name do |value = nil|
+        return instance_variable_get("@#{method_name}") if value.nil?
+        instance_variable_set("@#{method_name}", value)
+      end
+    end
+
+    def initialize
+      EXT_METHODS.each do |key, value|
+        instance_variable_set("@#{key}", value) if value
+      end
+      before false
+      after false
+    end
+
+    def valid?
+      errors.empty?
+    end
+
+    def errors
+      errors = {}
+      EXT_METHODS.keys.each do |name|
         errors[name] = 'Must be set' if send(name).nil?
       end
       errors

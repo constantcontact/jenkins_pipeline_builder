@@ -19,7 +19,7 @@ describe JenkinsPipelineBuilder::Generator do
     @generator.job_collection = {}
     @generator.remote_depends = {}
     @generator.module_registry = JenkinsPipelineBuilder::ModuleRegistry.new
-    JenkinsPipelineBuilder.load_registry
+    JenkinsPipelineBuilder.load_extensions
   end
 
   describe 'initialized in before(:example)' do
@@ -129,7 +129,7 @@ describe JenkinsPipelineBuilder::Generator do
       @generator.debug = true
       job_name = 'PullRequest'
       path = File.expand_path('../fixtures/generator_tests/pullrequest_pipeline', __FILE__)
-      JenkinsPipelineBuilder::PullRequestGenerator.should_receive(:new).once.and_return(
+      expect(JenkinsPipelineBuilder::PullRequestGenerator).to receive(:new).once.and_return(
         double(purge: purge, create: create, jobs: jobs)
       )
       success = @generator.pull_request(path, job_name)

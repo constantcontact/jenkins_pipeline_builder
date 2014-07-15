@@ -28,9 +28,9 @@ module JenkinsPipelineBuilder
       klass = Class.new(Thor) do
 
         extensions = JenkinsPipelineBuilder.registry.registry[:job][entry]
-        extensions.each do |key, exts|
+        extensions.each do |key, extset|
           # TODO: don't just take the first
-          ext = exts.first
+          ext = extset.extensions.first
           desc key, "Details for #{ext.name}"
           define_method(ext.name) do
             display_module(ext)

@@ -37,18 +37,9 @@ Style/Documentation:
 # Configuration parameters: EnforcedStyle, SupportedStyles.
 Style/Next:
   Exclude:
-    - 'lib/jenkins_pipeline_builder/publishers.rb'
-    - 'lib/jenkins_pipeline_builder/triggers.rb'
-    - 'lib/jenkins_pipeline_builder/wrappers.rb'
-    - 'lib/jenkins_pipeline_builder/builders.rb'
-    - 'lib/jenkins_pipeline_builder/job_builder.rb'
+    - 'lib/jenkins_pipeline_builder/extensions/*'
 
 # Configuration parameters: EnforcedStyle, SupportedStyles.
 Style/VariableName:
   Exclude:
-    - 'lib/jenkins_pipeline_builder/publishers.rb'
-    - 'lib/jenkins_pipeline_builder/triggers.rb'
-    - 'lib/jenkins_pipeline_builder/wrappers.rb'
-    - 'lib/jenkins_pipeline_builder/builders.rb'
-    - 'lib/jenkins_pipeline_builder/job_builder.rb'
-#######
+    - 'lib/jenkins_pipeline_builder/extensions/*'

@@ -25,6 +25,7 @@ module JenkinsPipelineBuilder
     attr_accessor :registry, :registered_modules
     def initialize
       @registry = { job: {} }
+      @versions = {}
     end
 
     def logger
@@ -47,8 +48,11 @@ module JenkinsPipelineBuilder
       root = prefix.inject(@registry, :[])
       root[name] = {} unless root[name]
 
-      root[name][extension.name] = [] unless root[name][extension.name]
-      root[name][extension.name] << extension
+      if root[name][extension.name]
+        root[name][extension.name].merge extension
+      else
+        root[name][extension.name] = extension
+      end
     end
 
     def get(path)
@@ -76,12 +80,10 @@ module JenkinsPipelineBuilder
           next
         end
         reg_value = registry[key]
-        if reg_value.is_a?(Array) && reg_value.first.is_a?(Extension)
-          next unless reg_value.select { |x| x.class == Extension }.size == reg_value.size
-          # TODO: Actually compare versions installed on box here
-          reg = reg_value.sort { |x, y| x.min_version <=> y.min_version }.last
-          logger.debug "Using #{reg.type} #{reg.name} version #{reg.min_version}"
-          execute_extension(reg, value, n_xml)
+        if reg_value.is_a? ExtensionSet
+          ext = reg_value.get_extension @versions[reg_value.plugin_id]
+          logger.debug "Using #{ext.type} #{ext.name} version #{ext.min_version}"
+          execute_extension ext, value, n_xml
         elsif value.is_a? Hash
           traverse_registry reg_value, value, n_xml, true
         elsif value.is_a? Array

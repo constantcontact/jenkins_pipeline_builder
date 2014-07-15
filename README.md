@@ -15,7 +15,7 @@ amazing progress done by the Open Stack community with their [jenkins-job-builde
 The YAML structure very closely resembles the OpenStack Job Builder, but, in comparison to Python version, is 100%
 pure Ruby and uses Jenkins API Client and has additional functionlity of building different types of Jenkins views.
 
-# JenkinsPipeline::Generator
+# JenkinsPipelineBuilder
 
 USAGE:
 ------
@@ -75,6 +75,8 @@ Now you ready to bootstrap a pipeline:
 NOTE: you can run the pipeline in NOOP (debug-only) mode by addind -d parameter, like:
 
     generate pipeline -d -c config/login.yml bootstrap ./pipeline
+
+The command comes with fairly extensive help. For example you can list all of the registered extension types with `generate list` and a list of all extensions of a type with `generate list type`
 
 DSL:
 ----
@@ -338,39 +340,27 @@ Extending the Pipeline Builder
 
 Have a feature you want to test out before adding it to the source? Now you can create a quick "extension" to the pipeline builder to add new or overwrite existing functionality.
 
-To add an extension, create an "extensions" directiroy inside of "pipeline" and create a file named "myExtension.rb" (or any name). Use `JenkinsPipelineBuilder.extend` to register your extension.
-
-When registering, you must use one of the following register methods, depending on what category your change falls into:
-* register_job_attribute    
-* register_builder    
-* register_publisher    
-* register_wrapper    
-* register_trigger    
+To add an extension, create an "extensions" directiroy inside of "pipeline" and create a file named "my_extension.rb" (or any name). Then just `require 'jenkins_pipeline_builder/extensions'` and you can begin using the extension DSL. All of the plugins use this DSL and provide an excellent source of examples. You can find them in lib/jenkins_pipeline_builder/extensions.
 
 For help figuring out what category your change is, examine the config.xml for a job that uses your feature. If it is a first child of the root "project" node, your change is a job_attribute. Otherwise it should be either a builder, publisher, wrapper, or trigger, depending what child node it is found in the XML tree.
 
 Here is an example of extending the pipeline builder with a new publisher:
 
 ```ruby
-JenkinsPipelineBuilder.extend do |registry|
-  registry.register_publisher :yaml_name, "Jenkins UI Name", "Description of this feature" { |params, xml| apply_extension(params, xml) }
+publisher do
+  name :yaml_name
+  plugin_id 123
+  min_version '0.4'
+  jenkins_name "Jenkins UI Name"
+  description "Description of this feature"
 
-  def apply_extension(params, xml)
-    xml.send("new_element") {
-      xml.property params[:value]
-    }
-  end
-end
-```
-
-OR
-
-```ruby
-JenkinsPipelineBuilder.extend do |registry|
-  registry.register_publisher :yaml_name, "Jenkins UI Name", "Description of this feature" do |params, xml|
-    xml.send("new_element") {
-      xml.property params[:value]
-    }
+  xml do |params, xml|
+   send("new_element") do
+      property params[:value]
+      if params[:thing]
+        thing 'true'
+      end
+    end
   end
 end
 ```

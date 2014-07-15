@@ -22,7 +22,6 @@
 builder do
   name :multi_job
   plugin_id 123
-  min_version 0
   announced false
 
   xml do |params|
@@ -56,7 +55,6 @@ end
 builder do
   name :maven3
   plugin_id 123
-  min_version 0
   announced false
 
   xml do |params|
@@ -72,7 +70,6 @@ end
 builder do
   name :shell_command
   plugin_id 123
-  min_version 0
   announced false
 
   xml do |param|
@@ -85,7 +82,6 @@ end
 builder do
   name :inject_vars_file
   plugin_id 123
-  min_version 0
   announced false
 
   xml do |params|
@@ -100,7 +96,6 @@ end
 builder do
   name :blocking_downstream
   plugin_id 123
-  min_version 0
   announced false
 
   xml do |params|
@@ -168,7 +163,6 @@ end
 builder do
   name :remote_job
   plugin_id 123
-  min_version 0
   announced false
 
   xml do |params|
@@ -221,7 +215,6 @@ end
 builder do
   name :copy_artifact
   plugin_id 123
-  min_version 0
   announced false
 
   xml do |params|
