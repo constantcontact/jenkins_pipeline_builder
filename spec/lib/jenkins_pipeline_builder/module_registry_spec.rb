@@ -143,4 +143,131 @@ describe JenkinsPipelineBuilder::ModuleRegistry do
   describe '#execute_extension' do
   end
 
+  describe 'executing a registry item' do
+    before :all do
+      class XmlException < StandardError; end
+      class BeforeException < StandardError; end
+      class AfterException < StandardError; end
+      JenkinsPipelineBuilder.credentials = {
+        server_ip: '127.0.0.1',
+        server_port: 8080,
+        username: 'username',
+        password: 'password',
+        log_location: '/dev/null'
+      }
+    end
+
+    let(:params) { { wrappers: { test_name: :foo } } }
+
+    before :each do
+      JenkinsPipelineBuilder.generator.module_registry = JenkinsPipelineBuilder::ModuleRegistry.new
+      JenkinsPipelineBuilder.load_extensions
+
+      @n_xml = Nokogiri::XML::Document.new
+
+      wrapper do
+        name :test_name
+        plugin_id 123
+
+        xml do
+          true
+        end
+      end
+      expect(JenkinsPipelineBuilder.registry.registry[:job][:wrappers]).to have_key :test_name
+      @ext = JenkinsPipelineBuilder.registry.registry[:job][:wrappers][:test_name].get_extension('0')
+    end
+
+    it 'calls the xml block when executing the item' do
+      @ext.xml -> (_) { fail XmlException, 'foo' }
+
+      expect do
+        JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+      end.to raise_error XmlException
+    end
+
+    it 'calls the before block' do
+      @ext.before -> (_) { fail BeforeException, 'foo' }
+
+      expect do
+        JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+      end.to raise_error BeforeException
+    end
+
+    it 'calls the after block' do
+      @ext.after -> (_) { fail AfterException, 'foo' }
+
+      expect do
+        JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+      end.to raise_error AfterException
+    end
+
+    context 'unordered dsl' do
+      let(:params) { { wrappers: { unordered_test: :foo } } }
+      it 'works with before first' do
+        wrapper do
+          name :unordered_test
+          plugin_id 123
+
+          before do
+            fail BeforeException, 'foo'
+          end
+
+          xml do
+            true
+          end
+        end
+
+        expect(JenkinsPipelineBuilder.registry.registry[:job][:wrappers]).to have_key :unordered_test
+        @ext = JenkinsPipelineBuilder.registry.registry[:job][:wrappers][:unordered_test].get_extension('0')
+
+        expect do
+          JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+        end.to raise_error BeforeException
+      end
+
+      it 'works with after first' do
+        wrapper do
+          name :unordered_test
+          plugin_id 123
+
+          after do
+            fail AfterException, 'foo'
+          end
+
+          xml do
+            true
+          end
+        end
+
+        expect(JenkinsPipelineBuilder.registry.registry[:job][:wrappers]).to have_key :unordered_test
+        @ext = JenkinsPipelineBuilder.registry.registry[:job][:wrappers][:unordered_test].get_extension('0')
+
+        expect do
+          JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+        end.to raise_error AfterException
+      end
+
+      it 'works with xml first' do
+        wrapper do
+          name :unordered_test
+          plugin_id 123
+
+          xml do
+            fail XmlException, 'foo'
+          end
+
+          after do
+            true
+          end
+        end
+
+        expect(JenkinsPipelineBuilder.registry.registry[:job][:wrappers]).to have_key :unordered_test
+        @ext = JenkinsPipelineBuilder.registry.registry[:job][:wrappers][:unordered_test].get_extension('0')
+
+        expect do
+          JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+        end.to raise_error XmlException
+      end
+    end
+  end
 end

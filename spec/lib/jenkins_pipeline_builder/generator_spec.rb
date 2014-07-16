@@ -10,7 +10,6 @@ describe JenkinsPipelineBuilder::Generator do
       password: 'password',
       log_location: '/dev/null'
     }
-    JenkinsPipelineBuilder.client
     @generator = JenkinsPipelineBuilder.generator
   end
 

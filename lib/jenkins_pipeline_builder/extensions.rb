@@ -118,19 +118,19 @@ module JenkinsPipelineBuilder
         fail "no block found for version #{version}" unless blocks.key version
         return blocks[version][:block]
       end
-      blocks[version] = { xml: block, path: path }
+      if blocks[version]
+        blocks[version].merge!(xml: block, path: path)
+      else
+        blocks[version] = { xml: block, path: path }
+      end
     end
 
-    def after(version: '0', &block)
-      return @after unless block
-      blocks[version] = {} unless blocks[version]
-      blocks[version][:after] = block
-    end
-
-    def before(version: '0', &block)
-      return @before unless block
-      blocks[version] = {} unless blocks[version]
-      blocks[version][:before] = block
+    [:after, :before].each do |method_name|
+      define_method method_name do |version: '0', &block|
+        return instance_variable_get(method_name) unless block
+        blocks[version] = {} unless blocks[version]
+        blocks[version][method_name] = block
+      end
     end
 
     def valid?
@@ -139,6 +139,7 @@ module JenkinsPipelineBuilder
 
     def errors
       errors = {}
+      errors['ExtensionSet'] = 'no extensions successfully registered' if extensions.empty?
       extensions.each do |ext|
         ver = ext.min_version || 'unknown'
         errors["#{ext.name} version #{ver}"] = ext.errors unless ext.valid?
