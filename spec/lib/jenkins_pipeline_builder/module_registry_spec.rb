@@ -32,6 +32,7 @@ describe JenkinsPipelineBuilder::ModuleRegistry do
         end
       end
     end
+
     it 'registered the triggers correctly' do
       triggers = {
         git_push: ['0'],
