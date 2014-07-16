@@ -213,3 +213,24 @@ publisher do
     end
   end
 end
+
+publisher do
+  name :sonar_result
+  plugin_id 123
+  announced false
+
+  xml do |params|
+    send('hudson.plugins.sonar.SonarPublisher') do
+      jdk '(Inherit From Job)'
+      branch params[:branch] || ''
+      language
+      mavenOpts
+      jobAdditionalProperties
+      mavenInstallationName params[:maven_installation_name] || ''
+      rootPom
+      settings class: 'jenkins.mvn.DefaultSettingsProvider'
+      globalSettings class: 'jenkins.mvn.DefaultGlobalSettingsProvider'
+      usePrivateRepository false
+    end
+  end
+end

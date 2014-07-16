@@ -83,13 +83,12 @@ describe JenkinsPipelineBuilder::ModuleRegistry do
         post_build_script: ['0'],
         groovy_postbuild: ['0'],
         archive_artifact: ['0'],
-        email_notifications: ['0']
+        email_notifications: ['0'],
+        sonar_result: ['0']
       }
       registry = JenkinsPipelineBuilder.registry.registry
-      expect(registry[:job][:publishers].size).to eq publishers.size
+      expect(registry[:job][:publishers].keys).to match_array publishers.keys
       publishers.each do |publisher, versions|
-        expect(registry[:job][:publishers]).to have_key publisher
-
         versions.each do |version|
           expect(registry[:job][:publishers][publisher]).to have_min_version version
         end
@@ -145,9 +144,12 @@ describe JenkinsPipelineBuilder::ModuleRegistry do
 
   describe 'executing a registry item' do
     before :all do
-      class XmlException < StandardError; end
-      class BeforeException < StandardError; end
-      class AfterException < StandardError; end
+      class XmlException < StandardError;
+      end
+      class BeforeException < StandardError;
+      end
+      class AfterException < StandardError;
+      end
       JenkinsPipelineBuilder.credentials = {
         server_ip: '127.0.0.1',
         server_port: 8080,
@@ -157,7 +159,7 @@ describe JenkinsPipelineBuilder::ModuleRegistry do
       }
     end
 
-    let(:params) { { wrappers: { test_name: :foo } } }
+    let(:params) { {wrappers: {test_name: :foo}} }
 
     before :each do
       JenkinsPipelineBuilder.generator.module_registry = JenkinsPipelineBuilder::ModuleRegistry.new
@@ -202,7 +204,7 @@ describe JenkinsPipelineBuilder::ModuleRegistry do
     end
 
     context 'unordered dsl' do
-      let(:params) { { wrappers: { unordered_test: :foo } } }
+      let(:params) { {wrappers: {unordered_test: :foo}} }
       it 'works with before first' do
         wrapper do
           name :unordered_test
