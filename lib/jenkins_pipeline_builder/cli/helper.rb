@@ -49,6 +49,8 @@ module JenkinsPipelineBuilder
           creds = YAML.load_file(
             File.expand_path("#{ENV['HOME']}/.jenkins_api_client/login.yml", __FILE__)
           )
+        elsif options[:debug]
+          creds = { username: :foo, password: :bar, server_ip: :baz }
         else
           msg = 'Credentials are not set. Please pass them as parameters or'
           msg << ' set them in the default credentials file'
