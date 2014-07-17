@@ -22,10 +22,10 @@
 
 wrapper do
   name :ansicolor
-  plugin_id 123
+  plugin_id 'ansicolor'
   announced false
-  jenkins_name 'color ansi'
-  description 'this is a description'
+  jenkins_name 'Color ANSI Console Output'
+  description 'This plugin adds support for ANSI escape sequences, including color, to Console Output.'
   xml do |_|
     send('hudson.plugins.ansicolor.AnsiColorBuildWrapper') do
       colorMapName 'xterm'
@@ -35,7 +35,9 @@ end
 
 wrapper do
   name :timestamp
-  plugin_id 123
+  plugin_id 'timestamper'
+  description 'Adds timestamps to the Console Output.'
+  jenkins_name 'Add timestamps to the Console Output'
   announced false
 
   xml do |_|
@@ -45,7 +47,9 @@ end
 
 wrapper do
   name :rvm
-  plugin_id 123
+  plugin_id 'rvm'
+  description 'This plugin runs your jobs in the RVM managed ruby+gemset of your choice.'
+  jenkins_name 'Run the build in a RVM-managed environment'
   announced false
   description 'rvm plugin'
 
@@ -76,7 +80,9 @@ end
 
 wrapper do
   name :inject_passwords
-  plugin_id 123
+  plugin_id 'envinject'
+  description 'This plugin makes it possible to have an isolated environment for your jobs.'
+  jenkins_name 'Inject passwords to the build as environment variables'
   announced false
 
   xml do |passwords|
@@ -96,7 +102,9 @@ end
 
 wrapper do
   name :inject_env_var
-  plugin_id 123
+  plugin_id 'envinject'
+  description 'This plugin makes it possible to have an isolated environment for your jobs.'
+  jenkins_name 'Inject environment variables to the build process'
   announced false
 
   xml do |params|
@@ -113,6 +121,8 @@ end
 wrapper do
   name :artifactory
   plugin_id 123
+  description 'This plugin allows deploying Maven 2, Maven 3, Ivy and Gradle artifacts and build info to the Artifactory artifacts manager.'
+  jenkins_name 'Generic-Artifactory Integration'
   announced false
 
   xml do |wrapper|
@@ -140,7 +150,9 @@ end
 
 wrapper do
   name :maven3artifactory
-  plugin_id 123
+  plugin_id 'maven-plugin'
+  description 'Jenkins plugin for building Maven 2/3 jobs via a special project type.'
+  jenkins_name 'Maven3-Artifactory Integration'
   announced false
 
   xml do |wrapper|

@@ -21,7 +21,15 @@
 
 trigger do
   name :git_push
-  plugin_id 123
+  plugin_id 'github'
+  description 'This plugin integrates Jenkins with Github projects.
+
+The plugin currently has two major functionalities:
+
+  * Create hyperlinks between your Jenkins projects and GitHub
+  * Trigger a job when you push to the repository by groking HTTP POSTs from post-receive hook and optionally auto-managing the hook setup.'
+
+  jenkins_name 'Build when a change is pushed to GitHub'
   announced false
 
   xml do |_|
@@ -33,7 +41,9 @@ end
 
 trigger do
   name :scm_polling
-  plugin_id 123
+  plugin_id 'builtin'
+  description 'Poll selected SCM for changes and builds if there are any changes.'
+  jenkins_name 'Poll SCM'
   announced false
 
   xml do |scm_polling|
@@ -46,7 +56,9 @@ end
 
 trigger do
   name :periodic_build
-  plugin_id 123
+  plugin_id 'builtin'
+  description 'Builts the job at selected interval'
+  jenkins_name 'Build periodically'
   announced false
 
   xml do |periodic_build|
@@ -58,7 +70,9 @@ end
 
 trigger do
   name :upstream
-  plugin_id 123
+  plugin_id 'builtin'
+  description 'Build when an upstream job finishes'
+  jenkins_name 'Build after other projects are built'
   announced false
 
   xml do |params|

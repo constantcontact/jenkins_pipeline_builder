@@ -22,7 +22,9 @@
 
 job_attribute do
   name :description
-  plugin_id 123
+  plugin_id 'builtin'
+  description 'This is the description of your job.'
+  jenkins_name 'Description'
   announced false
 
   before do

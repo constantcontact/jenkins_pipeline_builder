@@ -21,7 +21,9 @@
 
 publisher do
   name :description_setter
-  plugin_id 123
+  plugin_id 'description-setter'
+  description 'This plugin sets the description for each build, based upon a RegEx test of the build log file.'
+  jenkins_name 'Set build description'
   announced false
 
   xml do |params|
@@ -37,7 +39,9 @@ end
 
 publisher do
   name :downstream
-  plugin_id 123
+  plugin_id 'parameterized-trigger'
+  description 'This plugin lets you trigger new builds when your build has completed, with various ways of specifying parameters for the new build.'
+  jenkins_name 'Trigger parameterized build on other projects'
   announced false
 
   xml do |params|
@@ -71,7 +75,9 @@ end
 
 publisher do
   name :hipchat
-  plugin_id 101
+  plugin_id 'hipchat'
+  description 'This plugin allows your team to setup build notifications to be sent to HipChat rooms.'
+  jenkins_name 'HipChat Notifications'
   announced false
 
   xml do |params|
@@ -86,7 +92,9 @@ end
 
 publisher do
   name :git
-  plugin_id 123
+  plugin_id 'git'
+  description 'This plugin allows use of Git as a build SCM. A recent Git runtime is required (1.7.9 minimum, 1.8.x recommended). Plugin is only tested on official git client. Use exotic installations at your own risks.'
+  jenkins_name 'Git Publisher'
   announced false
 
   xml do |params|
@@ -106,7 +114,9 @@ end
 
 publisher do
   name :junit_result
-  plugin_id 123
+  plugin_id 'builtin'
+  description 'Archives your test results?'
+  jenkins_name 'Publish JUnit test result report'
   announced false
 
   xml do |params|
@@ -120,7 +130,9 @@ end
 
 publisher do
   name :coverage_result
-  plugin_id 123
+  plugin_id 'rubyMetrics'
+  description 'Ruby metric reports for Jenkins. Rcov, Rails stats, Rails notes and Flog.'
+  jenkins_name 'Publish Rcov report'
   announced false
 
   xml do |params|
@@ -142,7 +154,9 @@ end
 
 publisher do
   name :post_build_script
-  plugin_id 123
+  plugin_id 'postbuildscript'
+  description 'PostBuildScript makes it possible to execute a set of scripts at the end of the build.'
+  jenkins_name 'Execute a set of scripts'
   announced false
 
   xml do |params|
@@ -163,7 +177,9 @@ end
 
 publisher do
   name :groovy_postbuild
-  plugin_id 123
+  plugin_id 'groovy-postbuild'
+  description 'This plugin executes a groovy script in the Jenkins JVM. Typically, the script checks some conditions and changes accordingly the build result, puts badges next to the build in the build history and/or displays information on the build summary page.'
+  jenkins_name 'Groovy Postbuild'
   announced false
 
   xml do |params|
@@ -184,7 +200,9 @@ end
 
 publisher do
   name :archive_artifact
-  plugin_id 123
+  plugin_id 'builtin'
+  description 'Archives artifacts'
+  jenkins_name 'Archive the artifacts'
   announced false
 
   xml do |params|
@@ -200,7 +218,9 @@ end
 
 publisher do
   name :email_notifications
-  plugin_id 123
+  plugin_id 'mailer'
+  description 'This plugin allows you to configure email notifications. This is a break-out of the original core based email component.'
+  jenkins_name 'E-mail Notification'
   announced false
 
   xml do |params|
@@ -216,7 +236,11 @@ end
 
 publisher do
   name :sonar_result
-  plugin_id 123
+  plugin_id 'sonar'
+  description 'The plugin allows you to trigger SonarQube analysis from Jenkins using either a:
+  * Build step to trigger the analysis with the SonarQube Runner
+  * Post-build action to trigger the analysis with Maven'
+  jenkins_name 'Sonar'
   announced false
 
   xml do |params|

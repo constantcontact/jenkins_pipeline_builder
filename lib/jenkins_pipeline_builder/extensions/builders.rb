@@ -21,7 +21,9 @@
 
 builder do
   name :multi_job
-  plugin_id 123
+  plugin_id 'jenkins-multijob-plugin'
+  description 'This plugin, created by Tikal ALM team, gives the option to define complex and hierarchical jobs structure in Jenkins.'
+  jenkins_name 'MultiJob Phase'
   announced false
 
   xml do |params|
@@ -54,7 +56,9 @@ end
 
 builder do
   name :maven3
-  plugin_id 123
+  plugin_id 'maven-plugin'
+  description 'Jenkins plugin for building Maven 2/3 jobs via a special project type.'
+  jenkins_name 'Invoke Maven 3'
   announced false
 
   xml do |params|
@@ -69,7 +73,9 @@ end
 
 builder do
   name :shell_command
-  plugin_id 123
+  plugin_id 'builtin'
+  description 'Lets you run shell commands as a build step.'
+  jenkins_name 'Execute shell'
   announced false
 
   xml do |param|
@@ -81,7 +87,9 @@ end
 
 builder do
   name :inject_vars_file
-  plugin_id 123
+  plugin_id 'envinject'
+  description 'This plugin makes it possible to have an isolated environment for your jobs.'
+  jenkins_name 'Inject environment variables'
   announced false
 
   xml do |params|
@@ -95,7 +103,9 @@ end
 
 builder do
   name :blocking_downstream
-  plugin_id 123
+  plugin_id 'parameterized-trigger'
+  description 'This plugin lets you trigger new builds when your build has completed, with various ways of specifying parameters for the new build.'
+  jenkins_name 'Trigger/call builds on other projects'
   announced false
 
   xml do |params|
@@ -162,7 +172,9 @@ end
 
 builder do
   name :remote_job
-  plugin_id 123
+  plugin_id 'Parameterized-Remote-Trigger'
+  description 'A plugin for Jenkins CI that gives you the ability to trigger parameterized builds on a remote Jenkins server as part of your build.'
+  jenkins_name 'Trigger a remote parameterized job'
   announced false
 
   xml do |params|
@@ -214,7 +226,9 @@ end
 
 builder do
   name :copy_artifact
-  plugin_id 123
+  plugin_id 'copyartifact'
+  description 'Adds a build step to copy artifacts from another project. The plugin lets you specify which build to copy artifacts from (e.g. the last successful/stable build, by build number, or by a build parameter). You can also control the copying process by filtering the files being copied, specifying a destination directory within the target project, etc. Click the help icon on each field to learn the details, such as selecting Maven or multiconfiguration projects or using build parameters. You can also copy from the workspace of the latest completed build of the source project, instead of its artifacts. All artifacts copied are automatically fingerprinted for you.'
+  jenkins_name 'Copy artifacts from another project'
   announced false
 
   xml do |params|
