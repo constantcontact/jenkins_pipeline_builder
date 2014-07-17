@@ -17,6 +17,11 @@ describe 'publishers' do
     @n_xml = builder.doc
   end
 
+  after :each do |example|
+    name = example.description.gsub ' ', '_'
+    File.open("./out/xml/publisher_#{name}.xml",'w') {|f| @n_xml.write_xml_to f}
+  end
+
   context 'sonar publisher' do
     it 'generates a configuration' do
       params = {publishers: {sonar_result: {}}}
