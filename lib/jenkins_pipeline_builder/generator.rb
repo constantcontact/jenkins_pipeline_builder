@@ -66,10 +66,9 @@ module JenkinsPipelineBuilder
       JenkinsPipelineBuilder::View.new(self)
     end
 
-    def bootstrap(path, project_name)
-      @logger.info "Bootstrapping pipeline from path #{path}"
+    def bootstrap(path, project_name = nil)
+      logger.info "Bootstrapping pipeline from path #{path}"
       load_collection_from_path(path)
-      # @logger.info @job_collection
       cleanup_temp_remote
       load_extensions(path)
       errors = {}
@@ -79,22 +78,22 @@ module JenkinsPipelineBuilder
         errors = publish_jobs(jobs)
       end
       errors.each do |k, v|
-        @logger.error "Encountered errors compiling: #{k}:"
-        @logger.error v
+        logger.error "Encountered errors compiling: #{k}:"
+        logger.error v
       end
       errors
     end
 
     def pull_request(path, project_name)
       success = false
-      @logger.info "Pull Request Generator Running from path #{path}"
+      logger.info "Pull Request Generator Running from path #{path}"
       load_collection_from_path(path)
       cleanup_temp_remote
       load_extensions(path)
-      @logger.info "Project: #{projects}"
+      logger.info "Project: #{projects}"
       projects.each do |project|
         next unless project[:name] == project_name || project_name.nil?
-        @logger.info "Using Project #{project}"
+        logger.info "Using Project #{project}"
         pull_job = find_pull_request_generator(project)
         p_success, p_payload = compile_pull_request_generator(pull_job[:name], project)
         next unless p_success
@@ -210,7 +209,7 @@ module JenkinsPipelineBuilder
             fail "Duplicate item with name '#{name}' was detected."
           end
         else
-          @job_collection[name.to_s] = { name: name.to_s, type: key, value: value }
+          @job_collection[name.to_s] = {name: name.to_s, type: key, value: value}
         end
       end
     end
@@ -328,7 +327,7 @@ module JenkinsPipelineBuilder
 
     def prepare_jobs(jobs)
       jobs.map! do |job|
-        job.is_a?(String) ? { job.to_sym => {} } : job
+        job.is_a?(String) ? {job.to_sym => {}} : job
       end
     end
 
@@ -346,7 +345,7 @@ module JenkinsPipelineBuilder
 
     def process_views(views, project, errors = {})
       views.map! do |view|
-        view.is_a?(String) ? { view.to_sym => {} } : view
+        view.is_a?(String) ? {view.to_sym => {}} : view
       end
       views.each do |view|
         view_id = view.keys.first
@@ -386,7 +385,7 @@ module JenkinsPipelineBuilder
       logger.info project
       process_job_changes(jobs)
       errors = process_jobs(jobs, project)
-      errors = process_views(project_body[:views], project,  errors) if project_body[:views]
+      errors = process_views(project_body[:views], project, errors) if project_body[:views]
       errors.each do |k, v|
         puts "Encountered errors processing: #{k}:"
         v.each do |key, error|
@@ -429,7 +428,7 @@ module JenkinsPipelineBuilder
         next unless project_name.nil? || project[:name] == project_name
         success, payload = resolve_project(project)
         if success
-          @logger.info 'successfully resolved project'
+          logger.info 'successfully resolved project'
           compiled_project = payload
         else
           return false
@@ -447,7 +446,7 @@ module JenkinsPipelineBuilder
 
     def publish_jobs(jobs, errors = {})
       jobs.each do |i|
-        @logger.info "Processing #{i}"
+        logger.info "Processing #{i}"
         job = i[:result]
         fail "Result is empty for #{i}" if job.nil?
         success, payload = compile_job_to_xml(job)
@@ -465,7 +464,8 @@ module JenkinsPipelineBuilder
       if @debug
         logger.info "Will create job #{job}"
         logger.info "#{xml}"
-        File.open(job_name + '.xml', 'w') { |f| f.write xml }
+        Dir.mkdir(out_dir) unless File.exists?(out_dir)
+        File.open("#{out_dir}/#{job_name}.xml", 'w') { |f| f.write xml }
         return
       end
 
@@ -482,19 +482,19 @@ module JenkinsPipelineBuilder
       logger.info "Creating Yaml Job #{job}"
       job[:job_type] = 'free_style' unless job[:job_type]
       case job[:job_type]
-      when 'job_dsl'
-        xml = compile_freestyle_job_to_xml(job)
-        payload = update_job_dsl(job, xml)
-      when 'multi_project'
-        xml = compile_freestyle_job_to_xml(job)
-        payload = adjust_multi_project xml
-      when 'build_flow'
-        xml = compile_freestyle_job_to_xml(job)
-        payload = add_job_dsl(job, xml)
-      when 'free_style', 'pull_request_generator'
-        payload = compile_freestyle_job_to_xml job
-      else
-        return false, "Job type: #{job[:job_type]} is not one of job_dsl, multi_project, build_flow or free_style"
+        when 'job_dsl'
+          xml = compile_freestyle_job_to_xml(job)
+          payload = update_job_dsl(job, xml)
+        when 'multi_project'
+          xml = compile_freestyle_job_to_xml(job)
+          payload = adjust_multi_project xml
+        when 'build_flow'
+          xml = compile_freestyle_job_to_xml(job)
+          payload = add_job_dsl(job, xml)
+        when 'free_style', 'pull_request_generator'
+          payload = compile_freestyle_job_to_xml job
+        else
+          return false, "Job type: #{job[:job_type]} is not one of job_dsl, multi_project, build_flow or free_style"
       end
 
       [true, payload]
@@ -518,7 +518,7 @@ module JenkinsPipelineBuilder
         puts "Template merged: #{template}"
       end
 
-      xml   = client.job.build_freestyle_config(params)
+      xml = client.job.build_freestyle_config(params)
       n_xml = Nokogiri::XML(xml)
 
       logger.debug 'Loading the required modules'
@@ -539,7 +539,7 @@ module JenkinsPipelineBuilder
 
     # TODO: make sure this is tested
     def update_job_dsl(job, xml)
-      n_xml      = Nokogiri::XML(xml)
+      n_xml = Nokogiri::XML(xml)
       n_builders = n_xml.xpath('//builders').first
       Nokogiri::XML::Builder.with(n_builders) do |b_xml|
         build_job_dsl(job, b_xml)
@@ -554,11 +554,11 @@ module JenkinsPipelineBuilder
 
       n_xml = Nokogiri::XML(xml)
       if n_xml.xpath('//javaposse.jobdsl.plugin.ExecuteDslScripts').empty?
-        p_xml = Nokogiri::XML::Builder.new(encoding:  'UTF-8') do |b_xml|
+        p_xml = Nokogiri::XML::Builder.new(encoding: 'UTF-8') do |b_xml|
           build_job_dsl(params, b_xml)
         end
 
-        n_xml.xpath('//builders').first.add_child("\r\n" + p_xml.doc.root.to_xml(indent:  4) + "\r\n")
+        n_xml.xpath('//builders').first.add_child("\r\n" + p_xml.doc.root.to_xml(indent: 4) + "\r\n")
         xml = n_xml.to_xml
       end
       xml
@@ -576,6 +576,10 @@ module JenkinsPipelineBuilder
         xml.ignoreExisting false
         xml.removedJobAction 'IGNORE'
       end
+    end
+
+    def out_dir
+      'out/xml'
     end
   end
 end

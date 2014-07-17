@@ -1,5 +1,5 @@
 - job:
-    name: 'Jenkins-Pipeline-Builder'
+    name: '{{name}}-Commit'
     scm_provider: git
     scm_url: https://github.com/constantcontact/jenkins_pipeline_builder.git
     scm_branch: master
@@ -11,14 +11,10 @@
     wrappers:
       - timestamp: true
       - ansicolor: true
-      - rvm: "`cat .ruby-version`@`cat .ruby-gemset`"
+      - rvm: "`cat .ruby-version`"
     publishers:
       - junit_result:
           test_results: 'out/**/*.xml'
-      - git:
-          push-merge: true
-          push-only-if-success: false
-      - hipchat: true
       - coverage_result:
           report_dir: out/coverage/rcov
           total:

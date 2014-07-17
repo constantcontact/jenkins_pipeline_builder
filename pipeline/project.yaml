@@ -1,0 +1,10 @@
+- project:
+    name: Jenkins-Pipeline-Builder
+    description: 'Do not edit this job through the web!'
+    git_repo: git@github.com:constantcontact/jenkins_pipeline_builder.git
+    git_branch: master
+    discard_days: '30'
+    discard_number: '100'
+    rvm: '`cat .ruby-version`'
+    jobs:
+        - '{{name}}-Commit'
