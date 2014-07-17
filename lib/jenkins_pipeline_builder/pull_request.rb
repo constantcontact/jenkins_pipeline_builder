@@ -51,7 +51,7 @@ module JenkinsPipelineBuilder
     #
     # args[:git_url] URL to the github main page ex. https://www.github.com/
     # args[:git_repo] Name of repo only, not url  ex. jenkins_pipeline_builder
-    # args[:git_org] The Orig user ex. igorshare
+    # args[:git_org] The Orig user ex. constantcontact
     # @return = array of pull request numbers
     def check_for_pull(args)
       fail 'Please specify all arguments' unless args[:git_url] && args[:git_org] && args[:git_repo]

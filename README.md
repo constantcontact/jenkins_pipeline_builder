@@ -284,7 +284,7 @@ When running a project through this module, the project {{name}} is appended wit
     job_type: pull_request_generator
     git_url: 'https://www.github.com/'
     git_repo: 'jenkins_pipeline_builder'
-    git_org: 'IgorShare'
+    git_org: 'constantcontact'
     jobs:
       - '{{name}}-Job1':
           publishers:

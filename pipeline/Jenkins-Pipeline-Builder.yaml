@@ -1,7 +1,7 @@
 - job:
     name: 'Jenkins-Pipeline-Builder'
     scm_provider: git
-    scm_url: https://github.com/IgorShare/jenkins_pipeline_builder.git
+    scm_url: https://github.com/constantcontact/jenkins_pipeline_builder.git
     scm_branch: master
     scm_params:
       excuded_users: buildmaster
