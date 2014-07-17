@@ -11,12 +11,10 @@ describe 'Pipeline' do
     }
   end
 
-  let(:generator) {JenkinsPipelineBuilder::Generator.new}
+  let(:generator) { JenkinsPipelineBuilder::Generator.new }
 
   it 'generates its own pipeline' do
     generator.debug = true
     generator.bootstrap './pipeline'
-
-
   end
 end

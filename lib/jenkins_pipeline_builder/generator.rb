@@ -209,7 +209,7 @@ module JenkinsPipelineBuilder
             fail "Duplicate item with name '#{name}' was detected."
           end
         else
-          @job_collection[name.to_s] = {name: name.to_s, type: key, value: value}
+          @job_collection[name.to_s] = { name: name.to_s, type: key, value: value }
         end
       end
     end
@@ -327,7 +327,7 @@ module JenkinsPipelineBuilder
 
     def prepare_jobs(jobs)
       jobs.map! do |job|
-        job.is_a?(String) ? {job.to_sym => {}} : job
+        job.is_a?(String) ? { job.to_sym => {} } : job
       end
     end
 
@@ -345,7 +345,7 @@ module JenkinsPipelineBuilder
 
     def process_views(views, project, errors = {})
       views.map! do |view|
-        view.is_a?(String) ? {view.to_sym => {}} : view
+        view.is_a?(String) ? { view.to_sym => {} } : view
       end
       views.each do |view|
         view_id = view.keys.first
@@ -464,7 +464,7 @@ module JenkinsPipelineBuilder
       if @debug
         logger.info "Will create job #{job}"
         logger.info "#{xml}"
-        Dir.mkdir(out_dir) unless File.exists?(out_dir)
+        Dir.mkdir(out_dir) unless File.exist?(out_dir)
         File.open("#{out_dir}/#{job_name}.xml", 'w') { |f| f.write xml }
         return
       end
@@ -482,19 +482,19 @@ module JenkinsPipelineBuilder
       logger.info "Creating Yaml Job #{job}"
       job[:job_type] = 'free_style' unless job[:job_type]
       case job[:job_type]
-        when 'job_dsl'
-          xml = compile_freestyle_job_to_xml(job)
-          payload = update_job_dsl(job, xml)
-        when 'multi_project'
-          xml = compile_freestyle_job_to_xml(job)
-          payload = adjust_multi_project xml
-        when 'build_flow'
-          xml = compile_freestyle_job_to_xml(job)
-          payload = add_job_dsl(job, xml)
-        when 'free_style', 'pull_request_generator'
-          payload = compile_freestyle_job_to_xml job
-        else
-          return false, "Job type: #{job[:job_type]} is not one of job_dsl, multi_project, build_flow or free_style"
+      when 'job_dsl'
+        xml = compile_freestyle_job_to_xml(job)
+        payload = update_job_dsl(job, xml)
+      when 'multi_project'
+        xml = compile_freestyle_job_to_xml(job)
+        payload = adjust_multi_project xml
+      when 'build_flow'
+        xml = compile_freestyle_job_to_xml(job)
+        payload = add_job_dsl(job, xml)
+      when 'free_style', 'pull_request_generator'
+        payload = compile_freestyle_job_to_xml job
+      else
+        return false, "Job type: #{job[:job_type]} is not one of job_dsl, multi_project, build_flow or free_style"
       end
 
       [true, payload]

@@ -145,11 +145,11 @@ describe JenkinsPipelineBuilder::ModuleRegistry do
 
   describe 'executing a registry item' do
     before :all do
-      class XmlException < StandardError;
+      class XmlException < StandardError
       end
-      class BeforeException < StandardError;
+      class BeforeException < StandardError
       end
-      class AfterException < StandardError;
+      class AfterException < StandardError
       end
       JenkinsPipelineBuilder.credentials = {
         server_ip: '127.0.0.1',
@@ -160,7 +160,7 @@ describe JenkinsPipelineBuilder::ModuleRegistry do
       }
     end
 
-    let(:params) { {wrappers: {test_name: :foo}} }
+    let(:params) { { wrappers: { test_name: :foo } } }
 
     before :each do
       JenkinsPipelineBuilder.generator.module_registry = JenkinsPipelineBuilder::ModuleRegistry.new
@@ -205,7 +205,7 @@ describe JenkinsPipelineBuilder::ModuleRegistry do
     end
 
     context 'unordered dsl' do
-      let(:params) { {wrappers: {unordered_test: :foo}} }
+      let(:params) { { wrappers: { unordered_test: :foo } } }
       it 'works with before first' do
         wrapper do
           name :unordered_test

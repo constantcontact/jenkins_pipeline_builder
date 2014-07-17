@@ -19,12 +19,12 @@ describe 'publishers' do
 
   after :each do |example|
     name = example.description.gsub ' ', '_'
-    File.open("./out/xml/publisher_#{name}.xml",'w') {|f| @n_xml.write_xml_to f}
+    File.open("./out/xml/publisher_#{name}.xml", 'w') { |f| @n_xml.write_xml_to f }
   end
 
   context 'sonar publisher' do
     it 'generates a configuration' do
-      params = {publishers: {sonar_result: {}}}
+      params = { publishers: { sonar_result: {} } }
 
       JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
 
@@ -33,7 +33,7 @@ describe 'publishers' do
     end
 
     it 'populates branch' do
-      params = {publishers: {sonar_result: {branch: 'test'}}}
+      params = { publishers: { sonar_result: { branch: 'test' } } }
 
       JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
 
@@ -43,7 +43,7 @@ describe 'publishers' do
     end
 
     it 'populates maven installation name' do
-      params = {publishers: {sonar_result: {maven_installation_name: 'test'}}}
+      params = { publishers: { sonar_result: { maven_installation_name: 'test' } } }
 
       JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
 
