@@ -38,7 +38,10 @@ end
 
 job_attribute do
   name :scm_params
-  plugin_id 123
+  plugin_id 'git'
+  description 'NOTE: This only supports git currently, the following is the description for the git plugin.
+  This plugin allows use of Git as a build SCM. A recent Git runtime is required (1.7.9 minimum, 1.8.x recommended). Plugin is only tested on official git client. Use exotic installations at your own risks.'
+  jenkins_name "Git (inside 'Source Code Management')"
   announced false
 
   # XML preprocessing
@@ -85,7 +88,9 @@ end
 
 job_attribute do
   name :hipchat
-  plugin_id 123
+  plugin_id 'hipchat'
+  description 'This plugin allows your team to setup build notifications to be sent to HipChat rooms.'
+  jenkins_name 'HipChat Notifications'
   announced false
 
   xml path: '//properties' do |params|
@@ -100,7 +105,9 @@ end
 
 job_attribute do
   name :priority
-  plugin_id 123
+  plugin_id 'PrioritySorter'
+  description 'This plugin adds the ability to assign different priorities to Jobs, the lower priority the job has the sooner the Job will run.'
+  jenkins_name 'Use specific priority for this Job'
   announced false
 
   xml path: '//properties' do |params|
@@ -113,7 +120,9 @@ end
 
 job_attribute do
   name :parameters
-  plugin_id 123
+  plugin_id 'builtin'
+  description 'Allows the job to take parameters.'
+  jenkins_name 'This build is parameterized'
   announced false
 
   xml path: '//properties' do |params|
@@ -157,7 +166,9 @@ end
 
 job_attribute do
   name :discard_old
-  plugin_id 123
+  plugin_id 'builtin'
+  description 'Allows you to discard old builds.'
+  jenkins_name 'Discard Old Builds'
   announced false
 
   xml path: '//project' do |params|
@@ -172,7 +183,9 @@ end
 
 job_attribute do
   name :throttle
-  plugin_id 100
+  plugin_id 'throttle-concurrents'
+  description 'This plugin allows for throttling the number of concurrent builds of a project running per node or globally.'
+  jenkins_name 'Throttle Concurrent Builds'
   announced false
 
   xml path: '//properties' do |params|
@@ -191,7 +204,9 @@ end
 
 job_attribute do
   name :prepare_environment
-  plugin_id 123
+  plugin_id 'envinject'
+  description 'This plugin makes it possible to have an isolated environment for your jobs.'
+  jenkins_name 'Prepare an environment for the run'
   announced false
 
   xml path: '//properties' do |params|
@@ -209,7 +224,9 @@ end
 
 job_attribute do
   name :concurrent_build
-  plugin_id 123
+  plugin_id 'builtin'
+  description 'Allows toggling of concurrent builds.'
+  jenkins_name 'Execute concurrent builds if necessary'
   announced false
 
   xml path: '//concurrentBuild' do |params|
