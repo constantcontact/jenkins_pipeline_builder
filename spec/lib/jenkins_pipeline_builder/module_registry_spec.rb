@@ -177,7 +177,7 @@ describe JenkinsPipelineBuilder::ModuleRegistry do
         end
       end
       expect(JenkinsPipelineBuilder.registry.registry[:job][:wrappers]).to have_key :test_name
-      @ext = JenkinsPipelineBuilder.registry.registry[:job][:wrappers][:test_name].get_extension('0')
+      @ext = JenkinsPipelineBuilder.registry.registry[:job][:wrappers][:test_name].extension
     end
 
     it 'calls the xml block when executing the item' do
@@ -221,7 +221,7 @@ describe JenkinsPipelineBuilder::ModuleRegistry do
         end
 
         expect(JenkinsPipelineBuilder.registry.registry[:job][:wrappers]).to have_key :unordered_test
-        @ext = JenkinsPipelineBuilder.registry.registry[:job][:wrappers][:unordered_test].get_extension('0')
+        @ext = JenkinsPipelineBuilder.registry.registry[:job][:wrappers][:unordered_test].extension
 
         expect do
           JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
@@ -243,7 +243,7 @@ describe JenkinsPipelineBuilder::ModuleRegistry do
         end
 
         expect(JenkinsPipelineBuilder.registry.registry[:job][:wrappers]).to have_key :unordered_test
-        @ext = JenkinsPipelineBuilder.registry.registry[:job][:wrappers][:unordered_test].get_extension('0')
+        @ext = JenkinsPipelineBuilder.registry.registry[:job][:wrappers][:unordered_test].extension
 
         expect do
           JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
@@ -265,7 +265,7 @@ describe JenkinsPipelineBuilder::ModuleRegistry do
         end
 
         expect(JenkinsPipelineBuilder.registry.registry[:job][:wrappers]).to have_key :unordered_test
-        @ext = JenkinsPipelineBuilder.registry.registry[:job][:wrappers][:unordered_test].get_extension('0')
+        @ext = JenkinsPipelineBuilder.registry.registry[:job][:wrappers][:unordered_test].extension
 
         expect do
           JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)

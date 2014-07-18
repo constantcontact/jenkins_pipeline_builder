@@ -43,15 +43,16 @@ module JenkinsPipelineBuilder
       }
     end
 
-    def register(prefix, extension)
+    def register(prefix, set)
       name = prefix.pop
       root = prefix.inject(@registry, :[])
       root[name] = {} unless root[name]
+      # TODO: Set installed version here
 
-      if root[name][extension.name]
-        root[name][extension.name].merge extension
+      if root[name][set.name]
+        root[name][set.name].merge set
       else
-        root[name][extension.name] = extension
+        root[name][set.name] = set
       end
     end
 
@@ -81,7 +82,7 @@ module JenkinsPipelineBuilder
         end
         reg_value = registry[key]
         if reg_value.is_a? ExtensionSet
-          ext = reg_value.get_extension @versions[reg_value.plugin_id]
+          ext = reg_value.extension
           logger.debug "Using #{ext.type} #{ext.name} version #{ext.min_version}"
           execute_extension ext, value, n_xml
         elsif value.is_a? Hash

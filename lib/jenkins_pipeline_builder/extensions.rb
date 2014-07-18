@@ -87,15 +87,29 @@ module JenkinsPipelineBuilder
     end
 
     attr_accessor :blocks, :extensions, :settings
+    attr_reader :installed_version
 
     def initialize
       @blocks = {}
       @settings = {}
       @extensions = []
+      @installed_version = Gem::Version.new '0.0'
     end
 
-    def get_extension(version = '0')
-      extensions.first
+    def installed_version=(version)
+      version = version.match(/\d+\.\d+/)
+      @installed_version = Gem::Version.new version
+    end
+
+    def extension
+      versions = extensions.each_with_object({}) do |ext, hash|
+        hash[Gem::Version.new(ext.min_version)] = ext
+      end
+      versions.keys.sort!.reverse!.each do |version|
+        return versions[version] if version <= installed_version
+      end
+
+      fail "Can't find version of #{name} lte #{installed_version}, versions available are #{versions.keys.map(&:to_s)}"
     end
 
     def merge(other_set)
