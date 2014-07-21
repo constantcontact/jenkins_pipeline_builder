@@ -464,7 +464,7 @@ module JenkinsPipelineBuilder
       if @debug
         logger.info "Will create job #{job}"
         logger.info "#{xml}"
-        Dir.mkdir(out_dir) unless File.exist?(out_dir)
+        FileUtils.mkdir_p(out_dir) unless File.exist?(out_dir)
         File.open("#{out_dir}/#{job_name}.xml", 'w') { |f| f.write xml }
         return
       end

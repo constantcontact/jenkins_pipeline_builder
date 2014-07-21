@@ -1,6 +1,14 @@
 require File.expand_path('../spec_helper', __FILE__)
-require 'pp'
 describe JenkinsPipelineBuilder::Compiler do
+  before :all do
+    JenkinsPipelineBuilder.credentials = {
+      server_ip: '127.0.0.1',
+      server_port: 8080,
+      username: 'username',
+      password: 'password',
+      log_location: '/dev/null'
+    }
+  end
   let(:compiler) { JenkinsPipelineBuilder::Compiler }
   let(:settings_project) { { name: 'DummyPipeline', type: :project, value: { name: 'DummyPipeline', jobs: ['{{name}}-00', { '{{name}}-01' => { job_name: '{{name}}-02' } }] } } }
   let(:settings_global) { { name: 'global', description: 'Do not edit this job through the web!', discard_days: '14', pipeline_repo: 'git@github.com:constantcontact/jenkins_pipeline_builder.git', pipeline_branch: 'master' } }

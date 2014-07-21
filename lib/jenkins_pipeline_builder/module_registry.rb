@@ -26,6 +26,7 @@ module JenkinsPipelineBuilder
     def initialize
       @registry = { job: {} }
       @versions = {}
+      # @versions = JenkinsPipelineBuilder.client.plugin.list_installed
     end
 
     def logger

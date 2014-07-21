@@ -40,7 +40,7 @@ builder do
                 configs do
                   if job[:config].key? :predefined_build_parameters
                     send('hudson.plugins.parameterizedtrigger.PredefinedBuildParameters') do
-                      properties job[:config][:predefined_build_parameters].join "\n"
+                      properties job[:config][:predefined_build_parameters]
                     end
                   end
                 end

@@ -117,6 +117,19 @@ describe JenkinsPipelineBuilder::ModuleRegistry do
     end
   end
   describe '#initialize' do
+    before :all do
+      JenkinsPipelineBuilder.credentials = {
+        server_ip: '127.0.0.1',
+        server_port: 8080,
+        username: 'username',
+        password: 'password',
+        log_location: '/dev/null'
+      }
+    end
+
+    it 'fetches the installed plugin versions' do
+      # expect(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(list_installed: {'one' => '0.1'})
+    end
 
   end
 
