@@ -52,4 +52,70 @@ describe 'publishers' do
       expect(maven_installation_name.first.content).to match 'test'
     end
   end
+
+  context 'description_setter' do
+    it 'generates a configuration' do
+      params = { publishers: { description_setter: {} } }
+
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+
+      publisher = @n_xml.root.children.first
+      expect(publisher.name).to match 'hudson.plugins.descriptionsetter.DescriptionSetterPublisher'
+    end
+  end
+
+  context 'downstream' do
+    it 'generates a configuration' do
+      params = { publishers: { downstream: {} } }
+
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+
+      publisher = @n_xml.root.children.first
+      expect(publisher.name).to match 'hudson.plugins.parameterizedtrigger.BuildTrigger'
+    end
+
+    it 'populates data'
+    it 'passes params'
+    it 'sets the file'
+  end
+
+  context 'hipchat' do
+    it 'generates a configuration'
+    it 'does an option'
+  end
+
+  context 'git' do
+    it 'generates a configuration'
+    it 'does an option'
+  end
+
+  context 'junit_result' do
+    it 'generates a configuration'
+    it 'does an option'
+  end
+
+  context 'coverage_result' do
+    it 'generates a configuration'
+    it 'does an option'
+  end
+
+  context 'post_build_script' do
+    it 'generates a configuration'
+    it 'does an option'
+  end
+
+  context 'groovy_postbuild' do
+    it 'generates a configuration'
+    it 'does an option'
+  end
+
+  context 'archive_artifact' do
+    it 'generates a configuration'
+    it 'does an option'
+  end
+
+  context 'email_notification' do
+    it 'generates a configuration'
+    it 'does an option'
+  end
 end

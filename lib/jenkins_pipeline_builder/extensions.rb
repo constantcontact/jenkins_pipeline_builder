@@ -117,7 +117,7 @@ module JenkinsPipelineBuilder
       SET_METHODS.each do |method_name|
         val1 = settings[method_name]
         val2 = other_set.settings[method_name]
-        mismatch << "The values for #{method_name} do not match #{val1} : #{val2}" unless val1 == val2
+        mismatch << "The values for #{method_name} do not match '#{val1}' : '#{val2}'" unless val1 == val2
       end
       mismatch.each do |error|
         puts error

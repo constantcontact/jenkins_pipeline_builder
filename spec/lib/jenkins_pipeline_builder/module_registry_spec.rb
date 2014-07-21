@@ -163,9 +163,6 @@ describe JenkinsPipelineBuilder::ModuleRegistry do
     let(:params) { { wrappers: { test_name: :foo } } }
 
     before :each do
-      JenkinsPipelineBuilder.generator.module_registry = JenkinsPipelineBuilder::ModuleRegistry.new
-      JenkinsPipelineBuilder.load_extensions
-
       @n_xml = Nokogiri::XML::Document.new
 
       wrapper do
@@ -178,6 +175,10 @@ describe JenkinsPipelineBuilder::ModuleRegistry do
       end
       expect(JenkinsPipelineBuilder.registry.registry[:job][:wrappers]).to have_key :test_name
       @ext = JenkinsPipelineBuilder.registry.registry[:job][:wrappers][:test_name].extension
+    end
+
+    after :each do
+      JenkinsPipelineBuilder.registry.registry[:job][:wrappers].delete :test_name
     end
 
     it 'calls the xml block when executing the item' do
@@ -206,6 +207,11 @@ describe JenkinsPipelineBuilder::ModuleRegistry do
 
     context 'unordered dsl' do
       let(:params) { { wrappers: { unordered_test: :foo } } }
+
+      after :each do
+        JenkinsPipelineBuilder.registry.registry[:job][:wrappers].delete :unordered_test
+      end
+
       it 'works with before first' do
         wrapper do
           name :unordered_test

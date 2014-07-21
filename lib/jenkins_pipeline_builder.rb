@@ -53,19 +53,15 @@ module JenkinsPipelineBuilder
     def registry
       generator.module_registry
     end
-
-    def load_extensions
-      load 'jenkins_pipeline_builder/extensions/builders.rb'
-      load 'jenkins_pipeline_builder/extensions/job_attributes.rb'
-      load 'jenkins_pipeline_builder/extensions/wrappers.rb'
-      load 'jenkins_pipeline_builder/extensions/publishers.rb'
-      load 'jenkins_pipeline_builder/extensions/triggers.rb'
-    end
   end
 end
 JenkinsPipelineBuilder.generator
 require 'jenkins_pipeline_builder/extensions'
-JenkinsPipelineBuilder.load_extensions
+require 'jenkins_pipeline_builder/extensions/builders'
+require 'jenkins_pipeline_builder/extensions/job_attributes'
+require 'jenkins_pipeline_builder/extensions/wrappers'
+require 'jenkins_pipeline_builder/extensions/publishers'
+require 'jenkins_pipeline_builder/extensions/triggers'
 
 require 'jenkins_pipeline_builder/cli/helper'
 require 'jenkins_pipeline_builder/cli/view'
