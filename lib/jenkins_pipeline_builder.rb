@@ -40,14 +40,13 @@ module JenkinsPipelineBuilder
 
     def credentials=(creds)
       @credentials = creds
-      @client =
-      @_client = JenkinsApi::Client.new(credentials)
-      generator.logger = @_client.logger
+      @client = JenkinsApi::Client.new(credentials)
+      generator.logger = @client.logger
       @credentials
     end
 
     def logger
-      @_client.logger
+      client.logger
     end
 
     def registry

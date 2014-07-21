@@ -175,6 +175,7 @@ describe JenkinsPipelineBuilder::ExtensionSet do
 
     it 'returns an extension' do
       ext_versions ['0.0']
+      set.installed_version = '0.1'
       expect(set.extension).to be_kind_of JenkinsPipelineBuilder::Extension
     end
 

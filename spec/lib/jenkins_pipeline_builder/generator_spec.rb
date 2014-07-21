@@ -1,6 +1,9 @@
 require File.expand_path('../spec_helper', __FILE__)
 
 describe JenkinsPipelineBuilder::Generator do
+  after :each do
+    JenkinsPipelineBuilder.registry.clear_versions
+  end
 
   before(:all) do
     JenkinsPipelineBuilder.credentials = {
@@ -64,6 +67,10 @@ describe JenkinsPipelineBuilder::Generator do
   end
 
   describe '#bootstrap' do
+    before :each do
+      allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
+        list_installed: { 'description' => '20.0', 'git' => '20.0' })
+    end
     it 'produces no errors while creating pipeline SamplePipeline with view' do
       @generator.debug = true
       job_name = 'SamplePipeline'
@@ -94,6 +101,10 @@ describe JenkinsPipelineBuilder::Generator do
   end
 
   describe '#pull_request' do
+    before :each do
+      allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
+        list_installed: { 'description' => '20.0', 'git' => '20.0' })
+    end
     it 'produces no errors while creating pipeline PullRequest' do
       # Dummy data
       purge = []

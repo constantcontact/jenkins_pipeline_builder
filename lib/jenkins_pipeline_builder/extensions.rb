@@ -87,21 +87,32 @@ module JenkinsPipelineBuilder
     end
 
     attr_accessor :blocks, :extensions, :settings
-    attr_reader :installed_version
 
     def initialize
       @blocks = {}
       @settings = {}
       @extensions = []
-      @installed_version = Gem::Version.new '0.0'
     end
 
     def installed_version=(version)
       version = version.match(/\d+\.\d+/)
-      @installed_version = Gem::Version.new version
+      @version = Gem::Version.new version
+    end
+
+    def installed_version
+      return @version if @version
+      reg = JenkinsPipelineBuilder.registry
+      version = reg.versions[settings[:plugin_id]]
+      puts reg.versions.inspect if version.nil?
+      fail "Plugin #{settings[:name]} is not installed (plugin_id: #{settings[:plugin_id]})" if version.nil?
+      self.installed_version = version
+      @version
     end
 
     def extension
+      # TODO: Support multiple xml sections for the native to jenkins plugins
+      return extensions.first if settings[:plugin_id] == 'builtin'
+
       versions = extensions.each_with_object({}) do |ext, hash|
         hash[Gem::Version.new(ext.min_version)] = ext
       end

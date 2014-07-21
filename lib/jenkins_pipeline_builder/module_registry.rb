@@ -25,8 +25,16 @@ module JenkinsPipelineBuilder
     attr_accessor :registry, :registered_modules
     def initialize
       @registry = { job: {} }
-      @versions = {}
-      # @versions = JenkinsPipelineBuilder.client.plugin.list_installed
+    end
+
+    def versions
+      # Return a hash with a default of 1000 so that we'll get the newest in debug
+      return Hash.new { |_| '1000.0' } if JenkinsPipelineBuilder.generator.debug
+      @versions ||= JenkinsPipelineBuilder.client.plugin.list_installed
+    end
+
+    def clear_versions
+      @versions = nil
     end
 
     def logger

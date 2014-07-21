@@ -1,6 +1,9 @@
 require File.expand_path('../../spec_helper', __FILE__)
 
 describe 'publishers' do
+  after :each do
+    JenkinsPipelineBuilder.registry.clear_versions
+  end
 
   before :all do
     JenkinsPipelineBuilder.credentials = {
@@ -23,6 +26,11 @@ describe 'publishers' do
   end
 
   context 'sonar publisher' do
+    before :each do
+      allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
+        list_installed: { 'sonar' => '20.0' })
+    end
+
     it 'generates a configuration' do
       params = { publishers: { sonar_result: {} } }
 
@@ -54,7 +62,12 @@ describe 'publishers' do
   end
 
   context 'description_setter' do
+    before :each do
+      allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
+        list_installed: { 'description-setter' => '20.0' })
+    end
     it 'generates a configuration' do
+      puts JenkinsPipelineBuilder.registry.versions
       params = { publishers: { description_setter: {} } }
 
       JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
@@ -65,6 +78,12 @@ describe 'publishers' do
   end
 
   context 'downstream' do
+    before :each do
+      allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
+        list_installed: { 'parameterized-trigger' => '20.0'
+    })
+    end
+
     it 'generates a configuration' do
       params = { publishers: { downstream: {} } }
 

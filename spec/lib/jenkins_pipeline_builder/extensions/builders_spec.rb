@@ -1,6 +1,9 @@
 require File.expand_path('../../spec_helper', __FILE__)
 
 describe 'builders' do
+  after :each do
+    JenkinsPipelineBuilder.registry.clear_versions
+  end
 
   before :all do
     JenkinsPipelineBuilder.credentials = {
@@ -23,6 +26,10 @@ describe 'builders' do
   end
 
   context 'multi_job builder' do
+    before :each do
+      allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
+        list_installed: { 'jenkins-multijob-plugin' => '20.0' })
+    end
     it 'generates a configuration' do
       params = { builders: { multi_job: { phases: { foo: { jobs: [{ name: 'foo' }] } } } } }
 

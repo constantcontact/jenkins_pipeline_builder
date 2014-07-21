@@ -1,6 +1,9 @@
 require File.expand_path('../spec_helper', __FILE__)
 
 describe JenkinsPipelineBuilder::ModuleRegistry do
+  after :each do
+    JenkinsPipelineBuilder.registry.clear_versions
+  end
   describe '#register' do
     it 'should return item by a specified path' do
 
@@ -117,6 +120,10 @@ describe JenkinsPipelineBuilder::ModuleRegistry do
     end
   end
   describe '#initialize' do
+
+  end
+
+  describe '#version' do
     before :all do
       JenkinsPipelineBuilder.credentials = {
         server_ip: '127.0.0.1',
@@ -127,10 +134,10 @@ describe JenkinsPipelineBuilder::ModuleRegistry do
       }
     end
 
-    it 'fetches the installed plugin versions' do
-      # expect(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(list_installed: {'one' => '0.1'})
+    it 'pulls the version from the registry if it is not memoized' do
+      expect(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(list_installed: { 'one' => '0.1' })
+      subject.versions
     end
-
   end
 
   describe '#entries' do
@@ -176,11 +183,13 @@ describe JenkinsPipelineBuilder::ModuleRegistry do
     let(:params) { { wrappers: { test_name: :foo } } }
 
     before :each do
+      allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
+        list_installed: { 'test_name' => '20.0', 'unorderedTest' => '20.0' })
       @n_xml = Nokogiri::XML::Document.new
 
       wrapper do
         name :test_name
-        plugin_id 123
+        plugin_id 'test_name'
 
         xml do
           true
@@ -188,6 +197,7 @@ describe JenkinsPipelineBuilder::ModuleRegistry do
       end
       expect(JenkinsPipelineBuilder.registry.registry[:job][:wrappers]).to have_key :test_name
       @ext = JenkinsPipelineBuilder.registry.registry[:job][:wrappers][:test_name].extension
+
     end
 
     after :each do
@@ -228,7 +238,7 @@ describe JenkinsPipelineBuilder::ModuleRegistry do
       it 'works with before first' do
         wrapper do
           name :unordered_test
-          plugin_id 123
+          plugin_id 'unorderedTest'
 
           before do
             fail BeforeException, 'foo'
@@ -250,7 +260,7 @@ describe JenkinsPipelineBuilder::ModuleRegistry do
       it 'works with after first' do
         wrapper do
           name :unordered_test
-          plugin_id 123
+          plugin_id 'unorderedTest'
 
           after do
             fail AfterException, 'foo'
@@ -272,7 +282,7 @@ describe JenkinsPipelineBuilder::ModuleRegistry do
       it 'works with xml first' do
         wrapper do
           name :unordered_test
-          plugin_id 123
+          plugin_id 'unorderedTest'
 
           xml do
             fail XmlException, 'foo'
