@@ -120,7 +120,7 @@ end
 
 wrapper do
   name :artifactory
-  plugin_id 123
+  plugin_id 'artifactory'
   description 'This plugin allows deploying Maven 2, Maven 3, Ivy and Gradle artifacts and build info to the Artifactory artifacts manager.'
   jenkins_name 'Generic-Artifactory Integration'
   announced false
