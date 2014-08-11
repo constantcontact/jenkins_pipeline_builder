@@ -256,6 +256,9 @@ Here's a high level overview of what's available:
           recipients: 'test@example.com' # Whitepace-delimited list of recipients
           send_if_unstable: false # Optional, default to true
           send_to_individuals: true # Optional, default to false
+      - sonar_result:
+          branch: 'sonar-results-branch-name'
+          maven_installation_name: 'name'
     triggers:
       - git_push: true
       - scm_polling: 'H/5 * * * *'
