@@ -54,7 +54,11 @@ job_attribute do
     xpath('//scm/recursiveSubmodules').remove if params[:recursive_update]
     xpath('//scm/wipeOutWorkspace').remove if params[:wipe_workspace]
     xpath('//scm/excludedUsers').remove if params[:excluded_users]
-    xpath('//scm/userRemoteConfigs').remove if params[:remote_name] || params[:refspec]
+    if params[:remote_name] || params[:refspec]
+      remote_url = xpath('//scm/userRemoteConfigs/hudson.plugins.git.UserRemoteConfig/url').first
+      params[:remote_url] = remote_url.content if remote_url
+      xpath('//scm/userRemoteConfigs').remove
+    end
     xpath('//scm/skipTag').remove if params[:skip_tag]
     xpath('//scm/excludedRegions').remove if params[:excluded_regions]
     xpath('//scm/includedRegions').remove if params[:included_regions]
@@ -66,21 +70,16 @@ job_attribute do
     recursiveSubmodules params[:recursive_update] if params[:recursive_update]
     wipeOutWorkspace params[:wipe_workspace] if params[:wipe_workspace]
     excludedUsers params[:excluded_users] if params[:excluded_users]
-    if params[:remote_name]
+    if params[:remote_name] || params[:refspec]
       userRemoteConfigs do
         send('hudson.plugins.git.UserRemoteConfig') do
-          name params[:remote_name]
+          name params[:remote_name] if params[:remote_name]
+          refspec params[:refspec] if params[:refspec]
+          url params[:remote_url] if params[:remote_url]
         end
       end
     end
     skipTag params[:skip_tag] if params[:skip_tag]
-    if params[:refspec]
-      userRemoteConfigs do
-        send 'hudson.plugins.git.UserRemoteConfig' do
-          refspec params[:refspec]
-        end
-      end
-    end
     excludedRegions params[:excluded_regions] if params[:excluded_regions]
     includedRegions params[:included_regions] if params[:included_regions]
   end
