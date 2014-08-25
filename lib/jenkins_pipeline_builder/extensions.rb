@@ -66,7 +66,8 @@ def job_attribute(&block)
     return false
   end
   JenkinsPipelineBuilder.registry.register([:job], set)
-  puts "Successfully registered #{set.name} for versions #{set.min_version} and higher" if set.announced
+  versions = set.extensions.map { |ext| ext.min_version }
+  puts "Successfully registered #{set.name} for versions #{versions}" if set.announced
 end
 
 module JenkinsPipelineBuilder

@@ -10,6 +10,9 @@
 Style/CyclomaticComplexity:
   Max: 9
 
+Metrics/PerceivedComplexity:
+  Max: 11
+
 ########
 # Fix these later
 # Configuration parameters: CountComments.
