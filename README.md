@@ -112,7 +112,7 @@ Here's a high level overview of what's available:
     scm_url: git@github.com:your_url_here
     scm_branch: master
     scm_params:
-      excuded_users: user
+      excluded_users: user
       local_branch: branch_name
       recursive_update: true
       wipe_workspace: true
