@@ -4,7 +4,7 @@
     scm_url: https://github.com/constantcontact/jenkins_pipeline_builder.git
     scm_branch: master
     scm_params:
-      excuded_users: buildmaster
+      excluded_users: buildmaster
     shell_command: '. commit_build.sh'
     triggers:
       - scm_polling: 'H/5 * * * *'
