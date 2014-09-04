@@ -120,6 +120,8 @@ Here's a high level overview of what's available:
       excluded_regions: region
       included_regions: region
     shell_command: '. commit_build.sh'
+    inject_env_vars_pre_scm:
+      file: '${PARENT_WORKSPACE}/{{shared_job_settings_file}}'
     hipchat:
       room: room name here
       start-notify: true
