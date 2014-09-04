@@ -232,3 +232,24 @@ job_attribute do
     (params == true) ? 'true' : 'false'
   end
 end
+
+job_attribute do
+  name :inject_env_vars_pre_scm
+  plugin_id 'envinject'
+  description 'This plugin makes it possible to inject variables before the SCM checkout.'
+  jenkins_name 'Inject environment variables before the SCM checkout.'
+  announced false
+
+  xml path: '//properties' do |params|
+    EnvInjectJobProperty do
+      info do
+        propertiesFilePath params[:file] if params[:file]
+        propertiesContent params[:content] if params[:content]
+        loadFilesFromMaster false
+      end
+      on true
+      keepJenkinsSystemVariables true
+      keepBuildVariables true
+    end
+  end
+end
