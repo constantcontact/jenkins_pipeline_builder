@@ -77,6 +77,7 @@ module JenkinsPipelineBuilder
       else
         errors = publish_jobs(jobs)
       end
+      return false if errors == false
       errors.each do |k, v|
         logger.error "Encountered errors compiling: #{k}:"
         logger.error v
@@ -255,11 +256,11 @@ module JenkinsPipelineBuilder
       end
     end
 
-    def download_yaml(url, file)
+    def download_yaml(url, file, remote_opts = {})
       @remote_depends[url] = file
       logger.info "Downloading #{url} to #{file}.tar"
       open("#{file}.tar", 'w') do |local_file|
-        open(url) do |remote_file|
+        open(url, remote_opts) do |remote_file|
           local_file.write(Zlib::GzipReader.new(remote_file).read)
         end
       end
@@ -275,11 +276,14 @@ module JenkinsPipelineBuilder
       dependencies.each do |source|
         source = source[:source]
         url = source[:url]
+
         file = "remote-#{@remote_depends.length}"
         if @remote_depends[url]
           file = @remote_depends[url]
         else
-          download_yaml(url, file)
+          opts = {}
+          opts = { ssl_verify_mode: OpenSSL::SSL::VERIFY_NONE } if source[:verify_ssl] == false
+          download_yaml(url, file, opts)
         end
 
         path = File.expand_path(file, Dir.getwd)
