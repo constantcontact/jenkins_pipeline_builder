@@ -137,8 +137,9 @@ Here's a high level overview of what's available:
                   exposed_scm: true
                   current_params: true
                   config:
-                    predefined_build_parameters:
-                      - "PARENT_WORKSPACE=${WORKSPACE}"
+                    predefined_build_parameters: |
+                      PARAM_NAME_1: PARAM_VALUE_1
+                      PARAM_NAME_2: PARAM_VALUE_2
                 - name: second
               continue_condition: COMPLETED
             "Phase Two":
