@@ -37,6 +37,22 @@ job_attribute do
 end
 
 job_attribute do
+  name :disabled
+  plugin_id 'builtin'
+  description 'Prevents new builds from being executed until the job(project) is re-enabled.'
+  jenkins_name 'Disable Build (Under Delivery Pipeline configuration)'
+  announced false
+
+  before do
+    xpath('//project/disabled').remove
+  end
+
+  xml path: '//project' do |disabled|
+    disabled "#{disabled}"
+  end
+end
+
+job_attribute do
   name :scm_params
   plugin_id 'git'
   description 'NOTE: This only supports git currently, the following is the description for the git plugin.
