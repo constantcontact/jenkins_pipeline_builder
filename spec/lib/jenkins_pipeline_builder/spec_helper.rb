@@ -13,7 +13,7 @@ RSpec::Matchers.define :have_min_version do |version|
   end
 
   failure_message do
-    versions = @set.map { |x| x.min_version }.join(', ')
+    versions = @set.map(&:min_version).join(', ')
     "Expected to find extension #{@set.name} with version #{version}, found #{versions} instead"
   end
 end

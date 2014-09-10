@@ -47,3 +47,6 @@ Style/Next:
 Style/VariableName:
   Exclude:
     - 'lib/jenkins_pipeline_builder/extensions/*'
+
+Style/SymbolProc:
+  IgnoredMethods: new

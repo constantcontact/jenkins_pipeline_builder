@@ -67,7 +67,6 @@ describe 'publishers' do
         list_installed: { 'description-setter' => '20.0' })
     end
     it 'generates a configuration' do
-      puts JenkinsPipelineBuilder.registry.versions
       params = { publishers: { description_setter: {} } }
 
       JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)

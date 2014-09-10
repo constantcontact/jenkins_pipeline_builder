@@ -42,7 +42,7 @@ JenkinsPipelineBuilder.registry.entries.each do |type, path|
       return false
     end
     JenkinsPipelineBuilder.registry.register([:job, type], set)
-    versions = set.extensions.map { |ext| ext.min_version }
+    versions = set.extensions.map(&:min_version)
     puts "Successfully registered #{set.name} for versions #{versions}" if set.announced
   end
 end
@@ -66,7 +66,7 @@ def job_attribute(&block)
     return false
   end
   JenkinsPipelineBuilder.registry.register([:job], set)
-  versions = set.extensions.map { |ext| ext.min_version }
+  versions = set.extensions.map(&:min_version)
   puts "Successfully registered #{set.name} for versions #{versions}" if set.announced
 end
 
