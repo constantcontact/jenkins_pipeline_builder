@@ -56,6 +56,7 @@ describe JenkinsPipelineBuilder::ModuleRegistry do
     it 'registered the job_attributes correctly' do
       job_attributes = {
         description: ['0'],
+        disabled: ['0'],
         scm_params: ['0'],
         hipchat: ['0'],
         priority: ['0'],

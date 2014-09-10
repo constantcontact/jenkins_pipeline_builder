@@ -20,6 +20,24 @@ describe 'job_attributes' do
     File.open("./out/xml/job_attribute_#{name}.xml", 'w') { |f| @n_xml.write_xml_to f }
   end
 
+  context 'disabled' do
+    it 'sets disabled' do
+      params = { disabled: true }
+
+      builder = Nokogiri::XML::Builder.new do |xml|
+        xml.project do
+          xml.disabled
+        end
+      end
+      @n_xml = builder.doc
+
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+
+      expect(@n_xml.root.css('disabled').first).to be_truthy
+      expect(@n_xml.root.css('disabled').first.content).to eq 'true'
+    end
+  end
+
   context 'scm params' do
     before :each do
       allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
