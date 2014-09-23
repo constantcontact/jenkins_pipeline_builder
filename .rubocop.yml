@@ -7,7 +7,7 @@
 
 #######
 # WIP
-Style/CyclomaticComplexity:
+Metrics/CyclomaticComplexity:
   Max: 9
 
 Metrics/PerceivedComplexity:
@@ -16,14 +16,14 @@ Metrics/PerceivedComplexity:
 ########
 # Fix these later
 # Configuration parameters: CountComments.
-Style/ClassLength:
+Metrics/ClassLength:
   #Enabled: false
   Max: 500
 
 #######
 # Finalized settings
 
-Style/LineLength:
+Metrics/LineLength:
   Max: 120
   Exclude:
     - 'spec/lib/jenkins_pipeline_builder/compiler_spec.rb'
@@ -32,7 +32,7 @@ Style/LineLength:
     - 'lib/jenkins_pipeline_builder/extensions/*'
 
 # Configuration parameters: CountComments.
-Style/MethodLength:
+Metrics/MethodLength:
   Max: 25
 
 Style/Documentation:
