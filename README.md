@@ -87,7 +87,7 @@ Here's a high level overview of what's available:
 ```yaml
 - job:
     name: nameStr # Name of your Job
-    job_type: free_style # Optional  [free_style|multi_project]
+    job_type: free_style # Optional  [free_style|multi_project|job_dsl|build_flow|pull_request_generator]
     concurrent_build: true or false
     discard_old: # Discard old builds after:
       days: 1 # Optional, number of days after which the build is deleted
