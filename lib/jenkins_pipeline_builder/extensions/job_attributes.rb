@@ -78,7 +78,14 @@ job_attribute do
     xpath('//scm/skipTag').remove if params[:skip_tag]
     xpath('//scm/excludedRegions').remove if params[:excluded_regions]
     xpath('//scm/includedRegions').remove if params[:included_regions]
+  end
 
+  before version: '2.0' do |params|
+    if params[:remote_name] || params[:refspec]
+      remote_url = xpath('//scm/userRemoteConfigs/hudson.plugins.git.UserRemoteConfig/url').first
+      params[:remote_url] = remote_url.content if remote_url
+      xpath('//scm/userRemoteConfigs').remove
+    end
   end
 
   xml path: '//scm' do |params|
@@ -98,6 +105,46 @@ job_attribute do
     skipTag params[:skip_tag] if params[:skip_tag]
     excludedRegions params[:excluded_regions] if params[:excluded_regions]
     includedRegions params[:included_regions] if params[:included_regions]
+  end
+
+  xml version: '2.0', path: '//scm' do |params|
+    configVersion 2
+    userRemoteConfigs do
+      send('hudson.plugins.git.UserRemoteConfig') do
+        name params[:remote_name] if params[:remote_name]
+        refspec params[:refspec] if params[:refspec]
+        url params[:remote_url] if params[:remote_url]
+        credentialsId params[:credentials_id] if params[:credentials_id]
+      end
+    end
+    doGenerateSubmoduleConfigurations false
+    submoduleCfg
+    extensions do
+      send('hudson.plugins.git.extensions.impl.WipeWorkspace') if params[:wipe_workspace]
+      if params[:local_branch]
+        send('hudson.plugins.git.extensions.impl.LocalWorkspace') do
+          localBranch params[:local_branch]
+        end
+      end
+      if params[:recursive_update]
+        send('hudson.plugins.git.extensions.impl.SubmoduleOption') do
+          disableSubmodules false
+          recursiveSubmodules true
+          trackingSubmodules false
+        end
+      end
+      if params[:excluded_users]
+        send('hudson.plugins.git.extensions.impl.UserExclusion') do
+          excludedUser params[:excluded_users]
+        end
+      end
+      if params[:included_regions] || params[:excluded_regions]
+        send('hudson.plugins.git.extensions.impl.PathRestrictions') do
+          includedRegions params[:included_regions] if params[:included_regions]
+          excludedRegions params[:excluded_regions] if params[:excluded_regions]
+        end
+      end
+    end
   end
 end
 

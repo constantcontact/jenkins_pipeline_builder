@@ -40,8 +40,6 @@ describe 'job_attributes' do
 
   context 'scm params' do
     before :each do
-      allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
-        list_installed: { 'git' => '20.0' })
 
       builder = Nokogiri::XML::Builder.new { |xml| xml.scm }
       @n_xml = builder.doc
@@ -54,37 +52,108 @@ describe 'job_attributes' do
         end
       end
     end
+    context '>= 2.0' do
+      before :each do
+        JenkinsPipelineBuilder.registry.registry[:job][:scm_params].installed_version = '2.0'
+      end
 
-    it 'writes one block when both refspec and remote_name' do
-      params = { scm_params: { refspec: :bar, remote_name: :foo }, scm_url: 'http://foo.com' }
+      it 'sets the config version' do
+        params = { scm_params: { refspec: :bar, remote_name: :foo }, scm_url: 'http://foo.com' }
 
-      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+        JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
 
-      remote_config = @n_xml.root.children.first.children.first
+        scm_config = @n_xml.xpath('//scm').first
 
-      expect(remote_config.name).to match 'hudson.plugins.git.UserRemoteConfig'
+        expect(scm_config.css('configVersion').first).to be_truthy
+        expect(scm_config.css('configVersion').first.content).to eq '2'
+      end
 
-      expect(remote_config.css('name').first).to be_truthy
-      expect(remote_config.css('refspec').first).to be_truthy
+      it 'writes a single block if refspec and remote_name are specified' do
+        params = { scm_params: { refspec: :bar, remote_name: :foo }, scm_url: 'http://foo.com' }
 
-      expect(remote_config.css('name').first.content).to eq 'foo'
-      expect(remote_config.css('refspec').first.content).to eq 'bar'
+        JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+
+        remote_config = @n_xml.xpath('//scm/userRemoteConfigs/hudson.plugins.git.UserRemoteConfig').first
+
+        expect(remote_config.name).to match 'hudson.plugins.git.UserRemoteConfig'
+
+        expect(remote_config.css('name').first).to be_truthy
+        expect(remote_config.css('refspec').first).to be_truthy
+
+        expect(remote_config.css('name').first.content).to eq 'foo'
+        expect(remote_config.css('refspec').first.content).to eq 'bar'
+      end
+
+      it 'sets all the options' do
+        params = {
+          scm_params: {
+            local_branch: :local,
+            recursive_update: true,
+            excluded_users: :exclude_me,
+            included_regions: :included_region,
+            excluded_regions: :excluded_region
+          },
+          scm_url: 'http://foo.com'
+        }
+
+        JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+
+        scm_config = @n_xml.xpath('//scm').first
+
+        expect(scm_config.css('disableSubmodules').first).to be_truthy
+        expect(scm_config.css('recursiveSubmodules').first).to be_truthy
+        expect(scm_config.css('trackingSubmodules').first).to be_truthy
+        expect(scm_config.css('localBranch').first).to be_truthy
+        expect(scm_config.css('excludedUser').first).to be_truthy
+        expect(scm_config.css('includedRegions').first).to be_truthy
+        expect(scm_config.css('excludedRegions').first).to be_truthy
+
+        expect(scm_config.css('disableSubmodules').first.content).to eq 'false'
+        expect(scm_config.css('recursiveSubmodules').first.content).to eq 'true'
+        expect(scm_config.css('trackingSubmodules').first.content).to eq 'false'
+        expect(scm_config.css('localBranch').first.content).to eq 'local'
+        expect(scm_config.css('excludedUser').first.content).to eq 'exclude_me'
+        expect(scm_config.css('includedRegions').first.content).to eq 'included_region'
+        expect(scm_config.css('excludedRegions').first.content).to eq 'excluded_region'
+      end
     end
 
-    it 'using remote_name does not remove the remote url' do
-      params = { scm_params: { remote_name: :foo }, scm_url: 'http://foo.com' }
+    context '<2.0' do
+      before :each do
+        JenkinsPipelineBuilder.registry.registry[:job][:scm_params].installed_version = '1.0'
+      end
 
-      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+      it 'writes one block when both refspec and remote_name' do
+        params = { scm_params: { refspec: :bar, remote_name: :foo }, scm_url: 'http://foo.com' }
 
-      remote_config = @n_xml.root.children.first.children.first
+        JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
 
-      expect(remote_config.name).to match 'hudson.plugins.git.UserRemoteConfig'
+        remote_config = @n_xml.root.children.first.children.first
 
-      expect(remote_config.css('name').first).to be_truthy
-      expect(remote_config.css('url').first).to be_truthy
+        expect(remote_config.name).to match 'hudson.plugins.git.UserRemoteConfig'
 
-      expect(remote_config.css('name').first.content).to eq 'foo'
-      expect(remote_config.css('url').first.content).to eq 'http://foo.com'
+        expect(remote_config.css('name').first).to be_truthy
+        expect(remote_config.css('refspec').first).to be_truthy
+
+        expect(remote_config.css('name').first.content).to eq 'foo'
+        expect(remote_config.css('refspec').first.content).to eq 'bar'
+      end
+
+      it 'using remote_name does not remove the remote url' do
+        params = { scm_params: { remote_name: :foo }, scm_url: 'http://foo.com' }
+
+        JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+
+        remote_config = @n_xml.root.children.first.children.first
+
+        expect(remote_config.name).to match 'hudson.plugins.git.UserRemoteConfig'
+
+        expect(remote_config.css('name').first).to be_truthy
+        expect(remote_config.css('url').first).to be_truthy
+
+        expect(remote_config.css('name').first.content).to eq 'foo'
+        expect(remote_config.css('url').first.content).to eq 'http://foo.com'
+      end
     end
   end
 end
