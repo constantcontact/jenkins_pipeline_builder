@@ -102,6 +102,15 @@ publisher do
       configVersion params[:configVersion] || 2
       pushMerge params[:'push-merge'] || false
       pushOnlyIfSuccess params[:'push-only-if-success'] || false
+      if params[:tag_name]
+        tagsToPush do
+          send 'hudson.plugins.git.GitPublisher_-TagToPush' do
+            targetRepoName params[:target_repo]
+            tagName params[:tag_name]
+            createTag params[:create_tag] || false
+          end
+        end
+      end
       branchesToPush do
         send('hudson.plugins.git.GitPublisher_-BranchToPush') do
           targetRepoName params[:targetRepoName] || 'origin'
