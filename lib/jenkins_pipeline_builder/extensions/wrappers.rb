@@ -26,6 +26,7 @@ wrapper do
   announced false
   jenkins_name 'Color ANSI Console Output'
   description 'This plugin adds support for ANSI escape sequences, including color, to Console Output.'
+  parameters false
   xml do |_|
     send('hudson.plugins.ansicolor.AnsiColorBuildWrapper') do
       colorMapName 'xterm'
@@ -53,26 +54,30 @@ wrapper do
   announced false
   description 'rvm plugin'
 
-  xml version: '0.5' do |wrapper|
-    send('ruby-proxy-object') do
-      send('ruby-object', 'ruby-class' => 'Jenkins::Tasks::BuildWrapperProxy', 'pluginid' => 'rvm') do
-        object('ruby-class' => 'RvmWrapper', 'pluginid' => 'rvm') do
-          impl('pluginid' => 'rvm', 'ruby-class' => 'String') { text wrapper }
+  version '0.5' do
+    xml do |wrapper|
+      send('ruby-proxy-object') do
+        send('ruby-object', 'ruby-class' => 'Jenkins::Tasks::BuildWrapperProxy', 'pluginid' => 'rvm') do
+          object('ruby-class' => 'RvmWrapper', 'pluginid' => 'rvm') do
+            impl('pluginid' => 'rvm', 'ruby-class' => 'String') { text wrapper }
+          end
+          pluginid(:pluginid => 'rvm', 'ruby-class' => 'String') { text 'rvm' }
         end
-        pluginid(:pluginid => 'rvm', 'ruby-class' => 'String') { text 'rvm' }
       end
     end
   end
 
-  xml do |wrapper|
-    send('ruby-proxy-object') do
-      send('ruby-object', 'ruby-class' => 'Jenkins::Plugin::Proxies::BuildWrapper', 'pluginid' => 'rvm') do
-        object('ruby-class' => 'RvmWrapper', 'pluginid' => 'rvm') do
-          impl('pluginid' => 'rvm', 'ruby-class' => 'String') do
-            text wrapper
+  version '0' do
+    xml do |wrapper|
+      send('ruby-proxy-object') do
+        send('ruby-object', 'ruby-class' => 'Jenkins::Plugin::Proxies::BuildWrapper', 'pluginid' => 'rvm') do
+          object('ruby-class' => 'RvmWrapper', 'pluginid' => 'rvm') do
+            impl('pluginid' => 'rvm', 'ruby-class' => 'String') do
+              text wrapper
+            end
           end
+          pluginid(:pluginid => 'rvm', 'ruby-class' => 'String') { text 'rvm' }
         end
-        pluginid(:pluginid => 'rvm', 'ruby-class' => 'String') { text 'rvm' }
       end
     end
   end

@@ -113,7 +113,9 @@ describe 'job_attributes' do
         expect(scm_config.css('includedRegions').first).to be_truthy
         expect(scm_config.css('excludedRegions').first).to be_truthy
         expect(scm_config.css('credentialsId').first).to be_truthy
-        expect(scm_config.xpath('//scm/extensions/hudson.plugins.git.extensions.impl.WipeWorkspace').first).to_not be_nil
+        expect(
+          scm_config.xpath('//scm/extensions/hudson.plugins.git.extensions.impl.WipeWorkspace').first
+        ).to_not be_nil
 
         expect(scm_config.css('disableSubmodules').first.content).to eq 'false'
         expect(scm_config.css('recursiveSubmodules').first.content).to eq 'true'

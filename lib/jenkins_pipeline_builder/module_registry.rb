@@ -79,8 +79,7 @@ module JenkinsPipelineBuilder
 
     def traverse_registry_path(path, params, n_xml)
       registry = get(path)
-      success = traverse_registry(registry, params, n_xml)
-      fail 'Encountered errors compiling the xml' unless success
+      traverse_registry(registry, params, n_xml)
     end
 
     def traverse_registry(registry, params, n_xml, strict = false)
@@ -95,8 +94,7 @@ module JenkinsPipelineBuilder
           ext = reg_value.extension
           logger.debug "Using #{ext.type} #{ext.name} version #{ext.min_version}"
           success = execute_extension ext, value, n_xml
-          #TODO: Check this
-          return false unless success
+          fail 'Encountered errors compiling the xml' unless success
         elsif value.is_a? Hash
           traverse_registry reg_value, value, n_xml, true
         elsif value.is_a? Array
@@ -109,10 +107,13 @@ module JenkinsPipelineBuilder
 
     def execute_extension(extension, value, n_xml)
       errors = []
-      if extension.parameters.any?
-        value.each_key do |key|
-          next if extension.parameters.include? key
-          errors << "Extension #{extension.name} does not support parameter #{key}"
+      params = extension.parameters
+      if params == false || params.any?
+        if value.is_a? Hash
+          value.each_key do |key|
+            next if params && params.include?(key)
+            errors << "Extension #{extension.name} does not support parameter #{key}"
+          end
         end
       end
       errors.each do |error|

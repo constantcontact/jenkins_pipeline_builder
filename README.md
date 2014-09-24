@@ -358,6 +358,7 @@ publisher do
   min_version '0.4'
   jenkins_name "Jenkins UI Name"
   description "Description of this feature"
+  params[:thing, :value]
 
   xml do |params, xml|
    send("new_element") do

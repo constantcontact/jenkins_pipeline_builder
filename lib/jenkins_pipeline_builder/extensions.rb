@@ -148,9 +148,9 @@ module JenkinsPipelineBuilder
 
     def xml(path: false, version: '0', &block)
       if @min_version
-        version = @min_version if @min_version
+        version = @min_version
       elsif version != '0'
-        puts "WARNING: #{settings[:name]} set the version in an xml block, this is deprecated. Please wrap versioned extensions in a version block."
+        deprecation_warning(settings[:name], 'xml')
       end
       unless block
         fail "no block found for version #{version}" unless blocks.key version
@@ -170,7 +170,12 @@ module JenkinsPipelineBuilder
 
     [:after, :before].each do |method_name|
       define_method method_name do |version: '0', &block|
-        version = @min_version if @min_version
+        if @min_version
+          version = @min_version
+        elsif version != '0'
+          deprecation_warning(settings[:name], method_name)
+        end
+
         return instance_variable_get(method_name) unless block
         blocks[version] = {} unless blocks[version]
         blocks[version][method_name] = block
@@ -189,6 +194,12 @@ module JenkinsPipelineBuilder
         errors["#{ext.name} version #{ver}"] = ext.errors unless ext.valid?
       end
       errors
+    end
+
+    private
+
+    def deprecation_warning(name, block)
+      puts "WARNING: #{name} set the version in the #{block} block, this is deprecated. Please use a version block."
     end
   end
 end
