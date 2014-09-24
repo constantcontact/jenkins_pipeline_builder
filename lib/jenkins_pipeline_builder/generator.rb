@@ -523,7 +523,7 @@ module JenkinsPipelineBuilder
       end
 
       xml = client.job.build_freestyle_config(params)
-      n_xml = Nokogiri::XML(xml)
+      n_xml = Nokogiri::XML(xml, &:noblanks)
 
       logger.debug 'Loading the required modules'
       @module_registry.traverse_registry_path('job', params, n_xml)
