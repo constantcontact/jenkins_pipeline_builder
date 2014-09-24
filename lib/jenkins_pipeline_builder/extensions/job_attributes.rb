@@ -60,88 +60,118 @@ job_attribute do
   jenkins_name "Git (inside 'Source Code Management')"
   announced false
 
-  # XML preprocessing
-  # TODO: Actually figure out how to merge using the builder DSL
-  # This delete the things we are going to add later is pretty crappy
-  # Alternately don't use/tweak the xml the api client generates
-  # (which is where I assume this is coming from)
-  before do |params|
-    xpath('//scm/localBranch').remove if params[:local_branch]
-    xpath('//scm/recursiveSubmodules').remove if params[:recursive_update]
-    xpath('//scm/wipeOutWorkspace').remove if params[:wipe_workspace]
-    xpath('//scm/excludedUsers').remove if params[:excluded_users]
-    if params[:remote_name] || params[:refspec]
-      remote_url = xpath('//scm/userRemoteConfigs/hudson.plugins.git.UserRemoteConfig/url').first
-      params[:remote_url] = remote_url.content if remote_url
-      xpath('//scm/userRemoteConfigs').remove
+  version '0' do
+    parameters [
+      :remote_name,
+      :refspec,
+      :local_branch,
+      :recursive_update,
+      :wipe_workspace,
+      :excluded_users,
+      :skip_tag,
+      :remote_url,
+      :excluded_regions,
+      :included_regions
+    ]
+
+    # XML preprocessing
+    # TODO: Actually figure out how to merge using the builder DSL
+    # This delete the things we are going to add later is pretty crappy
+    # Alternately don't use/tweak the xml the api client generates
+    # (which is where I assume this is coming from)
+    before do |params|
+      xpath('//scm/localBranch').remove if params[:local_branch]
+      xpath('//scm/recursiveSubmodules').remove if params[:recursive_update]
+      xpath('//scm/wipeOutWorkspace').remove if params[:wipe_workspace]
+      xpath('//scm/excludedUsers').remove if params[:excluded_users]
+      if params[:remote_name] || params[:refspec]
+        remote_url = xpath('//scm/userRemoteConfigs/hudson.plugins.git.UserRemoteConfig/url').first
+        params[:remote_url] = remote_url.content if remote_url
+        xpath('//scm/userRemoteConfigs').remove
+      end
+      xpath('//scm/skipTag').remove if params[:skip_tag]
+      xpath('//scm/excludedRegions').remove if params[:excluded_regions]
+      xpath('//scm/includedRegions').remove if params[:included_regions]
     end
-    xpath('//scm/skipTag').remove if params[:skip_tag]
-    xpath('//scm/excludedRegions').remove if params[:excluded_regions]
-    xpath('//scm/includedRegions').remove if params[:included_regions]
+
+    xml path: '//scm' do |params|
+      localBranch params[:local_branch] if params[:local_branch]
+      recursiveSubmodules params[:recursive_update] if params[:recursive_update]
+      wipeOutWorkspace params[:wipe_workspace] if params[:wipe_workspace]
+      excludedUsers params[:excluded_users] if params[:excluded_users]
+      if params[:remote_name] || params[:refspec]
+        userRemoteConfigs do
+          send('hudson.plugins.git.UserRemoteConfig') do
+            name params[:remote_name] if params[:remote_name]
+            refspec params[:refspec] if params[:refspec]
+            url params[:remote_url] if params[:remote_url]
+          end
+        end
+      end
+      skipTag params[:skip_tag] if params[:skip_tag]
+      excludedRegions params[:excluded_regions] if params[:excluded_regions]
+      includedRegions params[:included_regions] if params[:included_regions]
+    end
   end
 
-  before version: '2.0' do |params|
-    if params[:remote_name] || params[:refspec]
-      remote_url = xpath('//scm/userRemoteConfigs/hudson.plugins.git.UserRemoteConfig/url').first
-      params[:remote_url] = remote_url.content if remote_url
-      xpath('//scm/userRemoteConfigs').remove
-    end
-  end
+  version '2.0' do
+    parameters [
+      :credentials_id,
+      :excluded_regions,
+      :excluded_users,
+      :included_regions,
+      :local_branch,
+      :recursive_update,
+      :refspec,
+      :remote_name,
+      :remote_url,
+      :wipe_workspace
+    ]
 
-  xml path: '//scm' do |params|
-    localBranch params[:local_branch] if params[:local_branch]
-    recursiveSubmodules params[:recursive_update] if params[:recursive_update]
-    wipeOutWorkspace params[:wipe_workspace] if params[:wipe_workspace]
-    excludedUsers params[:excluded_users] if params[:excluded_users]
-    if params[:remote_name] || params[:refspec]
+    before do |params|
+      if params[:remote_name] || params[:refspec]
+        remote_url = xpath('//scm/userRemoteConfigs/hudson.plugins.git.UserRemoteConfig/url').first
+        params[:remote_url] = remote_url.content if remote_url
+        xpath('//scm/userRemoteConfigs').remove
+      end
+    end
+
+    xml path: '//scm' do |params|
+      configVersion 2
       userRemoteConfigs do
         send('hudson.plugins.git.UserRemoteConfig') do
           name params[:remote_name] if params[:remote_name]
           refspec params[:refspec] if params[:refspec]
           url params[:remote_url] if params[:remote_url]
+          credentialsId params[:credentials_id] if params[:credentials_id]
         end
       end
-    end
-    skipTag params[:skip_tag] if params[:skip_tag]
-    excludedRegions params[:excluded_regions] if params[:excluded_regions]
-    includedRegions params[:included_regions] if params[:included_regions]
-  end
-
-  xml version: '2.0', path: '//scm' do |params|
-    configVersion 2
-    userRemoteConfigs do
-      send('hudson.plugins.git.UserRemoteConfig') do
-        name params[:remote_name] if params[:remote_name]
-        refspec params[:refspec] if params[:refspec]
-        url params[:remote_url] if params[:remote_url]
-        credentialsId params[:credentials_id] if params[:credentials_id]
-      end
-    end
-    doGenerateSubmoduleConfigurations false
-    submoduleCfg
-    extensions do
-      send('hudson.plugins.git.extensions.impl.WipeWorkspace') if params[:wipe_workspace]
-      if params[:local_branch]
-        send('hudson.plugins.git.extensions.impl.LocalWorkspace') do
-          localBranch params[:local_branch]
+      doGenerateSubmoduleConfigurations false
+      submoduleCfg
+      extensions do
+        send('hudson.plugins.git.extensions.impl.WipeWorkspace') if params[:wipe_workspace]
+        if params[:local_branch]
+          send('hudson.plugins.git.extensions.impl.LocalWorkspace') do
+            localBranch params[:local_branch]
+          end
         end
-      end
-      if params[:recursive_update]
-        send('hudson.plugins.git.extensions.impl.SubmoduleOption') do
-          disableSubmodules false
-          recursiveSubmodules true
-          trackingSubmodules false
+        if params[:recursive_update]
+          send('hudson.plugins.git.extensions.impl.SubmoduleOption') do
+            disableSubmodules false
+            recursiveSubmodules true
+            trackingSubmodules false
+          end
         end
-      end
-      if params[:excluded_users]
-        send('hudson.plugins.git.extensions.impl.UserExclusion') do
-          excludedUser params[:excluded_users]
+        if params[:excluded_users]
+          send('hudson.plugins.git.extensions.impl.UserExclusion') do
+            excludedUser params[:excluded_users]
+          end
         end
-      end
-      if params[:included_regions] || params[:excluded_regions]
-        send('hudson.plugins.git.extensions.impl.PathRestrictions') do
-          includedRegions params[:included_regions] if params[:included_regions]
-          excludedRegions params[:excluded_regions] if params[:excluded_regions]
+        if params[:included_regions] || params[:excluded_regions]
+          send('hudson.plugins.git.extensions.impl.PathRestrictions') do
+            includedRegions params[:included_regions] if params[:included_regions]
+            excludedRegions params[:excluded_regions] if params[:excluded_regions]
+          end
         end
       end
     end

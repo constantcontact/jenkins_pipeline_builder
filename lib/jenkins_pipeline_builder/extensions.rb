@@ -139,7 +139,19 @@ module JenkinsPipelineBuilder
       blocks.merge other_set.blocks
     end
 
+    def parameters(params)
+      version = @min_version || '0'
+
+      blocks[version] = {} unless blocks[version]
+      blocks[version][:parameters] = params
+    end
+
     def xml(path: false, version: '0', &block)
+      if @min_version
+        version = @min_version if @min_version
+      elsif version != '0'
+        puts "WARNING: #{settings[:name]} set the version in an xml block, this is deprecated. Please wrap versioned extensions in a version block."
+      end
       unless block
         fail "no block found for version #{version}" unless blocks.key version
         return blocks[version][:block]
@@ -151,8 +163,14 @@ module JenkinsPipelineBuilder
       end
     end
 
+    def version(ver, &block)
+      @min_version = ver
+      yield block
+    end
+
     [:after, :before].each do |method_name|
       define_method method_name do |version: '0', &block|
+        version = @min_version if @min_version
         return instance_variable_get(method_name) unless block
         blocks[version] = {} unless blocks[version]
         blocks[version][method_name] = block
@@ -188,7 +206,8 @@ module JenkinsPipelineBuilder
       type: false,
       before: false,
       after: false,
-      xml: false
+      xml: false,
+      parameters: []
     }
     EXT_METHODS.keys.each do |method_name|
       define_method method_name do |value = nil|

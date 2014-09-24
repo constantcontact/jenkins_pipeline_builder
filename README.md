@@ -73,7 +73,6 @@ Now you ready to bootstrap a pipeline:
     generate pipeline -c config/login.yml bootstrap ./pipeline
 
 NOTE: you can run the pipeline in NOOP (debug-only) mode by addind -d parameter, like:
-
     generate pipeline -d -c config/login.yml bootstrap ./pipeline
 
 The command comes with fairly extensive help. For example you can list all of the registered extension types with `generate list` and a list of all extensions of a type with `generate list type`
@@ -370,6 +369,57 @@ publisher do
   end
 end
 ```
+
+You can also declare multiple versions of an extension. Some plugins have breaking xml changes between versions. Simply declare a version block with the minimum required version and then declare your xml, before and after blocks inside that version.
+
+```ruby
+publisher do
+  name :yaml_name
+  plugin_id 123
+  min_version '0.4'
+  jenkins_name "Jenkins UI Name"
+  description "Description of this feature"
+
+  version '0' do
+    before do
+      # preprocessing here
+    end
+
+    after do
+      # post processing here
+    end
+
+    xml do |params, xml|
+     send("new.element") do
+        property params[:value]
+        if params[:thing]
+          thing 'true'
+        end
+      end
+    end
+  end
+
+  version '1.0' do
+    before do
+      # preprocessing here
+    end
+
+    after do
+      # post processing here
+    end
+
+    xml do |params, xml|
+     send("different.element") do
+        property params[:value]
+        if params[:thing]
+          thing 'true'
+        end
+      end
+    end
+  end
+end
+```
+
 
 Finally, you can add the new DSL in your YAML:
 

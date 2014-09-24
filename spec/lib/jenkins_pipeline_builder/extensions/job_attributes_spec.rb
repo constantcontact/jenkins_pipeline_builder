@@ -91,7 +91,12 @@ describe 'job_attributes' do
             recursive_update: true,
             excluded_users: :exclude_me,
             included_regions: :included_region,
-            excluded_regions: :excluded_region
+            excluded_regions: :excluded_region,
+            wipe_workspace: true,
+            remote_name: :foo,
+            refspec: :refspec,
+            remote_url: :remote_url,
+            credentials_id: :creds
           },
           scm_url: 'http://foo.com'
         }
@@ -107,6 +112,8 @@ describe 'job_attributes' do
         expect(scm_config.css('excludedUser').first).to be_truthy
         expect(scm_config.css('includedRegions').first).to be_truthy
         expect(scm_config.css('excludedRegions').first).to be_truthy
+        expect(scm_config.css('credentialsId').first).to be_truthy
+        expect(scm_config.xpath('//scm/extensions/hudson.plugins.git.extensions.impl.WipeWorkspace').first).to_not be_nil
 
         expect(scm_config.css('disableSubmodules').first.content).to eq 'false'
         expect(scm_config.css('recursiveSubmodules').first.content).to eq 'true'
@@ -115,6 +122,7 @@ describe 'job_attributes' do
         expect(scm_config.css('excludedUser').first.content).to eq 'exclude_me'
         expect(scm_config.css('includedRegions').first.content).to eq 'included_region'
         expect(scm_config.css('excludedRegions').first.content).to eq 'excluded_region'
+        expect(scm_config.css('credentialsId').first.content).to eq 'creds'
       end
     end
 
