@@ -164,7 +164,7 @@ job_attribute do
         end
         if params[:excluded_users]
           send('hudson.plugins.git.extensions.impl.UserExclusion') do
-            excludedUser params[:excluded_users]
+            excludedUsers params[:excluded_users]
           end
         end
         if params[:included_regions] || params[:excluded_regions]
