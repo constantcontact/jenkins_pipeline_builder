@@ -68,6 +68,27 @@ describe 'job_attributes' do
         expect(scm_config.css('configVersion').first.content).to eq '2'
       end
 
+      it 'sets the remote url name all the time' do
+        params = { scm_params: {}, scm_url: 'http://foo.com' }
+
+        JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+
+        scm_config = @n_xml.xpath('//scm').first
+
+        expect(
+          scm_config.xpath('//scm/userRemoteConfigs/hudson.plugins.git.UserRemoteConfig').first.children.map(&:name)
+        ).to_not include 'refspec'
+        expect(
+          scm_config.xpath('//scm/userRemoteConfigs/hudson.plugins.git.UserRemoteConfig').first.children.map(&:name)
+        ).to_not include 'name'
+        expect(
+          scm_config.xpath('//scm/userRemoteConfigs/hudson.plugins.git.UserRemoteConfig/url').first
+        ).to be_truthy
+        expect(
+          scm_config.xpath('//scm/userRemoteConfigs/hudson.plugins.git.UserRemoteConfig/url').first.content
+        ).to eq 'http://foo.com'
+      end
+
       it 'writes a single block if refspec and remote_name are specified' do
         params = { scm_params: { refspec: :bar, remote_name: :foo }, scm_url: 'http://foo.com' }
 
@@ -109,7 +130,7 @@ describe 'job_attributes' do
         expect(scm_config.css('recursiveSubmodules').first).to be_truthy
         expect(scm_config.css('trackingSubmodules').first).to be_truthy
         expect(scm_config.css('localBranch').first).to be_truthy
-        expect(scm_config.css('excludedUser').first).to be_truthy
+        expect(scm_config.css('excludedUsers').first).to be_truthy
         expect(scm_config.css('includedRegions').first).to be_truthy
         expect(scm_config.css('excludedRegions').first).to be_truthy
         expect(scm_config.css('credentialsId').first).to be_truthy
@@ -121,7 +142,7 @@ describe 'job_attributes' do
         expect(scm_config.css('recursiveSubmodules').first.content).to eq 'true'
         expect(scm_config.css('trackingSubmodules').first.content).to eq 'false'
         expect(scm_config.css('localBranch').first.content).to eq 'local'
-        expect(scm_config.css('excludedUser').first.content).to eq 'exclude_me'
+        expect(scm_config.css('excludedUsers').first.content).to eq 'exclude_me'
         expect(scm_config.css('includedRegions').first.content).to eq 'included_region'
         expect(scm_config.css('excludedRegions').first.content).to eq 'excluded_region'
         expect(scm_config.css('credentialsId').first.content).to eq 'creds'

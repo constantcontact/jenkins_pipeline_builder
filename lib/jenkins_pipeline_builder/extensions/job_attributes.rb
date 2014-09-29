@@ -129,11 +129,9 @@ job_attribute do
     ]
 
     before do |params|
-      if params[:remote_name] || params[:refspec]
-        remote_url = xpath('//scm/userRemoteConfigs/hudson.plugins.git.UserRemoteConfig/url').first
-        params[:remote_url] = remote_url.content if remote_url
-        xpath('//scm/userRemoteConfigs').remove
-      end
+      remote_url = xpath('//scm/userRemoteConfigs/hudson.plugins.git.UserRemoteConfig/url').first
+      params[:remote_url] = remote_url.content if remote_url
+      xpath('//scm/userRemoteConfigs').remove
     end
 
     xml path: '//scm' do |params|
