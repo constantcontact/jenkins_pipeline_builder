@@ -59,6 +59,17 @@ describe 'publishers' do
       maven_installation_name = sonar_nodes.select { |node| node.name == 'mavenInstallationName' }
       expect(maven_installation_name.first.content).to match 'test'
     end
+
+    it 'populates root pom' do
+      params = { publishers: { sonar_result: { root_pom: 'project_war/pom.xml' } } }
+
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+
+      sonar_nodes = @n_xml.root.children.first.children
+      root_pom = sonar_nodes.select { |node| node.name == 'rootPom' }
+      expect(root_pom.first.content).to match 'project_war/pom.xml'
+    end
+
   end
 
   context 'description_setter' do

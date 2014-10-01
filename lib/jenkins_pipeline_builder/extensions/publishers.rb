@@ -260,7 +260,7 @@ publisher do
       mavenOpts
       jobAdditionalProperties
       mavenInstallationName params[:maven_installation_name] || ''
-      rootPom
+      rootPom params[:root_pom] || ''
       settings class: 'jenkins.mvn.DefaultSettingsProvider'
       globalSettings class: 'jenkins.mvn.DefaultGlobalSettingsProvider'
       usePrivateRepository false
