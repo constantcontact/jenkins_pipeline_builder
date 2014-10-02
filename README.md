@@ -121,6 +121,9 @@ Here's a high level overview of what's available:
     shell_command: '. commit_build.sh'
     inject_env_vars_pre_scm:
       file: '${PARENT_WORKSPACE}/{{shared_job_settings_file}}'
+    promoted_builds:
+      - 'Stage Promotion'
+      - 'Prod Promotion'
     hipchat:
       room: room name here
       start-notify: true
@@ -275,6 +278,9 @@ Here's a high level overview of what's available:
         build("job_name2", param1: build21.environment.get("some_var"))
       }
 ```
+
+NOTE: The *promoted_builds* plugin is not fully implemented. This plugin just helps you point to the jobs that you have in order to promote your build.
+You need to manually create your promotion rules. Using this plugin will help you regenerate your jobs without breaking your manual promotion jobs.
 
 ### Pull Request Generator
 
