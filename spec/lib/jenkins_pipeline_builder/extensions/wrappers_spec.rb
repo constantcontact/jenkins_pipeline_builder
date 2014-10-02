@@ -59,4 +59,22 @@ describe 'wrappers' do
     end
   end
 
+  context 'nodejs' do
+    before :each do
+      JenkinsPipelineBuilder.registry.registry[:job][:wrappers][:nodejs].installed_version = '0.0'
+    end
+
+    it 'generates correct xml' do
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job',
+                                                             { wrappers:
+                                                                 { nodejs:
+                                                                     { node_installation_name:
+                                                                         'Node-0.10.24' } } }, @n_xml)
+
+      node_path = '//buildWrappers/jenkins.plugins.nodejs.tools.NpmPackagesBuildWrapper/nodeJSInstallationName'
+      node = @n_xml.root.xpath(node_path)
+      expect(node.first.content).to match 'Node-0.10.24'
+    end
+  end
+
 end

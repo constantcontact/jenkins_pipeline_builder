@@ -202,3 +202,17 @@ wrapper do
     end
   end
 end
+
+wrapper do
+  name :nodejs
+  plugin_id 'nodejs'
+  description 'Provides Jenkins integration for NodeJS & npm packages.'
+  jenkins_name 'Node Plugin'
+  announced false
+
+  xml do |wrapper|
+    send('jenkins.plugins.nodejs.tools.NpmPackagesBuildWrapper') do
+      nodeJSInstallationName wrapper[:node_installation_name]
+    end
+  end
+end
