@@ -65,11 +65,8 @@ describe 'wrappers' do
     end
 
     it 'generates correct xml' do
-      JenkinsPipelineBuilder.registry.traverse_registry_path('job',
-                                                             { wrappers:
-                                                                 { nodejs:
-                                                                     { node_installation_name:
-                                                                         'Node-0.10.24' } } }, @n_xml)
+      params = { wrappers: { nodejs: { node_installation_name: 'Node-0.10.24' } } }
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
 
       node_path = '//buildWrappers/jenkins.plugins.nodejs.tools.NpmPackagesBuildWrapper/nodeJSInstallationName'
       node = @n_xml.root.xpath(node_path)
