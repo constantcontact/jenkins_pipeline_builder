@@ -344,3 +344,18 @@ job_attribute do
     end
   end
 end
+job_attribute do
+  name :promoted_builds
+  plugin_id 'promoted-builds'
+  description 'This plugin makes it possible to promote builds to upper environments.'
+  jenkins_name 'Promote builds to by a manual approval process.'
+  announced false
+
+  xml path: '//properties' do |params|
+    send('hudson.plugins.promoted__builds.JobPropertyImpl') do
+      activeProcessNames do
+        params.each { |v| string v }
+      end
+    end
+  end
+end

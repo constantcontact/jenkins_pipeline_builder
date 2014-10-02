@@ -65,7 +65,8 @@ describe JenkinsPipelineBuilder::ModuleRegistry do
         throttle: ['0'],
         prepare_environment: ['0'],
         concurrent_build: ['0'],
-        inject_env_vars_pre_scm: ['0']
+        inject_env_vars_pre_scm: ['0'],
+        promoted_builds: ['0']
       }
       registry = JenkinsPipelineBuilder.registry.registry
       # There are 4 sub types so, we don't count those
