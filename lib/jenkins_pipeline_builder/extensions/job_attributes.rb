@@ -149,7 +149,7 @@ job_attribute do
       extensions do
         send('hudson.plugins.git.extensions.impl.WipeWorkspace') if params[:wipe_workspace]
         if params[:local_branch]
-          send('hudson.plugins.git.extensions.impl.LocalWorkspace') do
+          send('hudson.plugins.git.extensions.impl.LocalBranch') do
             localBranch params[:local_branch]
           end
         end
