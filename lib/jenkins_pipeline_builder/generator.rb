@@ -380,7 +380,7 @@ module JenkinsPipelineBuilder
     end
 
     def resolve_project(project)
-      defaults = get_item('global')
+      defaults = find_defaults
       settings = defaults.nil? ? {} : defaults[:value] || {}
       project[:settings] = Compiler.get_settings_bag(project, settings) unless project[:settings]
       project_body = project[:value]
@@ -400,6 +400,14 @@ module JenkinsPipelineBuilder
       return false, 'Encountered errors exiting' unless errors.empty?
 
       [true, project]
+    end
+
+    def find_defaults
+      @job_collection.each_value do |item|
+        return item if item[:type] == 'defaults' || item[:type] == :defaults
+      end
+      # This is here for historical purposes
+      get_item('global')
     end
 
     def resolve_job_by_name(name, settings = {})
