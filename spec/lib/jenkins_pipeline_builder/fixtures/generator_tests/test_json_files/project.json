@@ -1,0 +1,16 @@
+[
+  {
+    "defaults": {
+      "name": "global",
+      "description": "Tests, all the tests"
+    }
+  },
+  {
+    "project": {
+      "name": "TestProject",
+      "jobs": [
+        "{{name}}-part1"
+      ]
+    }
+  }
+]
