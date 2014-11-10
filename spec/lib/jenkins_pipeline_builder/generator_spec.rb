@@ -152,6 +152,29 @@ describe JenkinsPipelineBuilder::Generator do
     # Fails to purge old PR jobs from Jenkins
   end
 
+  describe '#load_collection_from_path' do
+    let(:project_hash) { [{"defaults"=>{"name"=>"global", "description"=>"Tests, all the tests"}}, {"project"=>{"name"=>"TestProject", "jobs"=>["{{name}}-part1"]}}] }
+    let(:view_hash) { [{"view"=>{"name"=>"{{name}} View", "type"=>"listview", "description"=>"{{description}}", "regex"=>"{{name}}.*"}}] }
+    it 'loads a yaml collection from a path' do
+      path = File.expand_path('../fixtures/generator_tests/test_yaml_files', __FILE__)
+      expect(@generator).to receive(:load_job_collection).once.with(view_hash, false).and_return(true)
+      expect(@generator).to receive(:load_job_collection).once.with(project_hash, false).and_return(true)
+      @generator.send(:load_collection_from_path, path)
+    end
+    it 'loads a json collection from a path' do
+      path = File.expand_path('../fixtures/generator_tests/test_json_files', __FILE__)
+      expect(@generator).to receive(:load_job_collection).once.with(view_hash, false).and_return(true)
+      expect(@generator).to receive(:load_job_collection).once.with(project_hash, false).and_return(true)
+      @generator.send(:load_collection_from_path, path)
+    end
+    it 'loads both yaml and json files from a path' do
+      path = File.expand_path('../fixtures/generator_tests/test_combo_files', __FILE__)
+      expect(@generator).to receive(:load_job_collection).once.with(view_hash, false).and_return(true)
+      expect(@generator).to receive(:load_job_collection).once.with(project_hash, false).and_return(true)
+      @generator.send(:load_collection_from_path, path)
+    end
+  end
+
   describe '#dump' do
     it "writes a job's config XML to a file" do
       @generator.debug = true

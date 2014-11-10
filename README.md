@@ -77,6 +77,9 @@ NOTE: you can run the pipeline in NOOP (debug-only) mode by addind -d parameter,
 
 The command comes with fairly extensive help. For example you can list all of the registered extension types with `generate list` and a list of all extensions of a type with `generate list type`
 
+#### JSON now supported
+The pipeline builder now suppots json for config and pipeline files instead of or in addition to yaml files
+
 DSL:
 ----
 

@@ -21,6 +21,7 @@
 #
 
 require 'yaml'
+require 'json'
 
 module JenkinsPipelineBuilder
   class Generator
@@ -180,15 +181,24 @@ module JenkinsPipelineBuilder
       path = File.expand_path(path, Dir.getwd)
       if File.directory?(path)
         logger.info "Generating from folder #{path}"
-        Dir[File.join(path, '/*.yaml'), File.join(path, '/*.yml')].each do |file|
+        Dir[File.join(path, '/*.{yaml,yml}')].each do |file|
           logger.info "Loading file #{file}"
           yaml = YAML.load_file(file)
           load_job_collection(yaml, remote)
         end
+        Dir[File.join(path, '/*.json')].each do |file|
+          logger.info "Loading file #{file}"
+          json = JSON.parse(IO.read(file))
+          load_job_collection(json, remote)
+        end
       else
         logger.info "Loading file #{path}"
-        yaml = YAML.load_file(path)
-        load_job_collection(yaml, remote)
+        if path.end_with? "json"
+          hash = JSON.parse(IO.read(path))
+        else  # elsif path.end_with?("yml") || path.end_with?("yaml")
+          hash = YAML.load_file(path)
+        end
+        load_job_collection(hash, remote)
       end
     end
 
