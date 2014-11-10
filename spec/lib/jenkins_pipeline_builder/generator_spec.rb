@@ -153,8 +153,8 @@ describe JenkinsPipelineBuilder::Generator do
   end
 
   describe '#load_collection_from_path' do
-    project_hash = [{"defaults"=>{"name"=>"global", "description"=>"Tests, all the tests"}}, {"project"=>{"name"=>"TestProject", "jobs"=>["{{name}}-part1"]}}]
-    view_hash = [{"view"=>{"name"=>"{{name}} View", "type"=>"listview", "description"=>"{{description}}", "regex"=>"{{name}}.*"}}]
+    let(:project_hash) { [{"defaults"=>{"name"=>"global", "description"=>"Tests, all the tests"}}, {"project"=>{"name"=>"TestProject", "jobs"=>["{{name}}-part1"]}}] }
+    let(:view_hash) { [{"view"=>{"name"=>"{{name}} View", "type"=>"listview", "description"=>"{{description}}", "regex"=>"{{name}}.*"}}] }
     it 'loads a yaml collection from a path' do
       path = File.expand_path('../fixtures/generator_tests/test_yaml_files', __FILE__)
       expect(@generator).to receive(:load_job_collection).once.with(view_hash, false).and_return(true)
