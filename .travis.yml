@@ -1,0 +1,11 @@
+language: ruby
+rvm:
+- 2.1.4
+deploy:
+  provider: rubygems
+  api_key:
+    secure: Yx9PMXK5GhTYdRMay6AjpJ95mEkXa3+I2YXFjQGo0MnZAUmp2pqqCceJYWD499/moBAnsYRue47xyzY44G6aKwpj2F3iW8IZlp4hlMuMlqC4z5iDSW99N6MsYV/rBWSGX2/Z0dARg6ThtLHLQRulQNrHx5G8AXhLp3K/eAJPSMU=
+  gem: jenkins_pipeline_builder
+  on:
+    tags: true
+    repo: constantcontact/jenkins_pipeline_builder

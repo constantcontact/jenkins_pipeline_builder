@@ -35,7 +35,7 @@ module JenkinsPipelineBuilder
     end
 
     def generate(path)
-      if path.end_with? "json"
+      if path.end_with? 'json'
         hash = JSON.parse(IO.read(path))
       else
         hash = YAML.load_file(path)

@@ -1,6 +1,8 @@
 jenkins-pipeline-builder
 ========================
 
+[![Build Status](https://travis-ci.org/constantcontact/jenkins_pipeline_builder.svg)](https://travis-ci.org/constantcontact/jenkins_pipeline_builder)  [![Gem Version](https://badge.fury.io/rb/jenkins_pipeline_builder.svg)](http://badge.fury.io/rb/jenkins_pipeline_builder)
+
 YAML driven CI Jenkins Pipeline Builder enabling to version your artifact pipelines alongside with the artifact source
 itself.
 
@@ -21,6 +23,8 @@ USAGE:
 ------
 
 ### Installation
+
+Ruby 2.1 is required.
 
 Add this line to your application's Gemfile:
 
