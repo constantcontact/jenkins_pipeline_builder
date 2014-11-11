@@ -24,7 +24,7 @@ USAGE:
 
 ### Installation
 
-Ruby 2.1 is required.
+Ruby 2.0 or higher is required.
 
 Add this line to your application's Gemfile:
 
