@@ -9,4 +9,5 @@ deploy:
   gem: jenkins_pipeline_builder
   on:
     tags: true
+    all_branches: true
     repo: constantcontact/jenkins_pipeline_builder
