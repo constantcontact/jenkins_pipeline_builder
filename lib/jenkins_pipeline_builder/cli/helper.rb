@@ -44,7 +44,7 @@ module JenkinsPipelineBuilder
           (options[:password] || options[:password_base64])
           creds = options
         elsif options[:creds_file]
-          if creds_file.end_with? "json"
+          if options[:creds_file].end_with? "json"
             creds = JSON.parse(IO.read(File.expand_path(options[:creds_file])))
           else
             creds = YAML.load_file(File.expand_path(options[:creds_file]))
