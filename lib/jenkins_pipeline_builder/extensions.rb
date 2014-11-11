@@ -26,14 +26,7 @@ JenkinsPipelineBuilder.registry.entries.each do |type, path|
     set = JenkinsPipelineBuilder::ExtensionSet.new
     set.instance_eval(&block)
     set.blocks.each do |version, settings|
-      ext = JenkinsPipelineBuilder::Extension.new
-      ext.min_version version
-      ext.type singular_type
-      set.settings.merge(settings).each do |key, value|
-        ext.send key, value
-      end
-      ext.path path unless ext.path
-      set.extensions << ext
+      set.add_extension singular_type, version, settings, path
     end
     unless set.valid?
       name = set.name || 'A plugin with no name provided'
@@ -51,13 +44,7 @@ def job_attribute(&block)
   set = JenkinsPipelineBuilder::ExtensionSet.new
   set.instance_eval(&block)
   set.blocks.each do |version, settings|
-    ext = JenkinsPipelineBuilder::Extension.new
-    ext.min_version version
-    ext.type :job_attribute
-    set.settings.merge(settings).each do |key, value|
-      ext.send key, value
-    end
-    set.extensions << ext
+    set.add_extension :job_attribute, version, settings
   end
   unless set.valid?
     name = set.name || 'A plugin with no name provided'
@@ -100,6 +87,18 @@ module JenkinsPipelineBuilder
       @version = Gem::Version.new version
     end
 
+    def add_extension(type, version, settings, path = nil)
+      ext = JenkinsPipelineBuilder::Extension.new
+      ext.min_version version
+      ext.type type
+      self.settings.merge(settings).each do |key, value|
+        ext.send key, value
+      end
+
+      ext.path path unless ext.path
+      extensions << ext
+    end
+
     def installed_version
       return @version if @version
       reg = JenkinsPipelineBuilder.registry
@@ -114,10 +113,7 @@ module JenkinsPipelineBuilder
       # TODO: Support multiple xml sections for the native to jenkins plugins
       return extensions.first if settings[:plugin_id] == 'builtin'
 
-      versions = extensions.each_with_object({}) do |ext, hash|
-        hash[Gem::Version.new(ext.min_version)] = ext
-      end
-      versions.keys.sort!.reverse!.each do |version|
+      ordered_version_list.each do |version|
         return versions[version] if version <= installed_version
       end
 
@@ -197,6 +193,16 @@ module JenkinsPipelineBuilder
     end
 
     private
+
+    def versions
+      @versions ||= extensions.each_with_object({}) do |ext, hash|
+        hash[Gem::Version.new(ext.min_version)] = ext
+      end
+    end
+
+    def ordered_version_list
+      versions.keys.sort.reverse
+    end
 
     def deprecation_warning(name, block)
       puts "WARNING: #{name} set the version in the #{block} block, this is deprecated. Please use a version block."
