@@ -1,6 +1,8 @@
 jenkins-pipeline-builder
 ========================
 
+[![Build Status](https://travis-ci.org/constantcontact/jenkins_pipeline_builder.svg)](https://travis-ci.org/constantcontact/jenkins_pipeline_builder)
+
 YAML driven CI Jenkins Pipeline Builder enabling to version your artifact pipelines alongside with the artifact source
 itself.
 
