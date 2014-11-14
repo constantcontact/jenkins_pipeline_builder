@@ -108,6 +108,10 @@ describe 'job_attributes' do
       it 'sets all the options' do
         params = {
           scm_params: {
+            changelog_to_branch: {
+              remote: 'origin',
+              branch: 'pr-1'
+            },
             local_branch: :local,
             recursive_update: true,
             excluded_users: :exclude_me,
@@ -126,6 +130,8 @@ describe 'job_attributes' do
 
         scm_config = @n_xml.xpath('//scm').first
 
+        expect(scm_config.css('compareRemote').first).to be_truthy
+        expect(scm_config.css('compareTarget').first).to be_truthy
         expect(scm_config.css('disableSubmodules').first).to be_truthy
         expect(scm_config.css('recursiveSubmodules').first).to be_truthy
         expect(scm_config.css('trackingSubmodules').first).to be_truthy
@@ -138,6 +144,8 @@ describe 'job_attributes' do
           scm_config.xpath('//scm/extensions/hudson.plugins.git.extensions.impl.WipeWorkspace').first
         ).to_not be_nil
 
+        expect(scm_config.css('compareRemote').first.content).to eq 'origin'
+        expect(scm_config.css('compareTarget').first.content).to eq 'pr-1'
         expect(scm_config.css('disableSubmodules').first.content).to eq 'false'
         expect(scm_config.css('recursiveSubmodules').first.content).to eq 'true'
         expect(scm_config.css('trackingSubmodules').first.content).to eq 'false'
