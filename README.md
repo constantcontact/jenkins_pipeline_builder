@@ -294,7 +294,7 @@ You need to manually create your promotion rules. Using this plugin will help yo
 The pull request generator will generate pipelines for pull requests that are noticed on your repo. It will also remove old pipelines from Jenkins if the pull_request is closed.
 If you need to modify job parameters please just specify that in the jobs section like the example below.
 
-When running a project through this module, the project {{name}} is appended with "-PR##" where ## is the number of the pull request.
+When running a project through this module, the project {{name}} is appended with "-PR##" where ## is the number of the pull request.  You can also use {{pull_request_number}} to get just the number of the PR.
 
 ```yaml
 - job:

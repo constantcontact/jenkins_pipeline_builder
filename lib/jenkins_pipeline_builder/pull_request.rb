@@ -92,6 +92,7 @@ module JenkinsPipelineBuilder
       @number = number
       @jobs = Marshal.load(Marshal.dump(jobs))
       @generator = Marshal.load(Marshal.dump(generator))
+      @project[:value][:pull_request_number] = "#{@number}"
 
       # Run
       run!
