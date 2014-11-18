@@ -201,6 +201,12 @@ job_attribute do
     send('jenkins.plugins.hipchat.HipChatNotifier_-HipChatJobProperty') do
       room params[:room]
       startNotification params[:'start-notify'] || false
+      notifySuccess params[:'success-notify'] || true
+      notifyFailure params[:'failure-notify'] || true
+      notifyBackToNormal params[:'normal-notify'] || true
+      notifyAborted params[:'aborted-notify'] || true
+      notifyNotBuilt params[:'notbuilt-notify'] || false
+      notifyUnstable params[:'unstable-notify'] || true
     end
   end
 end
