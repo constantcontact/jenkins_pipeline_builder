@@ -200,13 +200,15 @@ job_attribute do
 
     send('jenkins.plugins.hipchat.HipChatNotifier_-HipChatJobProperty') do
       room params[:room]
-      startNotification params[:'start-notify'] || false
-      notifySuccess params[:'success-notify'] || true
-      notifyFailure params[:'failure-notify'] || true
-      notifyBackToNormal params[:'normal-notify'] || true
-      notifyAborted params[:'aborted-notify'] || true
-      notifyNotBuilt params[:'notbuilt-notify'] || false
-      notifyUnstable params[:'unstable-notify'] || true
+      # :'start-notify' is legacy and evil, but I don't want anyone complaining
+      startNotification params[:start_notify] || params[:'start-notify'] || false
+      startNotification params[:start_notify] || false
+      notifySuccess params[:success_notify] || true
+      notifyFailure params[:failure_notify] || true
+      notifyBackToNormal params[:normal_notify] || true
+      notifyAborted params[:aborted_notify] || true
+      notifyNotBuilt params[:notbuilt_notify] || false
+      notifyUnstable params[:unstable_notify] || true
     end
   end
 end
