@@ -103,7 +103,7 @@ module JenkinsPipelineBuilder
     # Apply all changes
     def run!
       plugin_version = JenkinsPipelineBuilder.registry.registry[:job][:scm_params].installed_version
-      if plugin_version > Gem::Version.new(2.0)
+      if plugin_version >= Gem::Version.new(2.0)
         @jobs.each_value do |j|
           puts "\n\n"
           puts j
