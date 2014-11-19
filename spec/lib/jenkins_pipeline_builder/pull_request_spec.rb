@@ -47,7 +47,7 @@ describe JenkinsPipelineBuilder::PullRequest do
 
   describe '#changelog_to_branch_no_exist' do
     it 'process pull_request' do
-      JenkinsPipelineBuilder.registry.registry[:job][:scm_params].installed_version= "0"
+      JenkinsPipelineBuilder.registry.registry[:job][:scm_params].installed_version = '0'
       expect JenkinsPipelineBuilder.registry.registry[:job][:scm_params].installed_version < Gem::Version.new(2.0)
       pull = pull_request_class.new(project, 2, jobs, pull_request)
       post_jobs = { '{{name}}-10' => { name: '{{name}}-10', type: :'job-template', value: { name: '{{name}}-10', description: '{{description}}', publishers: [{ downstream: { project: '{{job@{{name}}-11}}' } }], scm_branch: 'origin/pr/2/head', scm_params: { refspec: 'refs/pull/*:refs/remotes/origin/pr/*' } } }, '{{name}}-11' => { name: '{{name}}-11', type: :'job-template', value: { name: '{{name}}-11', description: '{{description}}', scm_branch: 'origin/pr/2/head', scm_params: { refspec: 'refs/pull/*:refs/remotes/origin/pr/*' } } } }
@@ -57,9 +57,9 @@ describe JenkinsPipelineBuilder::PullRequest do
 
   describe '#changelog_to_branch_exists' do
     it 'process pull_request' do
-      JenkinsPipelineBuilder.registry.registry[:job][:scm_params].installed_version= "2.0"
+      JenkinsPipelineBuilder.registry.registry[:job][:scm_params].installed_version = '2.0'
       pull = pull_request_class.new(project, 2, jobs, pull_request)
-      post_jobs = { '{{name}}-10' => { name: '{{name}}-10', type: :'job-template', value: { name: '{{name}}-10', description: '{{description}}', publishers: [{ downstream: { project: '{{job@{{name}}-11}}' } }], scm_branch: 'origin/pr/2/head', scm_params: { refspec: 'refs/pull/*:refs/remotes/origin/pr/*', changelog_to_branch: {remote: "origin", branch: "pr-{{pull_request_number}}"} } } }, '{{name}}-11' => { name: '{{name}}-11', type: :'job-template', value: { name: '{{name}}-11', description: '{{description}}', scm_branch: 'origin/pr/2/head', scm_params: { refspec: 'refs/pull/*:refs/remotes/origin/pr/*', changelog_to_branch: {remote: "origin", branch: "pr-{{pull_request_number}}"} } } } }
+      post_jobs = { '{{name}}-10' => { name: '{{name}}-10', type: :'job-template', value: { name: '{{name}}-10', description: '{{description}}', publishers: [{ downstream: { project: '{{job@{{name}}-11}}' } }], scm_branch: 'origin/pr/2/head', scm_params: { refspec: 'refs/pull/*:refs/remotes/origin/pr/*', changelog_to_branch: { remote: 'origin', branch: 'pr-{{pull_request_number}}' } } } }, '{{name}}-11' => { name: '{{name}}-11', type: :'job-template', value: { name: '{{name}}-11', description: '{{description}}', scm_branch: 'origin/pr/2/head', scm_params: { refspec: 'refs/pull/*:refs/remotes/origin/pr/*', changelog_to_branch: { remote: 'origin', branch: 'pr-{{pull_request_number}}' } } } } }
       expect(pull.jobs).to eq(post_jobs)
     end
   end

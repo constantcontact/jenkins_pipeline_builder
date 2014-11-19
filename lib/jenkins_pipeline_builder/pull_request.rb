@@ -102,13 +102,11 @@ module JenkinsPipelineBuilder
 
     # Apply all changes
     def run!
-      plugin_version = JenkinsPipelineBuilder.registry.registry[:job][:scm_params].installed_version
-      if plugin_version >= Gem::Version.new(2.0)
+      git_version = JenkinsPipelineBuilder.registry.registry[:job][:scm_params].installed_version
+      if git_version >= Gem::Version.new(2.0)
         @jobs.each_value do |j|
-          puts "\n\n"
-          puts j
-          j[:value][:scm_params] = {} unless j[:value][:scm_params]
-          j[:value][:scm_params][:changelog_to_branch] = {remote: "origin", branch: "pr-{{pull_request_number}}"}
+          j[:value][:scm_params] ||= {}
+          j[:value][:scm_params][:changelog_to_branch] = { remote: 'origin', branch: 'pr-{{pull_request_number}}' }
         end
       end
       update_jobs!
