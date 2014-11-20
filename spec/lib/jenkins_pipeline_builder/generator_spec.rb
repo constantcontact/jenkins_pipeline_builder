@@ -92,6 +92,19 @@ describe JenkinsPipelineBuilder::Generator do
         File.delete(file)
       end
     end
+
+    it 'loads extensions in remote dependencies' do
+      @generator.debug = true
+      job_name = 'TemplatePipeline'
+      path = File.expand_path('../fixtures/generator_tests/template_pipeline', __FILE__)
+      errors = @generator.bootstrap(path, job_name)
+      expect(errors.empty?).to be true
+      expect(@generator.module_registry.registry[:job][:wrappers].keys).to include :test_wrapper
+      Dir["#{job_name}*.xml"].each do |file|
+        File.delete(file)
+      end
+      @generator.module_registry.registry[:job][:wrappers].delete(:test_wrapper)
+    end
     # Things to check for:
     # Fail - Finds duplicate job names (load_job_collection)
     # Extension fails to register?

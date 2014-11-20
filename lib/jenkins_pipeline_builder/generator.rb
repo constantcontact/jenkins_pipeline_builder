@@ -71,7 +71,6 @@ module JenkinsPipelineBuilder
       logger.info "Bootstrapping pipeline from path #{path}"
       load_collection_from_path(path)
       cleanup_temp_remote
-      load_extensions(path)
       errors = {}
       if projects.any?
         errors = publish_project(project_name)
@@ -91,7 +90,6 @@ module JenkinsPipelineBuilder
       logger.info "Pull Request Generator Running from path #{path}"
       load_collection_from_path(path)
       cleanup_temp_remote
-      load_extensions(path)
       logger.info "Project: #{projects}"
       projects.each do |project|
         next unless project[:name] == project_name || project_name.nil?
@@ -178,6 +176,7 @@ module JenkinsPipelineBuilder
     end
 
     def load_collection_from_path(path, remote = false)
+      load_extensions(path)
       path = File.expand_path(path, Dir.getwd)
       if File.directory?(path)
         logger.info "Generating from folder #{path}"
@@ -209,7 +208,7 @@ module JenkinsPipelineBuilder
         value = section[key]
         if key == :dependencies
           logger.info 'Resolving Dependencies for remote project'
-          load_remote_yaml(value)
+          load_remote_files(value)
           next
         end
         name = value[:name]
@@ -280,7 +279,7 @@ module JenkinsPipelineBuilder
       Archive::Tar::Minitar.unpack("#{file}.tar", file)
     end
 
-    def load_remote_yaml(dependencies)
+    def load_remote_files(dependencies)
       ### Load remote YAML
       # Download Tar.gz
       dependencies.each do |source|
