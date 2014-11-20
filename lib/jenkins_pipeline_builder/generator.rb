@@ -101,7 +101,6 @@ module JenkinsPipelineBuilder
         next unless p_success
         jobs = filter_pull_request_jobs(pull_job)
         pull = JenkinsPipelineBuilder::PullRequestGenerator.new(project, jobs, p_payload)
-
         @job_collection.merge! pull.jobs
         success = create_pull_request_jobs(pull)
         failed = success unless success
@@ -454,7 +453,7 @@ module JenkinsPipelineBuilder
           logger.info 'successfully resolved project'
           compiled_project = payload
         else
-          return { project_name: "Failed to resolve" }
+          return { project_name: 'Failed to resolve' }
         end
 
         errors = publish_jobs(compiled_project[:value][:jobs]) if compiled_project[:value][:jobs]
