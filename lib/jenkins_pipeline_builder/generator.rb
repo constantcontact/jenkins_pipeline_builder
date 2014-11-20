@@ -86,7 +86,7 @@ module JenkinsPipelineBuilder
     end
 
     def pull_request(path, project_name)
-      success = false
+      failed = false
       logger.info "Pull Request Generator Running from path #{path}"
       load_collection_from_path(path)
       cleanup_temp_remote
@@ -99,12 +99,12 @@ module JenkinsPipelineBuilder
         next unless p_success
         jobs = filter_pull_request_jobs(pull_job)
         pull = JenkinsPipelineBuilder::PullRequestGenerator.new(project, jobs, p_payload)
-
         @job_collection.merge! pull.jobs
         success = create_pull_request_jobs(pull)
+        failed = success unless success
         purge_pull_request_jobs(pull)
       end
-      success
+      !failed
     end
 
     def dump(job_name)
@@ -452,7 +452,7 @@ module JenkinsPipelineBuilder
           logger.info 'successfully resolved project'
           compiled_project = payload
         else
-          return false
+          return { project_name: 'Failed to resolve' }
         end
 
         errors = publish_jobs(compiled_project[:value][:jobs]) if compiled_project[:value][:jobs]
