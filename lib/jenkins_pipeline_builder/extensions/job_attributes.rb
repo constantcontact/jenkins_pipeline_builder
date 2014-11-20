@@ -202,7 +202,6 @@ job_attribute do
       room params[:room]
       # :'start-notify' is legacy and evil, but I don't want anyone complaining
       startNotification params[:start_notify] || params[:'start-notify'] || false
-      startNotification params[:start_notify] || false
       notifySuccess params[:success_notify] || true
       notifyFailure params[:failure_notify] || true
       notifyBackToNormal params[:normal_notify] || true
