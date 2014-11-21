@@ -77,7 +77,6 @@ module JenkinsPipelineBuilder
       else
         errors = publish_jobs(jobs)
       end
-      return false if errors == false
       errors.each do |k, v|
         logger.error "Encountered errors compiling: #{k}:"
         logger.error v
