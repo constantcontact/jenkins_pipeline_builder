@@ -223,10 +223,8 @@ describe JenkinsPipelineBuilder::Generator do
     it 'generates xml and saves to disk without sending jobs to the server' do
       job_name = 'TemplatePipeline'
       path = File.expand_path('../fixtures/generator_tests/template_pipeline', __FILE__)
-      stub_request(:get, 'http://username:password@127.0.0.1:8080/api/json')
-        .to_return(status: 200, body: '', headers: {})
       errors = @generator.file(path, job_name)
-      expect(errors.empty?).to be true
+      expect(errors).to be_empty
       expect(File.exist?("out/xml/#{job_name}-10.xml")).to be true
       expect(File.exist?("out/xml/#{job_name}-11.xml")).to be true
     end
