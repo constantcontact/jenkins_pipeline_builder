@@ -41,6 +41,11 @@ module JenkinsPipelineBuilder
       def pull_request(path, project_name = nil)
         Helper.setup(parent_options).pull_request(path, project_name)
       end
+
+      desc 'file Path', 'Does the same thing as bootstrap but doesn\'t actually create jobs on the server'
+      def file(path, project_name = nil)
+        Helper.setup(parent_options).file(path, project_name)
+      end
     end
   end
 end
