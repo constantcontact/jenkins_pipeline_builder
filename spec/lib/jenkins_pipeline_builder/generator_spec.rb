@@ -214,4 +214,19 @@ describe JenkinsPipelineBuilder::Generator do
       File.delete("#{job_name}.xml")
     end
   end
+
+  describe '#file_mode' do
+    before :each do
+      allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
+        list_installed: { 'description' => '20.0', 'git' => '20.0' })
+    end
+    it 'generates xml and saves to disk without sending jobs to the server' do
+      job_name = 'TemplatePipeline'
+      path = File.expand_path('../fixtures/generator_tests/template_pipeline', __FILE__)
+      errors = @generator.file(path, job_name)
+      expect(errors).to be_empty
+      expect(File.exist?("out/xml/#{job_name}-10.xml")).to be true
+      expect(File.exist?("out/xml/#{job_name}-11.xml")).to be true
+    end
+  end
 end

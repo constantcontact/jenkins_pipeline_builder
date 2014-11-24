@@ -106,6 +106,12 @@ module JenkinsPipelineBuilder
       !failed
     end
 
+    def file(path, project_name)
+      logger.info "Generating files from path #{path}"
+      @file_mode = true
+      bootstrap(path, project_name)
+    end
+
     def dump(job_name)
       @logger.info "Debug #{@debug}"
       @logger.info "Dumping #{job_name} into #{job_name}.xml"
@@ -481,9 +487,9 @@ module JenkinsPipelineBuilder
 
     def create_or_update(job, xml)
       job_name = job[:name]
-      if @debug
+      if @debug || @file_mode
         logger.info "Will create job #{job}"
-        logger.info "#{xml}"
+        logger.info "#{xml}" if @debug
         FileUtils.mkdir_p(out_dir) unless File.exist?(out_dir)
         File.open("#{out_dir}/#{job_name}.xml", 'w') { |f| f.write xml }
         return
