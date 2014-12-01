@@ -155,7 +155,7 @@ module JenkinsPipelineBuilder
         job = @job_collection[job.to_s]
         pull_job = job if job[:value][:job_type] == 'pull_request_generator'
       end
-      fail 'No Pull Request Found for Project' unless pull_job
+      fail 'No Pull Request Job Found for Project' unless pull_job
       pull_job
     end
 
