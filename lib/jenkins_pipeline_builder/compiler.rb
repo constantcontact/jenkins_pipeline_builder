@@ -103,12 +103,23 @@ module JenkinsPipelineBuilder
       [true, result]
     end
 
+    def self.handle_enable(item)
+      if item.key?(:enabled) && item.key?(:parameters) && !item[:enabled] && item.length == 2
+        return {}
+      elsif item.key?(:enabled) && item.key?(:parameters) && item[:enabled]
+        item = item.merge item[:parameters]
+        item.delete :parameters
+        item.delete :enabled
+      end
+      item
+    end
+
     def self.compile_hash(item, settings, job_collection)
       errors = {}
       result = {}
-      if item.has_key?(:enabled) && item.has_key?(:parameters) && !item[:enabled] && item.length == 2
-        return [true, {}]
-      end
+
+      item = handle_enable item
+
       item.each do |key, value|
         if value.nil?
           errors[key] = "key: #{key} has a nil value, this is often a yaml syntax error. Skipping children and siblings"
