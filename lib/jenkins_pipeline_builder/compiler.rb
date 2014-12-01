@@ -104,8 +104,18 @@ module JenkinsPipelineBuilder
     end
 
     def self.compile_hash(item, settings, job_collection)
+      puts "\n\n\n\n"
+      puts "Compile Hash"
+      puts item
+      puts settings
+      puts job_collection
+      puts "\n\n\n\n"
+
       errors = {}
       result = {}
+      if item.has_key?(:enabled) && !item[:enabled]
+        return [true, {}]
+      end
       item.each do |key, value|
         if value.nil?
           errors[key] = "key: #{key} has a nil value, this is often a yaml syntax error. Skipping children and siblings"
@@ -120,7 +130,7 @@ module JenkinsPipelineBuilder
           errors[key] = "Failed to resolve:\n===>key: #{key}\n\n===>value: #{value}\n\n===>of: #{item}"
           next
         end
-        result[key] = payload
+        result[key] = payload if payload.class != Hash || (payload.class == Hash && !payload.empty?)
       end
       return false, errors unless errors.empty?
       [true, result]
