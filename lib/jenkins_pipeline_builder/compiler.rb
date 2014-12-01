@@ -104,16 +104,9 @@ module JenkinsPipelineBuilder
     end
 
     def self.compile_hash(item, settings, job_collection)
-      puts "\n\n\n\n"
-      puts "Compile Hash"
-      puts item
-      puts settings
-      puts job_collection
-      puts "\n\n\n\n"
-
       errors = {}
       result = {}
-      if item.has_key?(:enabled) && !item[:enabled]
+      if item.has_key?(:enabled) && item.has_key?(:parameters) && !item[:enabled] && item.length == 2
         return [true, {}]
       end
       item.each do |key, value|
@@ -130,7 +123,8 @@ module JenkinsPipelineBuilder
           errors[key] = "Failed to resolve:\n===>key: #{key}\n\n===>value: #{value}\n\n===>of: #{item}"
           next
         end
-        result[key] = payload if payload.class != Hash || (payload.class == Hash && !payload.empty?)
+        #result[key] = payload if payload.class != Hash || (payload.class == Hash && !payload.empty?)
+        result[key] = payload
       end
       return false, errors unless errors.empty?
       [true, result]
