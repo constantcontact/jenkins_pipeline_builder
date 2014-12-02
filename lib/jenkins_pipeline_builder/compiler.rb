@@ -104,9 +104,8 @@ module JenkinsPipelineBuilder
     end
 
     def self.handle_enable(item)
-      if item.key?(:enabled) && item.key?(:parameters) && !item[:enabled] && item.length == 2
-        return {}
-      elsif item.key?(:enabled) && item.key?(:parameters) && item[:enabled]
+      if item.key?(:enabled) && item.key?(:parameters) && item.length == 2
+        return {} unless item[:enabled]
         item = item.merge item[:parameters]
         item.delete :parameters
         item.delete :enabled
