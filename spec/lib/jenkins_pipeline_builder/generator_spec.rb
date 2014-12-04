@@ -208,7 +208,7 @@ describe JenkinsPipelineBuilder::Generator do
         end
       end
       stub_request(:get, 'http://username:password@127.0.0.1:8080/job/test_job/config.xml')
-         .to_return(status:  200, body:  "#{body}", headers:  {})
+        .to_return(status:  200, body:  "#{body}", headers:  {})
       @generator.dump(job_name)
       expect(File.exist?("#{job_name}.xml")).to be true
       File.delete("#{job_name}.xml")
@@ -232,8 +232,10 @@ describe JenkinsPipelineBuilder::Generator do
 
   describe '#with_overrides' do
     before :each do
+      # rubocop:disable LineLength
       @generator.instance_variable_set(:@job_collection, '{{name}}-build-{{env}}' => { name: '{{name}}-build-{{env}}', type: :job, value: { name: '{{name}}-build-{{env}}', description: '{{description}}', git_branch: 'master', git_url: 'https://github.roving.com/', git_repo: 'hello-world-java', git_org: 'ahanes', scm_provider: 'git', scm_url: '{{git_repo}}', scm_branch: '{{git_branch}}', builders: [{ shell_command: "echo \"Running build...\"\n" }] } }, 'global' => { name: 'global', type: :defaults, value: { name: 'global', description: 'Do not edit this through the web!' } }, 'PushTest' => { name: 'PushTest', type: :project, value: { name: 'PushTest', git_branch: 'master', git_url: 'https://github.roving.com', git_repo: 'git@github.roving.com:ahanes/hello-world-java.git', git_org: 'ahanes', jobs: [{ :"{{name}}-build-{{env}}" => { with_overrides: [{ env: 'f1' }, { env: 'l1' }] } }, { :"{{name}}-build-{{env}}" => { with_overrides: [{ env: 'd1' }] } }] } })
-      @generator.instance_eval{with_override}
+      # rubocop:enable  LineLength
+      @generator.instance_eval { with_override }
     end
 
     it 'generates correct number of jobs' do
@@ -262,9 +264,9 @@ describe JenkinsPipelineBuilder::Generator do
           used_vars << j[j.keys[0]][:env]
         end
       end
-      expect(used_vars).to include "d1"
-      expect(used_vars).to include "l1"
-      expect(used_vars).to include "f1"
+      expect(used_vars).to include 'd1'
+      expect(used_vars).to include 'l1'
+      expect(used_vars).to include 'f1'
     end
   end
 end
