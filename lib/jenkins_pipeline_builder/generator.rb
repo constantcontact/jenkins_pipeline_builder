@@ -603,6 +603,20 @@ module JenkinsPipelineBuilder
       new_jobs
     end
 
+    def ins_jobs(job_set, new_jobs)
+      new_jobs.each do |j|
+        job_set << j
+      end
+      job_set
+    end
+
+    def delete_jobs(job_set, removes)
+      removes.each do |r|
+        job_set.delete r
+      end
+      job_set
+    end
+
     def with_override
       @job_collection.each do |_, v|
         new_jobs = []
@@ -618,12 +632,8 @@ module JenkinsPipelineBuilder
           end
           removes << job
         end
-        new_jobs.each do |j|
-          job_set << j
-        end
-        removes.each do |r|
-          job_set.delete r
-        end
+        ins_jobs(job_set, new_jobs)
+        delete_jobs(job_set, removes)
       end
     end
 
