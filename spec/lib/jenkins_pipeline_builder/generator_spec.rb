@@ -229,4 +229,8 @@ describe JenkinsPipelineBuilder::Generator do
       expect(File.exist?("out/xml/#{job_name}-11.xml")).to be true
     end
   end
+
+  describe '#with_overrides' do
+    @generator.instance_variable_set(:@job_collection, {"{{name}}-build-{{env}}"=>{:name=>"{{name}}-build-{{env}}", :type=>:job, :value=>{:name=>"{{name}}-build-{{env}}", :description=>"{{description}}", :git_branch=>"master", :git_url=>"https://github.roving.com/", :git_repo=>"hello-world-java", :git_org=>"ahanes", :scm_provider=>"git", :scm_url=>"{{git_repo}}", :scm_branch=>"{{git_branch}}", :builders=>[{:shell_command=>"echo \"Running build...\"\n"}]}}, "global"=>{:name=>"global", :type=>:defaults, :value=>{:name=>"global", :description=>"Do not edit this through the web!"}}, "PushTest"=>{:name=>"PushTest", :type=>:project, :value=>{:name=>"PushTest", :git_branch=>"master", :git_url=>"https://github.roving.com", :git_repo=>"git@github.roving.com:ahanes/hello-world-java.git", :git_org=>"ahanes", :jobs=>[{:"{{name}}-build-{{env}}"=>{:with_overrides=>[{:env=>"f1,"}, {:env=>"l1,"}]}}, {:"{{name}}-build-{{env}}"=>{:with_overrides=>[{:env=>"d1"}]}}]}}})
+  end
 end
