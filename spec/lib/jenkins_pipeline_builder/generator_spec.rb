@@ -231,6 +231,40 @@ describe JenkinsPipelineBuilder::Generator do
   end
 
   describe '#with_overrides' do
-    @generator.instance_variable_set(:@job_collection, '{{name}}-build-{{env}}' => { name: '{{name}}-build-{{env}}', type: :job, value: { name: '{{name}}-build-{{env}}', description: '{{description}}', git_branch: 'master', git_url: 'https://github.roving.com/', git_repo: 'hello-world-java', git_org: 'ahanes', scm_provider: 'git', scm_url: '{{git_repo}}', scm_branch: '{{git_branch}}', builders: [{ shell_command: "echo \"Running build...\"\n" }] } }, 'global' => { name: 'global', type: :defaults, value: { name: 'global', description: 'Do not edit this through the web!' } }, 'PushTest' => { name: 'PushTest', type: :project, value: { name: 'PushTest', git_branch: 'master', git_url: 'https://github.roving.com', git_repo: 'git@github.roving.com:ahanes/hello-world-java.git', git_org: 'ahanes', jobs: [{ :"{{name}}-build-{{env}}" => { with_overrides: [{ env: 'f1,' }, { env: 'l1,' }] } }, { :"{{name}}-build-{{env}}" => { with_overrides: [{ env: 'd1' }] } }] } })
+    before :each do
+      @generator.instance_variable_set(:@job_collection, '{{name}}-build-{{env}}' => { name: '{{name}}-build-{{env}}', type: :job, value: { name: '{{name}}-build-{{env}}', description: '{{description}}', git_branch: 'master', git_url: 'https://github.roving.com/', git_repo: 'hello-world-java', git_org: 'ahanes', scm_provider: 'git', scm_url: '{{git_repo}}', scm_branch: '{{git_branch}}', builders: [{ shell_command: "echo \"Running build...\"\n" }] } }, 'global' => { name: 'global', type: :defaults, value: { name: 'global', description: 'Do not edit this through the web!' } }, 'PushTest' => { name: 'PushTest', type: :project, value: { name: 'PushTest', git_branch: 'master', git_url: 'https://github.roving.com', git_repo: 'git@github.roving.com:ahanes/hello-world-java.git', git_org: 'ahanes', jobs: [{ :"{{name}}-build-{{env}}" => { with_overrides: [{ env: 'f1' }, { env: 'l1' }] } }, { :"{{name}}-build-{{env}}" => { with_overrides: [{ env: 'd1' }] } }] } })
+      @generator.instance_eval{with_override}
+    end
+
+    it 'generates correct number of jobs' do
+      job_count = 0
+      @generator.job_collection.each do |_, v|
+        next unless v[:value][:jobs]
+        job_count += v[:value][:jobs].length
+      end
+      expect(job_count).to be 3
+    end
+
+    it 'replaces :with_overrides job' do
+      @generator.job_collection.each do |_, v|
+        next unless v[:value][:jobs]
+        v[:value][:jobs].each do |j|
+          expect(j[:with_overrides]).to be nil
+        end
+      end
+    end
+
+    it 'uses all variables' do
+      used_vars = []
+      @generator.job_collection.each do |_, v|
+        next unless v[:value][:jobs]
+        v[:value][:jobs].each do |j|
+          used_vars << j[j.keys[0]][:env]
+        end
+      end
+      expect(used_vars).to include "d1"
+      expect(used_vars).to include "l1"
+      expect(used_vars).to include "f1"
+    end
   end
 end
