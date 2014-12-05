@@ -172,7 +172,7 @@ module JenkinsPipelineBuilder
       if type == 'categorizedView'
         column_names << 'Categorized - Job'
       else
-        column_names << 'Name'
+        column_names.insert(2, 'Name')
       end
 
       result = []
