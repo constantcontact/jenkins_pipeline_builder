@@ -593,21 +593,15 @@ module JenkinsPipelineBuilder
 
     def expand_job(job)
       new_jobs = []
-      overrides = job[job.keys[0]][:with_overrides]
+      job_name = job.keys[0]
+      overrides = job[job_name][:with_overrides]
       overrides.each do |override|
-        j = Marshal.load(Marshal.dump(job))
-        j[job.keys[0]].delete :with_overrides
-        j[job.keys[0]] = j[job.keys[0]].merge override
-        new_jobs << j
+        clone = Marshal.load(Marshal.dump(job))
+        clone[job_name].delete :with_overrides
+        clone[job_name] = clone[job_name].merge override
+        new_jobs << clone
       end
       new_jobs
-    end
-
-    def ins_jobs(job_set, new_jobs)
-      new_jobs.each do |j|
-        job_set << j
-      end
-      job_set
     end
 
     def delete_jobs(job_set, removes)
@@ -627,12 +621,10 @@ module JenkinsPipelineBuilder
           next unless job.is_a?(Hash)
           job_name = job.keys[0]
           next unless job[job_name][:with_overrides]
-          expand_job(job).each do |j|
-            new_jobs << j
-          end
+          new_jobs.concat expand_job(job)
           removes << job
         end
-        ins_jobs(job_set, new_jobs)
+        job_set.concat new_jobs
         delete_jobs(job_set, removes)
       end
     end
