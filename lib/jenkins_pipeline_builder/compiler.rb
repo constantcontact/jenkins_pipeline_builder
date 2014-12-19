@@ -103,7 +103,7 @@ module JenkinsPipelineBuilder
       [true, result]
     end
 
-    def self.handle_enable(item)
+    def self.handle_enable(item, settings, job_collection)
       if item.key?(:enabled) && item.key?(:parameters) && item.length == 2
         return {} unless item[:enabled]
         item = item.merge item[:parameters]
@@ -117,7 +117,7 @@ module JenkinsPipelineBuilder
       errors = {}
       result = {}
 
-      item = handle_enable item
+      item = handle_enable(item, settings, job_collection)
 
       item.each do |key, value|
         if value.nil?
@@ -133,7 +133,7 @@ module JenkinsPipelineBuilder
           errors[key] = "Failed to resolve:\n===>key: #{key}\n\n===>value: #{value}\n\n===>of: #{item}"
           next
         end
-        result[key] = payload
+        result[key] = payload unless payload == {}
       end
       return false, errors unless errors.empty?
       [true, result]
