@@ -38,7 +38,12 @@ module JenkinsPipelineBuilder
       vars = value_s.scan(/{{([^{}@]+)}}/).flatten
       vars.select! do |var|
         var_val = settings[var]
-        value_s.gsub!("{{#{var}}}", var_val) unless var_val.nil?
+        case var_val
+        when String
+          value_s.gsub!("{{#{var}}}", var_val) unless var_val.nil?
+        when TrueClass || FalseClass
+          value_s.gsub!("{{#{var}}}", var_val.to_s)
+        end
         var_val.nil?
       end
       return nil if vars.count != 0
@@ -105,7 +110,8 @@ module JenkinsPipelineBuilder
 
     def self.handle_enable(item, settings, job_collection)
       if item.key?(:enabled) && item.key?(:parameters) && item.length == 2
-        return {} unless item[:enabled]
+        enabled_switch = resolve_value(item[:enabled], settings, job_collection)
+        return {} unless enabled_switch == 'true'
         item = item.merge item[:parameters]
         item.delete :parameters
         item.delete :enabled
@@ -133,7 +139,7 @@ module JenkinsPipelineBuilder
           errors[key] = "Failed to resolve:\n===>key: #{key}\n\n===>value: #{value}\n\n===>of: #{item}"
           next
         end
-        result[key] = payload unless payload == {} || payload == [{}]
+        result[key] = payload unless payload == {}
       end
       return false, errors unless errors.empty?
       [true, result]
