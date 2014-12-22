@@ -327,7 +327,8 @@ build.yaml
                   rootPom: one
 ```
 
-If use is true, the params are applied to the maven3 block, like so:
+If use is true, the params are applied to the maven3 block as seen
+below:
 
 build.yaml
 ```yaml
@@ -339,7 +340,7 @@ build.yaml
             rootPom: one
 ```
 
-The above two build.yaml files are equivalent.
+The above two build.yaml files are equivalent (for use: true)
 
 The block needs to have both an enabled and parameters key, and no other
 keys for the enables to work.  Also note that this will fail:
