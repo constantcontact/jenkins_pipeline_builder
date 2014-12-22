@@ -133,7 +133,7 @@ module JenkinsPipelineBuilder
           errors[key] = "Failed to resolve:\n===>key: #{key}\n\n===>value: #{value}\n\n===>of: #{item}"
           next
         end
-        result[key] = payload unless payload == {}
+        result[key] = payload unless payload == {} || payload == [{}]
       end
       return false, errors unless errors.empty?
       [true, result]
