@@ -289,6 +289,71 @@ Here's a high level overview of what's available:
 NOTE: The *promoted_builds* plugin is not fully implemented. This plugin just helps you point to the jobs that you have in order to promote your build.
 You need to manually create your promotion rules. Using this plugin will help you regenerate your jobs without breaking your manual promotion jobs.
 
+### Enable Blocks
+Blocks can be enabled and disabled like so:
+
+Project.yaml
+```yaml
+- defaults:
+    name: global
+    description: DB Pipeline tooling
+    git_repo: git@github.roving.com:devops/DBPipeline.git
+    git_branch: master
+    excluded_user: buildmaster
+    hipchat_room: CD Builds
+    hipchat_auth_token: f3e98ed54605b36f56dd2c562e3775
+    discard_days: '30'
+    discard_number: '100'
+    maven_name: 'tools-maven-3.0.3'
+    hipchat_jenkins_url: 'https://cd-jenkins.ad.prodcc.net/'
+
+- project:
+    name: 'PushTest'
+    hipchat_jenkins_url: 'https://cd-jenkins.ad.prodcc.net/'
+    jobs:
+        - '{{name}}-build':
+            use: true
+```
+
+build.yaml
+```yaml
+- job:
+    name: '{{name}}-build'
+    project_name: '{{name}}'
+    builders:
+        - maven3:
+              enabled: '{{use}}'
+              parameters:
+                  rootPom: one
+```
+
+If use is true, the params are applied to the maven3 block, like so:
+
+build.yaml
+```yaml
+- job:
+    name: '{{name}}-build'
+    project_name: '{{name}}'
+    builders:
+        - maven3:
+            rootPom: one
+```
+
+The above two build.yaml files are equivalent.
+
+The block needs to have both an enabled and parameters key, and no other
+keys for the enables to work.  Also note that this will fail:
+
+```yaml
+enabled: {{use}}
+```
+
+While this will work:
+
+```yaml
+enabled: '{{use}}'
+```
+
 ### Pull Request Generator
 
 The pull request generator will generate pipelines for pull requests that are noticed on your repo. It will also remove old pipelines from Jenkins if the pull_request is closed.
