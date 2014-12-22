@@ -41,7 +41,9 @@ module JenkinsPipelineBuilder
         case var_val
         when String
           value_s.gsub!("{{#{var}}}", var_val) unless var_val.nil?
-        when TrueClass || FalseClass
+        when TrueClass
+          value_s.gsub!("{{#{var}}}", var_val.to_s)
+        when FalseClass
           value_s.gsub!("{{#{var}}}", var_val.to_s)
         end
         var_val.nil?
