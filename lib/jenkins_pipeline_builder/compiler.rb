@@ -111,19 +111,22 @@ module JenkinsPipelineBuilder
     def self.handle_enable(item, settings, job_collection)
       if item.key?(:enabled) && item.key?(:parameters) && item.length == 2
         enabled_switch = resolve_value(item[:enabled], settings, job_collection)
-        return {} unless enabled_switch == 'true'
+        return [true, {}] if enabled_switch == 'false'
+        return [false, { 'value error' => "Invalid value for #{item[:enabled]}: #{enabled_switch}" }] \
+          if enabled_switch != 'true'
         item = item.merge item[:parameters]
         item.delete :parameters
         item.delete :enabled
       end
-      item
+      [true, item]
     end
 
     def self.compile_hash(item, settings, job_collection)
       errors = {}
       result = {}
 
-      item = handle_enable(item, settings, job_collection)
+      success, item = handle_enable(item, settings, job_collection)
+      return false, item unless success
 
       item.each do |key, value|
         if value.nil?
