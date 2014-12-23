@@ -38,14 +38,7 @@ module JenkinsPipelineBuilder
       vars = value_s.scan(/{{([^{}@]+)}}/).flatten
       vars.select! do |var|
         var_val = settings[var]
-        case var_val
-        when String
-          value_s.gsub!("{{#{var}}}", var_val) unless var_val.nil?
-        when TrueClass
-          value_s.gsub!("{{#{var}}}", var_val.to_s)
-        when FalseClass
-          value_s.gsub!("{{#{var}}}", var_val.to_s)
-        end
+        value_s.gsub!("{{#{var}}}", var_val.to_s) unless var_val.nil?
         var_val.nil?
       end
       return nil if vars.count != 0
