@@ -170,7 +170,7 @@ module JenkinsPipelineBuilder
     def get_columns(type)
       column_names = ['Status', 'Weather', 'Last Success', 'Last Failure', 'Last Duration', 'Build Button']
       if type == 'categorizedView'
-        column_names << 'Categorized - Job'
+        column_names.insert(2, 'Categorized - Job')
       else
         column_names.insert(2, 'Name')
       end
