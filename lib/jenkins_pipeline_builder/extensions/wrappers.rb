@@ -229,7 +229,7 @@ wrapper do
       installationName 'Default'
       screen '1024x768x24'
       debug false
-      self.timeout params[:timeout] || 10
+      self.timeout params[:timeout] || 10 # rubocop:disable Style/RedundantSelf
       displayNameOffset 1
       additionalOptions
       shutdownWithBuild false

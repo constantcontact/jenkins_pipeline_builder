@@ -110,7 +110,8 @@ describe JenkinsPipelineBuilder::ModuleRegistry do
         inject_env_var: ['0'],
         artifactory: ['0'],
         maven3artifactory: ['0'],
-        nodejs: ['0']
+        nodejs: ['0'],
+        xvfb: ['0']
       }
       registry = JenkinsPipelineBuilder.registry.registry
       expect(registry[:job][:wrappers].size).to eq wrappers.size
