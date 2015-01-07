@@ -38,7 +38,7 @@ module JenkinsPipelineBuilder
       vars = value_s.scan(/{{([^{}@]+)}}/).flatten
       vars.select! do |var|
         var_val = settings[var]
-        value_s.gsub!("{{#{var}}}", var_val) unless var_val.nil?
+        value_s.gsub!("{{#{var}}}", var_val.to_s) unless var_val.nil?
         var_val.nil?
       end
       return nil if vars.count != 0
@@ -103,21 +103,25 @@ module JenkinsPipelineBuilder
       [true, result]
     end
 
-    def self.handle_enable(item)
+    def self.handle_enable(item, settings, job_collection)
       if item.key?(:enabled) && item.key?(:parameters) && item.length == 2
-        return {} unless item[:enabled]
+        enabled_switch = resolve_value(item[:enabled], settings, job_collection)
+        return [true, {}] if enabled_switch == 'false'
+        return [false, { 'value error' => "Invalid value for #{item[:enabled]}: #{enabled_switch}" }] \
+          if enabled_switch != 'true'
         item = item.merge item[:parameters]
         item.delete :parameters
         item.delete :enabled
       end
-      item
+      [true, item]
     end
 
     def self.compile_hash(item, settings, job_collection)
       errors = {}
       result = {}
 
-      item = handle_enable item
+      success, item = handle_enable(item, settings, job_collection)
+      return false, item unless success
 
       item.each do |key, value|
         if value.nil?
@@ -133,7 +137,7 @@ module JenkinsPipelineBuilder
           errors[key] = "Failed to resolve:\n===>key: #{key}\n\n===>value: #{value}\n\n===>of: #{item}"
           next
         end
-        result[key] = payload
+        result[key] = payload unless payload == {}
       end
       return false, errors unless errors.empty?
       [true, result]
