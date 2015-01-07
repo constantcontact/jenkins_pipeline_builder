@@ -216,3 +216,24 @@ wrapper do
     end
   end
 end
+
+wrapper do
+  name :xvfb
+  plugin_id 'xvfb'
+  description 'Setup Xvfb display for Selenium with Firefox.'
+  jenkins_name 'Xvfb'
+  announced false
+
+  xml do |params|
+    send('org.jenkinsci.plugins.xvfb.XvfbBuildWrapper') do
+      installationName 'Default'
+      screen '1024x768x24'
+      debug false
+      self.timeout params[:timeout] || 10
+      displayNameOffset 1
+      additionalOptions
+      shutdownWithBuild false
+      autoDisplayName false
+    end
+  end
+end

@@ -46,6 +46,22 @@ describe 'wrappers' do
     end
   end
 
+  context 'xvfb' do
+    before :each do
+      JenkinsPipelineBuilder.registry.registry[:job][:wrappers][:xvfb].installed_version = '0.0'
+    end
+
+    it 'generates correct xml' do
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', { wrappers: { xvfb: {} } }, @n_xml)
+
+      node = @n_xml.root.xpath('//buildWrappers/org.jenkinsci.plugins.xvfb.XvfbBuildWrapper')
+      puts node.inspect
+      t = node.css('timeout')
+      puts t.inspect
+      expect(node.first).to_not be_nil
+    end
+  end
+
   context 'timestamp' do
     before :each do
       JenkinsPipelineBuilder.registry.registry[:job][:wrappers][:timestamp].installed_version = '0.0'
