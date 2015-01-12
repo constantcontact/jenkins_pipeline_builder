@@ -87,7 +87,7 @@ The pipeline builder now suppots json for config and pipeline files instead of o
 DSL:
 ----
 
-Please see the [DSL Wiki Page](DSL)
+Please see the [DSL Wiki Page](https://github.com/constantcontact/jenkins_pipeline_builder/wiki/DSL)
 
 ### Pull Request Generator
 
