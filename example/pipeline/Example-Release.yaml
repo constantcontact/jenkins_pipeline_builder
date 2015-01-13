@@ -1,0 +1,16 @@
+- job:
+    name: '{{name}}-Release'
+    scm_url: '{{git_repo}}'
+    scm_provider: git
+    scm_params:
+        excluded_users: jenkins
+        local_branch: '{{git_branch}}'
+        recursive_update: true
+        wipe_workspace: true
+    builders:
+        - shell_command: |
+            sleep 60
+    wrappers:
+        - timestamp: true
+        - ansicolor: true
+        - rvm: '{{rvm}}'

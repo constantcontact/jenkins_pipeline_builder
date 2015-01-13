@@ -1,0 +1,20 @@
+- job:
+    name: '{{name}}-PipelineGenerator'
+    description: 'Generator for jobs'
+    scm_provider: git
+    scm_url: '{{git_repo}}'
+    scm_branch: '{{git_branch}}'
+    publishers:
+        - downstream:
+            project: '{{name}}-Pipeline'
+            condition: SUCCESS
+    builders:
+      - shell_command: |
+          cd example/pipeline # Change if you use this example as a template
+          bundle -v || gem install bundler
+          bundle install
+          bundle exec generate pipeline bootstrap pipeline/
+    wrappers:
+        - timestamp: true
+        - ansicolor: true
+        - rvm: '{{rvm}}'

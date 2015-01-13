@@ -1,0 +1,27 @@
+- job:
+    name: '{{name}}-Pipeline'
+    description: 'Pipeline'
+    job_type: multi_project
+    wrappers:
+        - timestamp: true
+        - ansicolor: true
+        - rvm: '{{rvm}}'
+    builders:
+        - multi_job:
+            phases:
+                Commit:
+                    jobs:
+                        - name: '{{name}}-Commit'
+                    continue_condition: SUCCESSFUL
+                Acceptance:
+                    jobs:
+                        - name: '{{name}}-Acceptance'
+                    continue_condiction: SUCCESSFUL
+                Upgrade:
+                    jobs:
+                        - name: '{{name}}-Upgrade'
+                    continue_condiction: SUCCESSFUL
+                Release:
+                    jobs:
+                        - name: '{{name}}-Release'
+                    continue_condiction: SUCCESSFUL

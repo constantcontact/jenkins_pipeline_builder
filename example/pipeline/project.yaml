@@ -1,0 +1,26 @@
+- dependencies:
+    - source:
+        url: 'https://github.com/constantcontact/jenkins_pipeline_builder/archive/master.tar.gz'
+        templates:
+            - name: generator-template
+              version: 1
+              template_root: 'example/templates' # To keep tempaltes in this repo, we specify a folder
+
+- defaults:
+    name: global
+    description: Example Pipeline
+    git_repo: git@github.com:constantcontact/jenkins_pipeline_builder.git
+    git_branch: master
+    discard_days: '30'
+    discard_number: '100'
+    rvm: '`cat pipeline/.ruby-version`'
+
+- project:
+    name: 'ExamplePipeline'
+    jobs:
+        - '{{name}}-PipelineGenerator'
+        - '{{name}}-Pipeline'
+        - '{{name}}-Commit'
+        - '{{name}}-Acceptance' # from template (see dependencies section)
+        - '{{name}}-Upgrade'
+        - '{{name}}-Release'
