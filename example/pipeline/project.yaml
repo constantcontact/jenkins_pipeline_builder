@@ -4,7 +4,7 @@
         templates:
             - name: generator-template
               version: 1
-              template_root: 'example/example-templates' # To keep tempaltes in this repo, we specify a folder
+              template_root: 'example/templates' # To keep tempaltes in this repo, we specify a folder
 
 - defaults:
     name: global
