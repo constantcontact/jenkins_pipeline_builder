@@ -316,7 +316,6 @@ module JenkinsPipelineBuilder
     def load_templates(path, templates)
       templates.each do |template|
         version = template[:version] || 'newest'
-        load_templates(templates[:template_root], templates) if templates[:template_root]
         logger.info "Loading #{template[:name]} at version #{version}"
         # Move into the remote folder and look for the template folder
         remote = Dir.entries(path)
