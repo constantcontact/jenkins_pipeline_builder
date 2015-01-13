@@ -10,7 +10,7 @@
             condition: SUCCESS
     builders:
       - shell_command: |
-          cd example/example-pipeline # Change if you use this example as a template
+          cd example/pipeline # Change if you use this example as a template
           bundle -v || gem install bundler
           bundle install
           bundle exec generate pipeline bootstrap pipeline/
