@@ -82,6 +82,17 @@ describe JenkinsPipelineBuilder::Generator do
       end
     end
 
+    it 'produces no errors while creating a single job' do
+      @generator.debug = true
+      job_name = 'SamplePipeline'
+      path = File.expand_path('../fixtures/generator_tests/sample_pipeline/SamplePipeline-10-Commit.yaml', __FILE__)
+      errors = @generator.bootstrap(path, job_name)
+      expect(errors).to be_empty
+      Dir["#{job_name}*.xml"].each do |file|
+        File.delete(file)
+      end
+    end
+
     it 'produces no errors while creating pipeline TemplatePipeline' do
       @generator.debug = true
       job_name = 'TemplatePipeline'
