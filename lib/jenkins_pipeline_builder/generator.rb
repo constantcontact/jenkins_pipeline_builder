@@ -84,17 +84,6 @@ module JenkinsPipelineBuilder
       errors
     end
 
-    # Converts standalone jobs to the format that they have when loaded as part of a project.
-    # This addresses an issue where #pubish_jobs assumes that each job will be wrapped
-    # with in a hash a referenced under a key called :result, which is what happens when
-    # it is loaded as part of a project.
-    #
-    # @return An array of jobs
-    #
-    def standalone(jobs)
-      jobs.map! { |job| { result: job } }
-    end
-
     def pull_request(path, project_name)
       failed = false
       logger.info "Pull Request Generator Running from path #{path}"
@@ -135,6 +124,17 @@ module JenkinsPipelineBuilder
     #
 
     private
+
+    # Converts standalone jobs to the format that they have when loaded as part of a project.
+    # This addresses an issue where #pubish_jobs assumes that each job will be wrapped
+    # with in a hash a referenced under a key called :result, which is what happens when
+    # it is loaded as part of a project.
+    #
+    # @return An array of jobs
+    #
+    def standalone(jobs)
+      jobs.map! { |job| { result: job } }
+    end
 
     def purge_pull_request_jobs(pull)
       pull.purge.each do |purge_job|
