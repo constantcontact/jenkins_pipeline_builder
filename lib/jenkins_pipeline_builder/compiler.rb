@@ -107,11 +107,16 @@ module JenkinsPipelineBuilder
       if item.key?(:enabled) && item.key?(:parameters) && item.length == 2
         enabled_switch = resolve_value(item[:enabled], settings, job_collection)
         return [true, {}] if enabled_switch == 'false'
-        return [false, { 'value error' => "Invalid value for #{item[:enabled]}: #{enabled_switch}" }] \
-          if enabled_switch != 'true'
-        item = item.merge item[:parameters]
-        item.delete :parameters
-        item.delete :enabled
+        if enabled_switch != 'true'
+          return [false, { 'value error' => "Invalid value for #{item[:enabled]}: #{enabled_switch}" }]
+        end
+        if item[:parameters].is_a? Hash
+          item = item.merge item[:parameters]
+          item.delete :parameters
+          item.delete :enabled
+        else
+          item = item[:parameters]
+        end
       end
       [true, item]
     end
