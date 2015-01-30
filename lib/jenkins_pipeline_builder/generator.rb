@@ -317,7 +317,7 @@ module JenkinsPipelineBuilder
           logger.info 'No specific template specified'
           # Try to load the folder or the pipeline folder
           path = File.join(path, 'pipeline') if Dir.entries(path).include? 'pipeline'
-          return load_collection_from_path(path)
+          return load_collection_from_path(path, true)
         end
 
         load_templates(path, source[:templates])
