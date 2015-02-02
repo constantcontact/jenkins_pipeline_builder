@@ -112,10 +112,15 @@ describe JenkinsPipelineBuilder::Generator do
     end
 
     it 'overrides the remote dependencies with local ones' do
-      errors = bootstrap(fixture_path('template_pipeline'), 'TemplatePipeline')
+      errors = bootstrap(fixture_path('local_override/remote_and_local'), 'TemplatePipeline')
       expect(errors).to be_empty
-      expect(@generator.job_collection['{{name}}-10'][:value][:description]).to eq('Overriden stuff')
+      expect(@generator.job_collection['{{name}}-10'][:value][:description]).to eq('Overridden stuff')
     end
+
+    it 'fails to override when there are duplicate local items' do
+      expect { bootstrap(fixture_path('local_override/all_local'), 'TemplatePipeline') }.to raise_error(StandardError)
+    end
+
     # Things to check for:
     # Fail - Finds duplicate job names (load_job_collection)
     # Extension fails to register?

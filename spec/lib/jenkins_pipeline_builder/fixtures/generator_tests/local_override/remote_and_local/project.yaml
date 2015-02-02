@@ -1,0 +1,15 @@
+- defaults:
+    name: global
+    description: 'Test pipeline for generator_spec.rb'
+
+- dependencies: 
+    - source: 
+        url: 'spec/lib/jenkins_pipeline_builder/fixtures/generator_tests/local_override/remote_and_local/jobs.tar.gz'
+        templates:
+          - name: test_temp
+
+- project:
+    name: TemplatePipeline
+    jobs:
+      - '{{name}}-10'
+      - '{{name}}-11'
