@@ -27,13 +27,25 @@ describe JenkinsPipelineBuilder::Compiler do
   end
 
   describe '#compile' do
-    it 'compile a job with a name change' do
+    it 'compiles a job with a name change' do
       result = compiler.compile(job2, settings_bag, job_collection)
       expect(result[1]).to eq(job2_compiled)
     end
-    it 'compile a job with a downstream name change' do
+
+    it 'compiles a job with a downstream name change' do
       result = compiler.compile(job0, settings_bag, job_collection)
       expect(result[1]).to eq(job0_compiled)
+    end
+
+    it 'compiles an enabled job with a string parameter' do
+      my_job = { name: '{{name}}-00',
+                 triggers: [{ periodic_build: { enabled: true, parameters: '{{var}}' } }] }
+      compiled_job = { name: 'name-00',
+                       triggers: [{ periodic_build: 'this_is_a_var' }] }
+      settings_bag = { var: 'this_is_a_var', name: 'name' }
+
+      result = compiler.compile(my_job, settings_bag, job_collection)
+      expect(result[1]).to eq(compiled_job)
     end
   end
 

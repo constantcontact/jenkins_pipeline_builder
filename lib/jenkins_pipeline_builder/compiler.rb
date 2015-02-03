@@ -61,6 +61,9 @@ module JenkinsPipelineBuilder
     end
 
     def self.compile(item, settings = {}, job_collection = {})
+      success, item = handle_enable(item, settings, job_collection)
+      return false, item unless success
+
       case item
       when String
         return compile_string item, settings, job_collection
@@ -104,6 +107,7 @@ module JenkinsPipelineBuilder
     end
 
     def self.handle_enable(item, settings, job_collection)
+      return true, item unless item.is_a? Hash
       if item.key?(:enabled) && item.key?(:parameters) && item.length == 2
         enabled_switch = resolve_value(item[:enabled], settings, job_collection)
         return [true, {}] if enabled_switch == 'false'
@@ -122,11 +126,11 @@ module JenkinsPipelineBuilder
     end
 
     def self.compile_hash(item, settings, job_collection)
-      errors = {}
-      result = {}
-
       success, item = handle_enable(item, settings, job_collection)
       return false, item unless success
+
+      errors = {}
+      result = {}
 
       item.each do |key, value|
         if value.nil?
