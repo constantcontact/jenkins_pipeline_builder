@@ -229,14 +229,18 @@ module JenkinsPipelineBuilder
         end
         name = value[:name]
         if @job_collection.key?(name)
-          if remote
+          existing_remote = @job_collection[name.to_s][:remote]
+          # skip if the existing item is local and the new item is remote
+          if remote && !existing_remote
+            next
+          # override if the existing item is remote and the new is local
+          elsif existing_remote && !remote
             logger.info "Duplicate item with name '#{name}' was detected from the remote folder."
           else
             fail "Duplicate item with name '#{name}' was detected."
           end
-        else
-          @job_collection[name.to_s] = { name: name.to_s, type: key, value: value }
         end
+        @job_collection[name.to_s] = { name: name.to_s, type: key, value: value, remote: remote }
       end
     end
 
@@ -317,7 +321,7 @@ module JenkinsPipelineBuilder
           logger.info 'No specific template specified'
           # Try to load the folder or the pipeline folder
           path = File.join(path, 'pipeline') if Dir.entries(path).include? 'pipeline'
-          return load_collection_from_path(path)
+          return load_collection_from_path(path, true)
         end
 
         load_templates(path, source[:templates])

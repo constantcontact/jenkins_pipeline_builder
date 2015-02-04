@@ -1,0 +1,6 @@
+- job_template:
+    name: '{{name}}-10'
+    description: 'Overridden stuff'
+    builders:
+      - shell_command: |
+          echo "Overridden stuff"
