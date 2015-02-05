@@ -19,66 +19,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-
 module JenkinsPipelineBuilder
-  class PullRequestGenerator
-    attr_reader :purge
-    attr_reader :create
-    attr_reader :jobs
-
-    def initialize(project, jobs, pull_job)
-      @purge = []
-      @create = []
-      @jobs = {}
-
-      pull_requests = check_for_pull pull_job
-      purge_old(pull_requests, project)
-      pull_requests.each do |number|
-        # Manipulate the YAML
-        req = JenkinsPipelineBuilder::PullRequest.new(project, number, jobs, pull_job)
-        @jobs.merge! req.jobs
-        project_new = req.project
-
-        # Overwrite the jobs from the generator to the project
-        project_new[:value][:jobs] = req.jobs.keys
-        @create << project_new
-      end
-    end
-
-    private
-
-    # Check for Github Pull Requests
-    #
-    # args[:git_url] URL to the github main page ex. https://www.github.com/
-    # args[:git_repo] Name of repo only, not url  ex. jenkins_pipeline_builder
-    # args[:git_org] The Orig user ex. constantcontact
-    # @return = array of pull request numbers
-    def check_for_pull(args)
-      fail 'Please specify all arguments' unless args[:git_url] && args[:git_org] && args[:git_repo]
-      # Build the Git URL
-      git_url = "#{args[:git_url]}api/v3/repos/#{args[:git_org]}/#{args[:git_repo]}/pulls"
-
-      # Download the JSON Data from the API
-      resp = Net::HTTP.get_response(URI.parse(git_url))
-      pulls = JSON.parse(resp.body)
-      pulls.map { |p| p['number'] }
-    end
-
-    # Purge old builds
-    def purge_old(pull_requests, project)
-      reqs = pull_requests.clone.map { |req| "#{project[:name]}-PR#{req}" }
-      # Read File
-      old_requests = File.new('pull_requests.csv', 'a+').read.split(',')
-
-      # Pop off current pull requests
-      old_requests.delete_if { |req| reqs.include?("#{req}") }
-      @purge = old_requests
-
-      # Write File
-      File.open('pull_requests.csv', 'w+') { |file| file.write reqs.join(',') }
-    end
-  end
-
   class PullRequest
     attr_reader :project    # The root project YAML as a hash
     attr_reader :number     # The pull request number
@@ -117,7 +58,7 @@ module JenkinsPipelineBuilder
     # Change the git branch for each job
     def change_git!
       @jobs.each_value do |job|
-        job[:value][:scm_branch] = "origin/pr/#{@number}/head"
+        job[:value][:scm_branch] = 'origin/pr/{{pull_request_number}}/head'
         job[:value][:scm_params] = {} unless job[:value][:scm_params]
         job[:value][:scm_params][:refspec] = 'refs/pull/*:refs/remotes/origin/pr/*'
       end
