@@ -1,7 +1,7 @@
 require File.expand_path('../spec_helper', __FILE__)
 
 def cleanup_compiled_xml(job_name)
-  Dir["#{job_name}*.xml"].each do |file|
+  Dir["#{@generator.out_dir}/#{job_name}*.xml"].each do |file|
     File.delete(file)
   end
 end
