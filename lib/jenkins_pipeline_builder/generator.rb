@@ -70,6 +70,7 @@ module JenkinsPipelineBuilder
     def bootstrap(path, project_name = nil)
       logger.info "Bootstrapping pipeline from path #{path}"
       load_collection_from_path(path)
+      with_override
       cleanup_temp_remote
       errors = {}
       if projects.any?
@@ -603,6 +604,37 @@ module JenkinsPipelineBuilder
         xml = n_xml.to_xml
       end
       xml
+    end
+
+    def expand_job(job)
+      new_jobs = []
+      job_name = job.keys.first
+      overrides = job[job_name][:with_overrides]
+      overrides.each do |override|
+        clone = Marshal.load(Marshal.dump(job))
+        clone[job_name].delete :with_overrides
+        clone[job_name] = clone[job_name].merge override
+        new_jobs << clone
+      end
+      new_jobs
+    end
+
+    def with_override
+      @job_collection.each do |_, v|
+        new_jobs = []
+        removes = []
+        next unless v[:value][:jobs]
+        job_set = v[:value][:jobs]
+        job_set.each do |job|
+          next unless job.is_a?(Hash)
+          job_name = job.keys.first
+          next unless job[job_name][:with_overrides]
+          new_jobs.concat expand_job(job)
+          removes << job
+        end
+        job_set.delete_if { |x| removes.include? x }
+        job_set.concat new_jobs
+      end
     end
 
     def build_job_dsl(job, xml)
