@@ -28,7 +28,7 @@ describe JenkinsPipelineBuilder::CLI::Helper do
     expect(JenkinsPipelineBuilder).to receive(:generator).and_return(generator)
   end
 
-  it 'should handle server being an ip' do
+  it 'should handle server arg being an ip' do
     options[:server] = '127.0.0.1'
     expected_options[:server_ip] = '127.0.0.1'
     described_class.setup(options)
