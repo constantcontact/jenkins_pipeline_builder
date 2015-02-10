@@ -68,7 +68,7 @@ module JenkinsPipelineBuilder
         generator
       end
 
-      def process_cli_creds(options)
+      def self.process_cli_creds(options)
         creds = {}.with_indifferent_access.merge options
         begin
           IPAddr.new(creds[:server])
