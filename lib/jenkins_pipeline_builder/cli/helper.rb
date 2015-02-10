@@ -27,6 +27,7 @@ require 'jenkins_api_client'
 require 'open-uri'
 require 'zlib'
 require 'archive/tar/minitar'
+require 'ipaddr'
 
 module JenkinsPipelineBuilder
   module CLI
@@ -40,9 +41,8 @@ module JenkinsPipelineBuilder
       # @return [JenkinsPipelineBuilder::Generator] A new Client object
       #
       def self.setup(options)
-        if options[:username] && options[:server_ip] && \
-          (options[:password] || options[:password_base64])
-          creds = options
+        if options[:username] && options[:server] && (options[:password] || options[:password_base64])
+          creds = process_cli_creds(options)
         elsif options[:creds_file]
           if options[:creds_file].end_with? 'json'
             creds = JSON.parse(IO.read(File.expand_path(options[:creds_file])))
@@ -66,6 +66,17 @@ module JenkinsPipelineBuilder
         generator = JenkinsPipelineBuilder.generator
         generator.debug = options[:debug]
         generator
+      end
+
+      def process_cli_creds(options)
+        creds = {}.with_indifferent_access.merge options
+        begin
+          IPAddr.new(creds[:server])
+          creds[:server_ip] = creds.delete :server
+        rescue IPAddr::InvalidAddressError
+          creds[:server_url] = creds.delete :server
+        end
+        creds
       end
     end
   end
