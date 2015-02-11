@@ -27,7 +27,6 @@ require 'jenkins_api_client'
 require 'open-uri'
 require 'zlib'
 require 'archive/tar/minitar'
-require 'ipaddr'
 
 module JenkinsPipelineBuilder
   module CLI
@@ -70,10 +69,9 @@ module JenkinsPipelineBuilder
 
       def self.process_cli_creds(options)
         creds = {}.with_indifferent_access.merge options
-        begin
-          IPAddr.new(creds[:server])
+        if creds[:server] =~ Resolv::AddressRegex
           creds[:server_ip] = creds.delete :server
-        rescue IPAddr::InvalidAddressError
+        else
           creds[:server_url] = creds.delete :server
         end
         creds
