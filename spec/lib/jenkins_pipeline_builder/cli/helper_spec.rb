@@ -28,9 +28,15 @@ describe JenkinsPipelineBuilder::CLI::Helper do
     expect(JenkinsPipelineBuilder).to receive(:generator).and_return(generator)
   end
 
-  it 'should handle server arg being an ip' do
+  it 'should handle server arg being an ipv4 address' do
     options[:server] = '127.0.0.1'
     expected_options[:server_ip] = '127.0.0.1'
+    described_class.setup(options)
+  end
+
+  it 'should handle server arg being an ipv6 address' do
+    options[:server] = '::1'
+    expected_options[:server_ip] = '::1'
     described_class.setup(options)
   end
 
