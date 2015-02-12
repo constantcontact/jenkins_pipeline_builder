@@ -57,7 +57,7 @@ module JenkinsPipelineBuilder
         else
           msg = 'Credentials are not set. Please pass them as parameters or'
           msg << ' set them in the default credentials file'
-          puts msg
+          $stderr.puts msg
           exit 1
         end
 
@@ -71,8 +71,13 @@ module JenkinsPipelineBuilder
         creds = {}.with_indifferent_access.merge options
         if creds[:server] =~ Resolv::AddressRegex
           creds[:server_ip] = creds.delete :server
-        else
+        elsif creds[:server] =~ URI.regexp
           creds[:server_url] = creds.delete :server
+        else
+          msg = "server given (#{creds[:server]}) is neither a URL nor an IP."
+          msg << ' Please pass either a valid IP address or valid URI'
+          $stderr.puts msg
+          exit 1
         end
         creds
       end
