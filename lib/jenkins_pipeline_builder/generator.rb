@@ -119,6 +119,10 @@ module JenkinsPipelineBuilder
       File.open(job_name + '.xml', 'w') { |f| f.write xml }
     end
 
+    def out_dir
+      'out/xml'
+    end
+
     #
     # BEGIN PRIVATE METHODS
     #
@@ -617,10 +621,6 @@ module JenkinsPipelineBuilder
         xml.ignoreExisting false
         xml.removedJobAction 'IGNORE'
       end
-    end
-
-    def out_dir
-      'out/xml'
     end
   end
 end

@@ -1,7 +1,7 @@
 require File.expand_path('../spec_helper', __FILE__)
 
 def cleanup_compiled_xml(job_name)
-  Dir["#{job_name}*.xml"].each do |file|
+  Dir["#{@generator.out_dir}/#{job_name}*.xml"].each do |file|
     File.delete(file)
   end
 end
@@ -133,7 +133,24 @@ describe JenkinsPipelineBuilder::Generator do
     before :each do
       allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
         list_installed: { 'description' => '20.0', 'git' => '20.0' })
+      @generator.debug = true
     end
+    let(:jobs) do
+      {
+        '{{name}}-10-SampleJob' => {
+          name: '{{name}}-10-SampleJob',
+          type: :job,
+          value: {
+            name: '{{name}}-10-SampleJob',
+            scm_branch: 'origin/pr/{{pull_request_number}}/head',
+            scm_params: {
+              refspec: 'refs/pull/*:refs/remotes/origin/pr/*'
+            }
+          }
+        }
+      }
+    end
+    let(:path) { File.expand_path('../fixtures/generator_tests/pullrequest_pipeline', __FILE__) }
     it 'produces no errors while creating pipeline PullRequest' do
       # Dummy data
       purge = []
@@ -143,34 +160,53 @@ describe JenkinsPipelineBuilder::Generator do
           type: :project,
           value: {
             name: 'PullRequest-PR1',
+            pull_request_number: '1',
             jobs: [
               '{{name}}-10-SampleJob'
             ]
           }
         }
       ]
-      jobs = {
-        '{{name}}-10-SampleJob' => {
-          name: '{{name}}-10-SampleJob',
-          type: :job,
-          value: {
-            name: '{{name}}-10-SampleJob',
-            scm_branch: 'origin/pr/2/head',
-            scm_params: {
-              refspec: 'refs/pull/*:refs/remotes/origin/pr/*'
-            }
-          }
-        }
-      }
       # Run the test
-      @generator.debug = true
       job_name = 'PullRequest'
-      path = File.expand_path('../fixtures/generator_tests/pullrequest_pipeline', __FILE__)
       expect(JenkinsPipelineBuilder::PullRequestGenerator).to receive(:new).once.and_return(
         double(purge: purge, create: create, jobs: jobs)
       )
       success = @generator.pull_request(path, job_name)
       expect(success).to be_truthy
+      cleanup_compiled_xml(job_name)
+    end
+
+    it 'correclty creates jobs when there are multiple pulls open' do
+      purge = []
+      create = %w(1 2).map do |n|
+        {
+          name: "PullRequest-PR#{n}",
+          type: :project,
+          value: {
+            pull_request_number: n,
+            name: "PullRequest-PR#{n}",
+            jobs: [
+              '{{name}}-10-SampleJob'
+            ]
+          }
+        }
+      end
+      job_name = 'PullRequest'
+      expect(JenkinsPipelineBuilder::PullRequestGenerator).to receive(:new).once.and_return(
+        double(purge: purge, create: create, jobs: jobs)
+      )
+      expect(@generator).to receive(:compile_job_to_xml).once.with(
+        name: 'PullRequest-PR1-10-SampleJob', scm_branch: 'origin/pr/1/head', scm_params: {
+          refspec: 'refs/pull/*:refs/remotes/origin/pr/*'
+        }
+      )
+      expect(@generator).to receive(:compile_job_to_xml).once.with(
+        name: 'PullRequest-PR2-10-SampleJob', scm_branch: 'origin/pr/2/head', scm_params: {
+          refspec: 'refs/pull/*:refs/remotes/origin/pr/*'
+        }
+      )
+      expect(@generator.pull_request(path, job_name)).to be_truthy
       cleanup_compiled_xml(job_name)
     end
     # Things to check for
