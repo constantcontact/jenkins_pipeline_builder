@@ -1,0 +1,6 @@
+{
+  "server_url": "https://localhost.localdomain",
+  "server_port": 8080,
+  "username": "username",
+  "password": "password"
+}
