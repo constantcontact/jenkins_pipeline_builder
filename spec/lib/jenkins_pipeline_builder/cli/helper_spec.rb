@@ -96,6 +96,7 @@ describe JenkinsPipelineBuilder::CLI::Helper do
       end
 
       it 'should puts and error to stdout and exit if no credentials are passed' do
+        expect(File).to receive(:exist?).and_return(false)
         expect($stderr).to receive(:puts).with(/Credentials are not set/)
         expect { described_class.setup({}) }.to raise_error(SystemExit, 'exit')
       end
