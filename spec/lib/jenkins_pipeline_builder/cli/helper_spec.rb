@@ -1,8 +1,6 @@
 require File.expand_path('../../spec_helper', __FILE__)
 
 describe JenkinsPipelineBuilder::CLI::Helper do
-
-
   context '#setup' do
     let(:generator) do
       instance_double(
