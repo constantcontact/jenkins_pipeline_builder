@@ -40,9 +40,8 @@ module JenkinsPipelineBuilder
       # @return [JenkinsPipelineBuilder::Generator] A new Client object
       #
       def self.setup(options)
-        if options[:username] && options[:server_ip] && \
-          (options[:password] || options[:password_base64])
-          creds = options
+        if options[:username] && options[:server] && (options[:password] || options[:password_base64])
+          creds = process_cli_creds(options)
         elsif options[:creds_file]
           if options[:creds_file].end_with? 'json'
             creds = JSON.parse(IO.read(File.expand_path(options[:creds_file])))
@@ -58,7 +57,7 @@ module JenkinsPipelineBuilder
         else
           msg = 'Credentials are not set. Please pass them as parameters or'
           msg << ' set them in the default credentials file'
-          puts msg
+          $stderr.puts msg
           exit 1
         end
 
@@ -66,6 +65,21 @@ module JenkinsPipelineBuilder
         generator = JenkinsPipelineBuilder.generator
         generator.debug = options[:debug]
         generator
+      end
+
+      def self.process_cli_creds(options)
+        creds = {}.with_indifferent_access.merge options
+        if creds[:server] =~ Resolv::AddressRegex
+          creds[:server_ip] = creds.delete :server
+        elsif creds[:server] =~ URI.regexp
+          creds[:server_url] = creds.delete :server
+        else
+          msg = "server given (#{creds[:server]}) is neither a URL nor an IP."
+          msg << ' Please pass either a valid IP address or valid URI'
+          $stderr.puts msg
+          exit 1
+        end
+        creds
       end
     end
   end
