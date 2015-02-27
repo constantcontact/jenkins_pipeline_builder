@@ -87,6 +87,7 @@ describe JenkinsPipelineBuilder::ModuleRegistry do
         git: ['0'],
         junit_result: ['0'],
         coverage_result: ['0'],
+        performance_plugin: ['0'],
         post_build_script: ['0'],
         groovy_postbuild: ['0'],
         archive_artifact: ['0'],
