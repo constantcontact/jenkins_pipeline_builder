@@ -226,6 +226,38 @@ publisher do
 end
 
 publisher do
+  name :performance_plugin
+  plugin_id 'performance'
+  description 'JMeter Performance Plugin'
+  jenkins_name 'JMeter Performance Plugin'
+  announced false
+
+  xml do |params|
+    send 'hudson.plugins.performance.PerformancePublisher' do
+      errorFailedThreshold params[:errorFailedThreshold] || '0'
+      errorUnstableThreshold params[:errorUnstableThreshold] || '0'
+      errorUnstableResponseTimeThreshold params[:errorUnstableResponseTimeThreshold]
+      relativeFailedThresholdPositive params[:relativeFailedThresholdPositive] || '0.0'
+      relativeFailedThresholdNegative params[:relativeFailedThresholdNegative] || '0.0'
+      relativeUnstableThresholdPositive params[:relativeUnstableThresholdPositive] || '0.0'
+      relativeUnstableThresholdNegative params[:relativeUnstableThresholdNegative] || '0.0'
+      nthBuildNumber params[:nthBuildNumber] || '0'
+      modeRelativeThresholds params[:modeRelativeThresholds] || 'false'
+      configType params[:configType] || 'ART'
+      modeOfThreshold params[:modeOfThreshold] || 'false'
+      compareBuildPrevious params[:compareBuildPrevious] || 'false'
+      modePerformancePerTestCase params[:modePerformancePerTestCase] || 'true'
+      send 'parsers' do
+        send 'hudson.plugins.performance.JMeterParser' do
+          glob params[:result_file]
+        end
+      end
+      modeThroughput params[:mode_throughput] || 'false'
+    end
+  end
+end
+
+publisher do
   name :email_notifications
   plugin_id 'mailer'
   description 'This plugin allows you to configure email notifications. This is a break-out of the original core based email component.'
