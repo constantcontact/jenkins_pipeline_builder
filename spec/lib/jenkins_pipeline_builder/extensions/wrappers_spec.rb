@@ -75,6 +75,36 @@ describe 'wrappers' do
     end
   end
 
+  context 'inject_passwords' do
+    before :each do
+      JenkinsPipelineBuilder.registry.registry[:job][:wrappers][:inject_passwords].installed_version = '0.0'
+    end
+
+    it 'generates correct xml with the old way' do
+      wrapper = { wrappers: { inject_passwords: [{ name: 'x', value: 'y' }] } }
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', wrapper, @n_xml)
+      path = '//buildWrappers/EnvInjectPasswordWrapper/passwordEntries/EnvInjectPasswordEntry[last()]/name'
+      node = @n_xml.root.xpath(path)
+      expect(node.first.content).to eq('x')
+    end
+
+    it 'generates correct xml with the new way' do
+      wrapper = { wrappers: { inject_passwords: { passwords: [{ name: 'x', value: 'y' }] } } }
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', wrapper, @n_xml)
+      path = '//buildWrappers/EnvInjectPasswordWrapper/passwordEntries/EnvInjectPasswordEntry[last()]/name'
+      node = @n_xml.root.xpath(path)
+      expect(node.first.content).to eq('x')
+    end
+
+    it 'generates correct xml without passwords' do
+      wrapper = { wrappers: { inject_passwords: { inject_global_passwords: true } } }
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', wrapper, @n_xml)
+      path = '//buildWrappers/EnvInjectPasswordWrapper/injectGlobalPasswords'
+      node = @n_xml.root.xpath(path)
+      expect(node.first.content).to be_truthy
+    end
+  end
+
   context 'nodejs' do
     before :each do
       JenkinsPipelineBuilder.registry.registry[:job][:wrappers][:nodejs].installed_version = '0.0'

@@ -90,9 +90,15 @@ wrapper do
   jenkins_name 'Inject passwords to the build as environment variables'
   announced false
 
-  xml do |passwords|
+  xml do |wrapper|
     EnvInjectPasswordWrapper do
-      injectGlobalPasswords false
+      if wrapper.is_a? Array
+        passwords = wrapper
+      else
+        injectGlobalPasswords wrapper[:inject_global_passwords]
+        passwords = wrapper[:passwords]
+      end
+      break unless passwords
       passwordEntries do
         passwords.each do |password|
           EnvInjectPasswordEntry do
