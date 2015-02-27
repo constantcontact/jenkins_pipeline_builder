@@ -95,6 +95,14 @@ describe 'wrappers' do
       node = @n_xml.root.xpath(path)
       expect(node.first.content).to eq('x')
     end
+
+    it 'generates correct xml without passwords' do
+      wrapper = { wrappers: { inject_passwords: { inject_global_passwords: true } } }
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', wrapper, @n_xml)
+      path = '//buildWrappers/EnvInjectPasswordWrapper/injectGlobalPasswords'
+      node = @n_xml.root.xpath(path)
+      expect(node.first.content).to be_truthy
+    end
   end
 
   context 'nodejs' do

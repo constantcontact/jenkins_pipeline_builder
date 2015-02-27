@@ -98,6 +98,7 @@ wrapper do
         injectGlobalPasswords wrapper[:inject_global_passwords]
         passwords = wrapper[:passwords]
       end
+      break unless passwords
       passwordEntries do
         passwords.each do |password|
           EnvInjectPasswordEntry do
@@ -105,7 +106,7 @@ wrapper do
             value password[:value]
           end
         end
-      end if passwords
+      end
     end
   end
 end
