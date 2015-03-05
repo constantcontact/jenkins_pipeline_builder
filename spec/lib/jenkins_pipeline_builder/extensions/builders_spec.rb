@@ -25,6 +25,28 @@ describe 'builders' do
     File.open("./out/xml/builder_#{name}.xml", 'w') { |f| @n_xml.write_xml_to f }
   end
 
+  context 'generic' do
+    it 'can register a builder' do
+      result = builder do
+        name :test_generic
+        plugin_id :foo
+        xml do
+          foo :bar
+        end
+      end
+      JenkinsPipelineBuilder.registry.registry[:job][:builders].delete :test_generic
+      expect(result).to be true
+    end
+
+    it 'fails to register an invalid builder' do
+      result = builder do
+        name :test_generic
+      end
+      JenkinsPipelineBuilder.registry.registry[:job][:builders].delete :test_generic
+      expect(result).to be false
+    end
+  end
+
   context 'multi_job builder' do
     before :each do
       allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(

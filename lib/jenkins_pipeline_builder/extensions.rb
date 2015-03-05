@@ -23,35 +23,20 @@ require 'jenkins_pipeline_builder'
 JenkinsPipelineBuilder.registry.entries.each do |type, path|
   singular_type = type.to_s.singularize
   define_method singular_type do |&block|
-    set = JenkinsPipelineBuilder::ExtensionSet.new
-    set.instance_eval(&block)
-    set.blocks.each do |version, settings|
-      set.add_extension singular_type, version, settings, path
-    end
-    unless set.valid?
-      name = set.name || 'A plugin with no name provided'
-      puts "Encountered errors while registering #{name}"
-      puts set.errors.map { |k, v| "#{k}: #{v}" }.join(', ')
-      return false
-    end
+    set = JenkinsPipelineBuilder::ExtensionSet.new singular_type, path, &block
+    return false unless set.valid?
+
     JenkinsPipelineBuilder.registry.register([:job, type], set)
     versions = set.extensions.map(&:min_version)
     puts "Successfully registered #{set.name} for versions #{versions}" if set.announced
+    true
   end
 end
 
 def job_attribute(&block)
-  set = JenkinsPipelineBuilder::ExtensionSet.new
-  set.instance_eval(&block)
-  set.blocks.each do |version, settings|
-    set.add_extension :job_attribute, version, settings
-  end
-  unless set.valid?
-    name = set.name || 'A plugin with no name provided'
-    puts "Encountered errors while registering #{name}"
-    puts set.errors.map { |k, v| "#{k}: #{v}" }.join(', ')
-    return false
-  end
+  set = JenkinsPipelineBuilder::ExtensionSet.new :job_attribute, &block
+  return false unless set.valid?
+
   JenkinsPipelineBuilder.registry.register([:job], set)
   versions = set.extensions.map(&:min_version)
   puts "Successfully registered #{set.name} for versions #{versions}" if set.announced
@@ -76,10 +61,16 @@ module JenkinsPipelineBuilder
 
     attr_accessor :blocks, :extensions, :settings
 
-    def initialize
+    def initialize(type, path = nil, &block)
       @blocks = {}
       @settings = {}
       @extensions = []
+
+      instance_eval(&block)
+
+      blocks.each do |version, settings|
+        add_extension type, version, settings, path
+      end
     end
 
     def installed_version=(version)
@@ -103,7 +94,6 @@ module JenkinsPipelineBuilder
       return @version if @version
       reg = JenkinsPipelineBuilder.registry
       version = reg.versions[settings[:plugin_id]]
-      puts reg.versions.inspect if version.nil?
       fail "Plugin #{settings[:name]} is not installed (plugin_id: #{settings[:plugin_id]})" if version.nil?
       self.installed_version = version
       @version
@@ -113,11 +103,12 @@ module JenkinsPipelineBuilder
       # TODO: Support multiple xml sections for the native to jenkins plugins
       return extensions.first if settings[:plugin_id] == 'builtin'
 
-      ordered_version_list.each do |version|
-        return versions[version] if version <= installed_version
-      end
+      extension = versions[highest_allowed_version]
 
-      fail "Can't find version of #{name} lte #{installed_version}, versions available are #{versions.keys.map(&:to_s)}"
+      unless extension
+        fail "Can't find version of #{name} lte #{installed_version}, available versions: #{versions.keys.map(&:to_s)}"
+      end
+      extension
     end
 
     def merge(other_set)
@@ -152,11 +143,7 @@ module JenkinsPipelineBuilder
         fail "no block found for version #{version}" unless blocks.key version
         return blocks[version][:block]
       end
-      if blocks[version]
-        blocks[version].merge!(xml: block, path: path)
-      else
-        blocks[version] = { xml: block, path: path }
-      end
+      store_xml version, block, path
     end
 
     def version(ver, &block)
@@ -179,7 +166,13 @@ module JenkinsPipelineBuilder
     end
 
     def valid?
-      errors.empty?
+      valid = errors.empty?
+      unless valid
+        name ||= 'A plugin with no name provided'
+        puts "Encountered errors while registering #{name}"
+        puts errors.map { |k, v| "#{k}: #{v}" }.join(', ')
+      end
+      valid
     end
 
     def errors
@@ -193,6 +186,20 @@ module JenkinsPipelineBuilder
     end
 
     private
+
+    def highest_allowed_version
+      ordered_version_list.each do |version|
+        return version if version <= installed_version
+      end
+    end
+
+    def store_xml(version, block, path)
+      if blocks[version]
+        blocks[version].merge!(xml: block, path: path)
+      else
+        blocks[version] = { xml: block, path: path }
+      end
+    end
 
     def versions
       @versions ||= extensions.each_with_object({}) do |ext, hash|

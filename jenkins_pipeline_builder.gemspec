@@ -42,5 +42,7 @@ automating Job & Pipeline creation from the YAML files checked-in with your appl
   spec.add_development_dependency 'yard'
   spec.add_development_dependency 'rspec_junit_formatter'
   spec.add_development_dependency 'webmock'
+  # Eventually, we'll fix all the Complexity that ties us to 0.26.1
+  # spec.add_development_dependency 'rubocop'
   spec.add_development_dependency 'rubocop', '= 0.26.1'
 end

@@ -55,9 +55,6 @@ describe 'wrappers' do
       JenkinsPipelineBuilder.registry.traverse_registry_path('job', { wrappers: { xvfb: {} } }, @n_xml)
 
       node = @n_xml.root.xpath('//buildWrappers/org.jenkinsci.plugins.xvfb.XvfbBuildWrapper')
-      puts node.inspect
-      t = node.css('timeout')
-      puts t.inspect
       expect(node.first).to_not be_nil
     end
   end

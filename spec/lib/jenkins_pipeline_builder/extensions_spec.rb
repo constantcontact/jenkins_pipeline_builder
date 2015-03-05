@@ -119,6 +119,7 @@ describe JenkinsPipelineBuilder::Extension do
         expect(extension.errors).to be_empty
         expect(extension.valid?).to be true
       end
+
       it 'returns false if errors is not empty' do
         expect(extension.errors).to_not be_empty
         expect(extension.valid?).to be false
@@ -128,7 +129,7 @@ describe JenkinsPipelineBuilder::Extension do
 end
 
 describe JenkinsPipelineBuilder::ExtensionSet do
-  subject(:set) { JenkinsPipelineBuilder::ExtensionSet.new }
+  subject(:set) { JenkinsPipelineBuilder::ExtensionSet.new('foo') {} }
 
   before :each do
     set.name 'example'

@@ -46,13 +46,17 @@ module JenkinsPipelineBuilder
       git_version = JenkinsPipelineBuilder.registry.registry[:job][:scm_params].installed_version
       if git_version >= Gem::Version.new(2.0)
         @jobs.each_value do |j|
-          j[:value][:scm_params] ||= {}
-          j[:value][:scm_params][:changelog_to_branch] = { remote: 'origin', branch: 'pr-{{pull_request_number}}' }
+          override_git_2_params j
         end
       end
       update_jobs!
       change_git!
       change_name!
+    end
+
+    def override_git_2_params(job)
+      job[:value][:scm_params] ||= {}
+      job[:value][:scm_params][:changelog_to_branch] = { remote: 'origin', branch: 'pr-{{pull_request_number}}' }
     end
 
     # Change the git branch for each job
