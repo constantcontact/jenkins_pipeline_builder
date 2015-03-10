@@ -220,7 +220,6 @@ publisher do
       excludes params[:excludes] if params[:excludes]
       latestOnly params[:latest_only] || false
       allowEmptyArchive params[:allow_empty] || false
-
     end
   end
 end

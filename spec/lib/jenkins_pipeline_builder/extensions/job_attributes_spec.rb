@@ -40,7 +40,6 @@ describe 'job_attributes' do
 
   context 'scm params' do
     before :each do
-
       builder = Nokogiri::XML::Builder.new { |xml| xml.scm }
       @n_xml = builder.doc
 

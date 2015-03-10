@@ -6,7 +6,6 @@ describe JenkinsPipelineBuilder::ModuleRegistry do
   end
   describe '#register' do
     it 'should return item by a specified path' do
-
       registry = JenkinsPipelineBuilder::ModuleRegistry.new
       set = double
       allow(set).to receive(:name).and_return :foo
@@ -126,7 +125,6 @@ describe JenkinsPipelineBuilder::ModuleRegistry do
     end
   end
   describe '#initialize' do
-
   end
 
   describe '#version' do
@@ -147,23 +145,18 @@ describe JenkinsPipelineBuilder::ModuleRegistry do
   end
 
   describe '#entries' do
-
   end
 
   describe '#get' do
-
   end
 
   describe '#get_by_path_collection' do
-
   end
 
   describe '#traverse_registry_path' do
-
   end
 
   describe '#traverse_registry' do
-
   end
 
   describe '#execute_extension' do
@@ -203,7 +196,6 @@ describe JenkinsPipelineBuilder::ModuleRegistry do
       end
       expect(JenkinsPipelineBuilder.registry.registry[:job][:wrappers]).to have_key :test_name
       @ext = JenkinsPipelineBuilder.registry.registry[:job][:wrappers][:test_name].extension
-
     end
 
     after :each do

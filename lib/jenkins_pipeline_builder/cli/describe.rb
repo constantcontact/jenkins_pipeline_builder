@@ -28,7 +28,6 @@ module JenkinsPipelineBuilder
       klass_name = entry.to_s.classify
       # rubocop:disable Style/AccessModifierIndentation
       klass = Class.new(Thor) do
-
         if entry == :job_attributes
           extensions = JenkinsPipelineBuilder.registry.registry[:job].select { |_, x| x.is_a? ExtensionSet }
         else

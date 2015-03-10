@@ -220,9 +220,7 @@ describe JenkinsPipelineBuilder::ExtensionSet do
       # set.installed_version = '2.0-beta-1'
       # set.installed_version = '2.0+build.93'
       # set.installed_version = '2.0.8'
-
       expect(set.extension.min_version).to eq '1.9'
-
     end
   end
 end

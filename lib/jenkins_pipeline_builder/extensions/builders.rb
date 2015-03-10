@@ -117,7 +117,6 @@ builder do
     send('hudson.plugins.parameterizedtrigger.TriggerBuilder', 'plugin' => 'parameterized-trigger') do
       configs do
         send('hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig') do
-
           configs do
             params[:data] = [{ params: '' }] unless params[:data]
             params[:data].each do |config|

@@ -121,7 +121,7 @@ module JenkinsPipelineBuilder
       mismatch.each do |error|
         puts error
       end
-      fail 'Values did not match, cannot merge exception sets' if mismatch.any?
+      fail 'Values did not match, cannot merge extension sets' if mismatch.any?
 
       blocks.merge other_set.blocks
     end

@@ -50,7 +50,6 @@ describe JenkinsPipelineBuilder::Compiler do
   end
 
   describe '#enable_blocks' do
-
     it 'generates correct new jobs with true' do
       item = { enabled: '{{use1}}', parameters: { rootPom: 'path_to_pomasd' } }
       settings = { name: 'PushTest', description: 'DB Pipeline tooling', git_repo: 'git@github.roving.com:devops/DBPipeline.git', git_branch: 'master', excluded_user: 'buildmaster', hipchat_room: 'CD Builds', hipchat_auth_token: 'f3e98ed54605b36f56dd2c562e3775', discard_days: '30', discard_number: '100', maven_name: 'tools-maven-3.0.3', hipchat_jenkins_url: 'https://cd-jenkins.ad.prodcc.net/', use1: true }

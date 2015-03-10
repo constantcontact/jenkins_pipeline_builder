@@ -258,7 +258,7 @@ describe JenkinsPipelineBuilder::Generator do
         end
       end
       stub_request(:get, 'http://username:password@127.0.0.1:8080/job/test_job/config.xml')
-         .to_return(status:  200, body:  "#{body}", headers:  {})
+        .to_return(status:  200, body:  "#{body}", headers:  {})
       @generator.dump(job_name)
       expect(File.exist?("#{job_name}.xml")).to be true
       File.delete("#{job_name}.xml")

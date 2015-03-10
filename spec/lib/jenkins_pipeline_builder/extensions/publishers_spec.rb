@@ -69,7 +69,6 @@ describe 'publishers' do
       root_pom = sonar_nodes.select { |node| node.name == 'rootPom' }
       expect(root_pom.first.content).to match 'project_war/pom.xml'
     end
-
   end
 
   context 'description_setter' do
