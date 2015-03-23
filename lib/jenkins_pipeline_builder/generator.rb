@@ -129,6 +129,14 @@ module JenkinsPipelineBuilder
 
     private
 
+    def create_or_update_job(job_name, xml)
+      if client.job.exists?(job_name)
+        client.job.update(job_name, xml)
+      else
+        client.job.create(job_name, xml)
+      end
+    end
+
     # Converts standalone jobs to the format that they have when loaded as part of a project.
     # This addresses an issue where #pubish_jobs assumes that each job will be wrapped
     # with in a hash a referenced under a key called :result, which is what happens when
@@ -189,7 +197,7 @@ module JenkinsPipelineBuilder
     end
 
     def compile_pull_request_generator(pull_job, project)
-      defaults = get_item('global')
+      defaults = find_defaults
       settings = defaults.nil? ? {} : defaults[:value] || {}
       settings = Compiler.get_settings_bag(project, settings)
       resolve_job_by_name(pull_job, settings)
@@ -514,11 +522,7 @@ module JenkinsPipelineBuilder
         return
       end
 
-      if client.job.exists?(job_name)
-        client.job.update(job_name, xml)
-      else
-        client.job.create(job_name, xml)
-      end
+      create_or_update_job job_name, xml
     end
 
     def compile_job_to_xml(job)
