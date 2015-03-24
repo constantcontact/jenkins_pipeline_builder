@@ -90,18 +90,26 @@ module JenkinsPipelineBuilder
       load_collection_from_path(path)
       cleanup_temp_remote
       logger.info "Project: #{projects}"
+      errors = {}
       projects.each do |project|
         next unless project[:name] == project_name || project_name.nil?
         logger.info "Using Project #{project}"
         pull_job = find_pull_request_generator(project)
         p_success, p_payload = compile_pull_request_generator(pull_job[:name], project)
-        next unless p_success
+        unless p_success
+          errors[pull_job[:name]] = p_payload
+          next
+        end
         jobs = filter_pull_request_jobs(pull_job)
         pull = JenkinsPipelineBuilder::PullRequestGenerator.new(project, jobs, p_payload)
         @job_collection.merge! pull.jobs
         success = create_pull_request_jobs(pull)
         failed = success unless success
         purge_pull_request_jobs(pull)
+      end
+      errors.each do |k, v|
+        logger.error "Encountered errors compiling: #{k}:"
+        logger.error v
       end
       !failed
     end
@@ -384,7 +392,7 @@ module JenkinsPipelineBuilder
         next unless j
 
         Utils.hash_merge!(j, job[job_id])
-        j[:value][:name] = j[:job_name] if j[:job_name]
+        j[:value][:name] = j[:value][:job_name] if j[:value][:job_name]
       end
     end
 

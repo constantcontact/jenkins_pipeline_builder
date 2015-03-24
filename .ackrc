@@ -2,3 +2,4 @@
 --ignore-dir=doc
 --ignore-dir=out
 --ignore-dir=coverage
+--sort-files
