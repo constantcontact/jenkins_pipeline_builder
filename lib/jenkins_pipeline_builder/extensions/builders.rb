@@ -45,6 +45,7 @@ builder do
                   end
                 end
               end
+              killPhaseOnJobResultCondition job[:kill_phase_on] || 'FAILURE'
             end
           end
         end
