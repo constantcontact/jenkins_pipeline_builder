@@ -2,17 +2,6 @@ require File.expand_path('../../spec_helper', __FILE__)
 
 describe JenkinsPipelineBuilder::CLI::Helper do
   context '#setup' do
-    let(:generator) do
-      instance_double(
-        JenkinsPipelineBuilder::Generator,
-        :debug= => true
-      )
-    end
-
-    before(:each) do
-      allow(JenkinsPipelineBuilder).to receive(:generator).and_return(generator)
-    end
-
     context 'username and password given' do
       let(:options) do
         {
@@ -92,6 +81,7 @@ describe JenkinsPipelineBuilder::CLI::Helper do
           server_ip: :baz
         }
         expect(JenkinsPipelineBuilder).to receive(:credentials=).with(expected_options)
+        expect(JenkinsPipelineBuilder).to receive(:debug!).and_return true
         described_class.setup(options)
       end
 

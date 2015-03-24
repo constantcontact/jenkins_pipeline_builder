@@ -31,14 +31,33 @@ require 'jenkins_pipeline_builder/pull_request_generator'
 require 'jenkins_pipeline_builder/pull_request'
 require 'jenkins_pipeline_builder/view'
 require 'jenkins_pipeline_builder/job_collection'
+require 'jenkins_pipeline_builder/job'
 require 'jenkins_pipeline_builder/remote_dependencies'
 require 'jenkins_pipeline_builder/generator'
 
 module JenkinsPipelineBuilder
   class << self
-    attr_reader :client, :credentials
+    attr_reader :client, :credentials, :debug, :file_mode
     def generator
       @_generator ||= Generator.new
+    end
+
+    def file_mode!
+      @file_mode = true
+    end
+
+    def normal_mode!
+      @file_mode = false
+    end
+
+    def debug!
+      @debug = true
+      @client.logger.level = Logger::DEBUG
+    end
+
+    def no_debug!
+      @debug = false
+      @client.logger.level = Logger::INFO
     end
 
     def credentials=(creds)

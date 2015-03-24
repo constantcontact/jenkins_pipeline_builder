@@ -29,7 +29,7 @@ module JenkinsPipelineBuilder
 
     def versions
       # Return a hash with a default of 1000 so that we'll get the newest in debug
-      return Hash.new { |_| '1000.0' } if JenkinsPipelineBuilder.generator.debug
+      return Hash.new { |_| '1000.0' } if JenkinsPipelineBuilder.debug
       @versions ||= JenkinsPipelineBuilder.client.plugin.list_installed
     end
 

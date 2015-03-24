@@ -40,31 +40,35 @@ module JenkinsPipelineBuilder
       # @return [JenkinsPipelineBuilder::Generator] A new Client object
       #
       def self.setup(options)
+        creds = process_creds options
+
+        JenkinsPipelineBuilder.credentials = creds
+        generator = JenkinsPipelineBuilder.generator
+        JenkinsPipelineBuilder.debug! if options[:debug]
+        generator
+      end
+
+      def self.process_creds(options)
         if options[:username] && options[:server] && (options[:password] || options[:password_base64])
-          creds = process_cli_creds(options)
+          return process_cli_creds(options)
         elsif options[:creds_file]
           if options[:creds_file].end_with? 'json'
-            creds = JSON.parse(IO.read(File.expand_path(options[:creds_file])))
+            return JSON.parse(IO.read(File.expand_path(options[:creds_file])))
           else
-            creds = YAML.load_file(File.expand_path(options[:creds_file]))
+            return YAML.load_file(File.expand_path(options[:creds_file]))
           end
         elsif File.exist?("#{ENV['HOME']}/.jenkins_api_client/login.yml")
-          creds = YAML.load_file(
+          return YAML.load_file(
             File.expand_path("#{ENV['HOME']}/.jenkins_api_client/login.yml", __FILE__)
           )
         elsif options[:debug]
-          creds = { username: :foo, password: :bar, server_ip: :baz }
+          return { username: :foo, password: :bar, server_ip: :baz }
         else
           msg = 'Credentials are not set. Please pass them as parameters or'
           msg << ' set them in the default credentials file'
           $stderr.puts msg
           exit 1
         end
-
-        JenkinsPipelineBuilder.credentials = creds
-        generator = JenkinsPipelineBuilder.generator
-        generator.debug = options[:debug]
-        generator
       end
 
       def self.process_cli_creds(options)

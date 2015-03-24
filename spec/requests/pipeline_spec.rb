@@ -14,7 +14,7 @@ describe 'Pipeline' do
   let(:generator) { JenkinsPipelineBuilder::Generator.new }
 
   it 'generates its own pipeline' do
-    generator.debug = true
+    JenkinsPipelineBuilder.debug!
     generator.bootstrap './pipeline'
   end
 end

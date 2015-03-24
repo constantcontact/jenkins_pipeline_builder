@@ -17,7 +17,7 @@ describe JenkinsPipelineBuilder::Generator do
   end
 
   after(:each) do
-    @generator.debug = false
+    JenkinsPipelineBuilder.no_debug!
     @generator.job_collection = JenkinsPipelineBuilder::JobCollection.new
   end
 
@@ -34,20 +34,6 @@ describe JenkinsPipelineBuilder::Generator do
       @generator.job_collection.collection[job_name] = { name: job_name, type: job_type, value: job_value }
       expect(@generator.job_collection.collection).not_to be_empty
       expect(@generator.job_collection.collection[job_name]).not_to be_nil
-    end
-  end
-
-  describe '#debug=' do
-    it 'sets debug mode to false' do
-      @generator.debug = false
-      expect(@generator.debug).to be false
-      expect(@generator.logger.level).to eq(Logger::INFO)
-    end
-
-    it 'sets debug mode to true' do
-      @generator.debug = true
-      expect(@generator.debug).to be true
-      expect(@generator.logger.level).to eq(Logger::DEBUG)
     end
   end
 
@@ -72,7 +58,7 @@ describe JenkinsPipelineBuilder::Generator do
     end
 
     def bootstrap(fixture_path, job_name)
-      @generator.debug = true
+      JenkinsPipelineBuilder.debug!
       errors = @generator.bootstrap(fixture_path, job_name)
       errors
     end
@@ -125,7 +111,7 @@ describe JenkinsPipelineBuilder::Generator do
     before :each do
       allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
         list_installed: { 'description' => '20.0', 'git' => '20.0' })
-      @generator.debug = true
+      JenkinsPipelineBuilder.debug!
     end
     let(:jobs) do
       {
@@ -187,16 +173,20 @@ describe JenkinsPipelineBuilder::Generator do
       expect(JenkinsPipelineBuilder::PullRequestGenerator).to receive(:new).once.and_return(
         double(purge: purge, create: create, jobs: jobs)
       )
-      expect(@generator).to receive(:compile_job_to_xml).once.with(
+      job1 = double name: 'job name'
+      job2 = double name: 'job name'
+      expect(JenkinsPipelineBuilder::Job).to receive(:new).once.with(
         name: 'PullRequest-PR1-10-SampleJob', scm_branch: 'origin/pr/1/head', scm_params: {
           refspec: 'refs/pull/*:refs/remotes/origin/pr/*'
         }
-      )
-      expect(@generator).to receive(:compile_job_to_xml).once.with(
+      ).and_return job1
+      expect(JenkinsPipelineBuilder::Job).to receive(:new).once.with(
         name: 'PullRequest-PR2-10-SampleJob', scm_branch: 'origin/pr/2/head', scm_params: {
           refspec: 'refs/pull/*:refs/remotes/origin/pr/*'
         }
-      )
+      ).and_return job2
+      expect(job1).to receive(:create_or_update).and_return true
+      expect(job2).to receive(:create_or_update).and_return true
       expect(@generator.pull_request(path, job_name)).to be_truthy
     end
     # Things to check for
@@ -237,7 +227,7 @@ describe JenkinsPipelineBuilder::Generator do
 
   describe '#dump' do
     it "writes a job's config XML to a file" do
-      @generator.debug = true
+      JenkinsPipelineBuilder.debug!
       job_name = 'test_job'
       body = ''
       test_path = File.expand_path('../fixtures/generator_tests', __FILE__)

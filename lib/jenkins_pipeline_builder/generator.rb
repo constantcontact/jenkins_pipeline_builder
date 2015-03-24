@@ -45,11 +45,6 @@ module JenkinsPipelineBuilder
       @job_collection = JobCollection.new
     end
 
-    def debug=(value)
-      @debug = value
-      logger.level = (value) ? Logger::DEBUG : Logger::INFO
-    end
-
     def logger
       JenkinsPipelineBuilder.logger
     end
@@ -83,7 +78,6 @@ module JenkinsPipelineBuilder
     end
 
     def pull_request(path, project_name)
-      failed = false
       logger.info "Pull Request Generator Running from path #{path}"
       job_collection.load_from_path(path)
       logger.info "Project: #{job_collection.projects}"
@@ -100,20 +94,20 @@ module JenkinsPipelineBuilder
         jobs = filter_pull_request_jobs(pull_job)
         pull = JenkinsPipelineBuilder::PullRequestGenerator.new(project, jobs, p_payload)
         @job_collection.collection.merge! pull.jobs
-        success = create_pull_request_jobs(pull)
-        failed = success unless success
+        pull_errors = create_pull_request_jobs(pull)
+        errors.merge! pull_errors
         purge_pull_request_jobs(pull)
       end
       errors.each do |k, v|
         logger.error "Encountered errors compiling: #{k}:"
         logger.error v
       end
-      !failed
+      errors.empty?
     end
 
     def file(path, project_name)
       logger.info "Generating files from path #{path}"
-      @file_mode = true
+      JenkinsPipelineBuilder.file_mode!
       bootstrap(path, project_name)
     end
 
@@ -124,23 +118,11 @@ module JenkinsPipelineBuilder
       File.open(job_name + '.xml', 'w') { |f| f.write xml }
     end
 
-    def out_dir
-      'out/xml'
-    end
-
     #
     # BEGIN PRIVATE METHODS
     #
 
     private
-
-    def create_or_update_job(job_name, xml)
-      if client.job.exists?(job_name)
-        client.job.update(job_name, xml)
-      else
-        client.job.create(job_name, xml)
-      end
-    end
 
     # Converts standalone jobs to the format that they have when loaded as part of a project.
     # This addresses an issue where #pubish_jobs assumes that each job will be wrapped
@@ -163,16 +145,17 @@ module JenkinsPipelineBuilder
     end
 
     def create_pull_request_jobs(pull)
-      success = false
+      errors = {}
       pull.create.each do |pull_project|
         success, compiled_project = resolve_project(pull_project)
         compiled_project[:value][:jobs].each do |i|
           job = i[:result]
-          success, payload = compile_job_to_xml(job)
-          create_or_update(job, payload) if success
+          job = Job.new job
+          success, payload = job.create_or_update
+          errors[job.name] = payload unless success
         end
       end
-      success
+      errors
     end
 
     def find_pull_request_generator(project)
@@ -206,10 +189,6 @@ module JenkinsPipelineBuilder
       settings = defaults.nil? ? {} : defaults[:value] || {}
       settings = Compiler.get_settings_bag(project, settings)
       resolve_job_by_name(pull_job, settings)
-    end
-
-    def list_plugins
-      client.plugin.list_installed
     end
 
     def prepare_jobs(jobs)
@@ -320,129 +299,11 @@ module JenkinsPipelineBuilder
         logger.info "Processing #{i}"
         job = i[:result]
         fail "Result is empty for #{i}" if job.nil?
-        success, payload = compile_job_to_xml(job)
-        if success
-          create_or_update(job, payload)
-        else
-          errors[job[:name]] = payload
-        end
+        job = Job.new job
+        success, payload = job.create_or_update
+        errors[job.name] = payload unless success
       end
       errors
-    end
-
-    def create_or_update(job, xml)
-      job_name = job[:name]
-      if @debug || @file_mode
-        logger.info "Will create job #{job}"
-        logger.info "#{xml}" if @debug
-        FileUtils.mkdir_p(out_dir) unless File.exist?(out_dir)
-        File.open("#{out_dir}/#{job_name}.xml", 'w') { |f| f.write xml }
-        return
-      end
-
-      create_or_update_job job_name, xml
-    end
-
-    def compile_job_to_xml(job)
-      fail 'Job name is not specified' unless job[:name]
-
-      logger.info "Creating Yaml Job #{job}"
-      job[:job_type] = 'free_style' unless job[:job_type]
-      case job[:job_type]
-      when 'job_dsl'
-        xml = compile_freestyle_job_to_xml(job)
-        payload = update_job_dsl(job, xml)
-      when 'multi_project'
-        xml = compile_freestyle_job_to_xml(job)
-        payload = adjust_multi_project xml
-      when 'build_flow'
-        xml = compile_freestyle_job_to_xml(job)
-        payload = add_job_dsl(job, xml)
-      when 'free_style', 'pull_request_generator'
-        payload = compile_freestyle_job_to_xml job
-      else
-        return false, "Job type: #{job[:job_type]} is not one of job_dsl, multi_project, build_flow or free_style"
-      end
-
-      [true, payload]
-    end
-
-    def adjust_multi_project(xml)
-      n_xml = Nokogiri::XML(xml)
-      root = n_xml.root
-      root.name = 'com.tikal.jenkins.plugins.multijob.MultiJobProject'
-      n_xml.to_xml
-    end
-
-    def compile_freestyle_job_to_xml(params)
-      if params.key?(:template)
-        template_name = params[:template]
-        fail "Job template '#{template_name}' can't be resolved." unless @job_templates.key?(template_name)
-        params.delete(:template)
-        template = @job_templates[template_name]
-        puts "Template found: #{template}"
-        params = template.deep_merge(params)
-        puts "Template merged: #{template}"
-      end
-
-      xml = client.job.build_freestyle_config(params)
-      n_xml = Nokogiri::XML(xml, &:noblanks)
-
-      logger.debug 'Loading the required modules'
-      @module_registry.traverse_registry_path('job', params, n_xml)
-      logger.debug 'Module loading complete'
-
-      n_xml.to_xml
-    end
-
-    def add_job_dsl(job, xml)
-      n_xml = Nokogiri::XML(xml)
-      n_xml.root.name = 'com.cloudbees.plugins.flow.BuildFlow'
-      Nokogiri::XML::Builder.with(n_xml.root) do |b_xml|
-        b_xml.dsl job[:build_flow]
-      end
-      n_xml.to_xml
-    end
-
-    # TODO: make sure this is tested
-    def update_job_dsl(job, xml)
-      n_xml = Nokogiri::XML(xml)
-      n_builders = n_xml.xpath('//builders').first
-      Nokogiri::XML::Builder.with(n_builders) do |b_xml|
-        build_job_dsl(job, b_xml)
-      end
-      n_xml.to_xml
-    end
-
-    def generate_job_dsl_body(params)
-      logger.info 'Generating pipeline'
-
-      xml = client.job.build_freestyle_config(params)
-
-      n_xml = Nokogiri::XML(xml)
-      if n_xml.xpath('//javaposse.jobdsl.plugin.ExecuteDslScripts').empty?
-        p_xml = Nokogiri::XML::Builder.new(encoding: 'UTF-8') do |b_xml|
-          build_job_dsl(params, b_xml)
-        end
-
-        n_xml.xpath('//builders').first.add_child("\r\n" + p_xml.doc.root.to_xml(indent: 4) + "\r\n")
-        xml = n_xml.to_xml
-      end
-      xml
-    end
-
-    def build_job_dsl(job, xml)
-      xml.send('javaposse.jobdsl.plugin.ExecuteDslScripts') do
-        if job.key?(:job_dsl)
-          xml.scriptText job[:job_dsl]
-          xml.usingScriptText true
-        else
-          xml.targets job[:job_dsl_targets]
-          xml.usingScriptText false
-        end
-        xml.ignoreExisting false
-        xml.removedJobAction 'IGNORE'
-      end
     end
   end
 end

@@ -67,12 +67,12 @@ module JenkinsPipelineBuilder
     def create(params)
       # Name is a required parameter. Raise an error if not specified
       fail ArgumentError, 'Name is required for creating view' unless params.is_a?(Hash) && params[:name]
-      clean_up_views(params) unless @generator.debug
+      clean_up_views(params) unless JenkinsPipelineBuilder.debug
       params[:type] ||= 'listview'
       create_base_view(params[:name], params[:type], params[:parent_view])
       @logger.debug "Creating a #{params[:type]} view with params: #{params.inspect}"
 
-      if @generator.debug
+      if JenkinsPipelineBuilder.debug
         # pp post_params(params)
         return
       end
@@ -156,7 +156,7 @@ module JenkinsPipelineBuilder
         }.to_json
       }
 
-      if @generator.debug
+      if JenkinsPipelineBuilder.debug
         # pp initial_post_params
         return
       end
