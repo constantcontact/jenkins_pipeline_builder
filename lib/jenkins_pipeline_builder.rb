@@ -30,6 +30,8 @@ require 'jenkins_pipeline_builder/module_registry'
 require 'jenkins_pipeline_builder/pull_request_generator'
 require 'jenkins_pipeline_builder/pull_request'
 require 'jenkins_pipeline_builder/view'
+require 'jenkins_pipeline_builder/job_collection'
+require 'jenkins_pipeline_builder/remote_dependencies'
 require 'jenkins_pipeline_builder/generator'
 
 module JenkinsPipelineBuilder
@@ -57,6 +59,8 @@ module JenkinsPipelineBuilder
 end
 JenkinsPipelineBuilder.generator
 require 'jenkins_pipeline_builder/extensions'
+require 'jenkins_pipeline_builder/extension_dsl'
+require 'jenkins_pipeline_builder/extension_set'
 require 'jenkins_pipeline_builder/extensions/builders'
 require 'jenkins_pipeline_builder/extensions/job_attributes'
 require 'jenkins_pipeline_builder/extensions/wrappers'

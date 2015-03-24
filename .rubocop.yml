@@ -7,7 +7,7 @@ Metrics/PerceivedComplexity:
 Metrics/MethodLength:
   Max: 27
 Metrics/ClassLength:
-  Max: 525
+  Max: 350
 
 #######
 # Finalized settings

@@ -26,7 +26,7 @@ require 'json'
 module JenkinsPipelineBuilder
   class Generator
     attr_reader :debug
-    attr_accessor :no_files, :job_templates, :job_collection, :logger, :module_registry, :remote_depends
+    attr_accessor :no_files, :job_templates, :logger, :module_registry, :job_collection
 
     # Initialize a Client object with Jenkins Api Client
     #
@@ -40,10 +40,9 @@ module JenkinsPipelineBuilder
     #
     def initialize
       @job_templates = {}
-      @job_collection = {}
       @extensions = {}
-      @remote_depends = {}
       @module_registry = ModuleRegistry.new
+      @job_collection = JobCollection.new
     end
 
     def debug=(value)
@@ -69,13 +68,12 @@ module JenkinsPipelineBuilder
 
     def bootstrap(path, project_name = nil)
       logger.info "Bootstrapping pipeline from path #{path}"
-      load_collection_from_path(path)
-      cleanup_temp_remote
+      job_collection.load_from_path(path)
       errors = {}
-      if projects.any?
+      if job_collection.projects.any?
         errors = publish_project(project_name)
       else
-        errors = publish_jobs(standalone jobs)
+        errors = publish_jobs(standalone job_collection.jobs)
       end
       errors.each do |k, v|
         logger.error "Encountered errors compiling: #{k}:"
@@ -87,11 +85,10 @@ module JenkinsPipelineBuilder
     def pull_request(path, project_name)
       failed = false
       logger.info "Pull Request Generator Running from path #{path}"
-      load_collection_from_path(path)
-      cleanup_temp_remote
-      logger.info "Project: #{projects}"
+      job_collection.load_from_path(path)
+      logger.info "Project: #{job_collection.projects}"
       errors = {}
-      projects.each do |project|
+      job_collection.projects.each do |project|
         next unless project[:name] == project_name || project_name.nil?
         logger.info "Using Project #{project}"
         pull_job = find_pull_request_generator(project)
@@ -102,7 +99,7 @@ module JenkinsPipelineBuilder
         end
         jobs = filter_pull_request_jobs(pull_job)
         pull = JenkinsPipelineBuilder::PullRequestGenerator.new(project, jobs, p_payload)
-        @job_collection.merge! pull.jobs
+        @job_collection.collection.merge! pull.jobs
         success = create_pull_request_jobs(pull)
         failed = success unless success
         purge_pull_request_jobs(pull)
@@ -183,7 +180,7 @@ module JenkinsPipelineBuilder
       pull_job = nil
       project_jobs.each do |job|
         job = job.keys.first if job.is_a? Hash
-        job = @job_collection[job.to_s]
+        job = @job_collection.collection[job.to_s]
         pull_job = job if job[:value][:job_type] == 'pull_request_generator'
       end
       fail 'No jobs of type pull_request_generator found' unless pull_job
@@ -195,9 +192,9 @@ module JenkinsPipelineBuilder
       pull_jobs = pull_job[:value][:jobs] || []
       pull_jobs.each do |job|
         if job.is_a? String
-          jobs[job.to_s] = @job_collection[job.to_s]
+          jobs[job.to_s] = @job_collection.collection[job.to_s]
         else
-          jobs[job.keys.first.to_s] = @job_collection[job.keys.first.to_s]
+          jobs[job.keys.first.to_s] = @job_collection.collection[job.keys.first.to_s]
         end
       end
       fail 'No jobs found for pull request' if jobs.empty?
@@ -205,173 +202,10 @@ module JenkinsPipelineBuilder
     end
 
     def compile_pull_request_generator(pull_job, project)
-      defaults = find_defaults
+      defaults = job_collection.defaults
       settings = defaults.nil? ? {} : defaults[:value] || {}
       settings = Compiler.get_settings_bag(project, settings)
       resolve_job_by_name(pull_job, settings)
-    end
-
-    def load_collection_from_path(path, remote = false)
-      load_extensions(path)
-      path = File.expand_path(path, Dir.getwd)
-      if File.directory?(path)
-        logger.info "Generating from folder #{path}"
-        Dir[File.join(path, '/*.{yaml,yml}')].each do |file|
-          logger.info "Loading file #{file}"
-          yaml = YAML.load_file(file)
-          load_job_collection(yaml, remote)
-        end
-        Dir[File.join(path, '/*.json')].each do |file|
-          logger.info "Loading file #{file}"
-          json = JSON.parse(IO.read(file))
-          load_job_collection(json, remote)
-        end
-      else
-        logger.info "Loading file #{path}"
-        if path.end_with? 'json'
-          hash = JSON.parse(IO.read(path))
-        else  # elsif path.end_with?("yml") || path.end_with?("yaml")
-          hash = YAML.load_file(path)
-        end
-        load_job_collection(hash, remote)
-      end
-    end
-
-    def load_job_collection(yaml, remote = false)
-      yaml.each do |section|
-        Utils.symbolize_keys_deep!(section)
-        key = section.keys.first
-        value = section[key]
-        if key == :dependencies
-          logger.info 'Resolving Dependencies for remote project'
-          load_remote_files(value)
-          next
-        end
-        name = value[:name]
-        if @job_collection.key?(name)
-          existing_remote = @job_collection[name.to_s][:remote]
-          # skip if the existing item is local and the new item is remote
-          if remote && !existing_remote
-            next
-          # override if the existing item is remote and the new is local
-          elsif existing_remote && !remote
-            logger.info "Duplicate item with name '#{name}' was detected from the remote folder."
-          else
-            fail "Duplicate item with name '#{name}' was detected."
-          end
-        end
-        @job_collection[name.to_s] = { name: name.to_s, type: key, value: value, remote: remote }
-      end
-    end
-
-    def get_item(name)
-      @job_collection[name.to_s]
-    end
-
-    def load_extensions(path)
-      path = "#{path}/extensions"
-      path = File.expand_path(path, Dir.getwd)
-      return unless File.directory?(path)
-      logger.info "Loading extensions from folder #{path}"
-      logger.info Dir.glob("#{path}/*.rb").inspect
-      Dir.glob("#{path}/*.rb").each do |file|
-        logger.info "Loaded #{file}"
-        require file
-      end
-    end
-
-    def load_template(path, template)
-      # If we specify what folder the yaml is in, load that
-      if template[:folder]
-        path = File.join(path, template[:folder])
-      else
-        path = File.join(path, template[:name]) unless template[:name] == 'default'
-        # If we are looking for the newest version or no version was set
-        if (template[:version].nil? || template[:version] == 'newest') && File.directory?(path)
-          folders = Dir.entries(path)
-          highest = folders.max
-          template[:version] = highest unless highest == 0
-        end
-        path = File.join(path, template[:version]) unless template[:version].nil?
-        path = File.join(path, 'pipeline')
-      end
-
-      if File.directory?(path)
-        logger.info "Loading from #{path}"
-        load_collection_from_path(path, true)
-        true
-      else
-        false
-      end
-    end
-
-    def download_yaml(url, file, remote_opts = {})
-      @remote_depends[url] = file
-      logger.info "Downloading #{url} to #{file}.tar"
-      open("#{file}.tar", 'w') do |local_file|
-        open(url, remote_opts) do |remote_file|
-          local_file.write(Zlib::GzipReader.new(remote_file).read)
-        end
-      end
-
-      # Extract Tar.gz to 'remote' folder
-      logger.info "Unpacking #{file}.tar to #{file} folder"
-      Archive::Tar::Minitar.unpack("#{file}.tar", file)
-    end
-
-    def load_remote_files(dependencies)
-      ### Load remote YAML
-      # Download Tar.gz
-      dependencies.each do |source|
-        source = source[:source]
-        url = source[:url]
-
-        file = "remote-#{@remote_depends.length}"
-        if @remote_depends[url]
-          file = @remote_depends[url]
-        else
-          opts = {}
-          opts = { ssl_verify_mode: OpenSSL::SSL::VERIFY_NONE } if source[:verify_ssl] == false
-          download_yaml(url, file, opts)
-        end
-
-        path = File.expand_path(file, Dir.getwd)
-        # Load templates recursively
-        unless source[:templates]
-          logger.info 'No specific template specified'
-          # Try to load the folder or the pipeline folder
-          path = File.join(path, 'pipeline') if Dir.entries(path).include? 'pipeline'
-          return load_collection_from_path(path, true)
-        end
-
-        load_templates(path, source[:templates])
-      end
-    end
-
-    def load_templates(path, templates)
-      templates.each do |template|
-        version = template[:version] || 'newest'
-        logger.info "Loading #{template[:name]} at version #{version}"
-        # Move into the remote folder and look for the template folder
-        remote = Dir.entries(path)
-        if remote.include? template[:name]
-          # We found the template name, load this path
-          logger.info 'We found the template!'
-          load_template(path, template)
-        else
-          # Many cases we must dig one layer deep
-          remote.each do |file|
-            load_template(File.join(path, file), template)
-          end
-        end
-      end
-    end
-
-    def cleanup_temp_remote
-      @remote_depends.each_value do |file|
-        FileUtils.rm_r file
-        FileUtils.rm_r "#{file}.tar"
-      end
     end
 
     def list_plugins
@@ -387,7 +221,7 @@ module JenkinsPipelineBuilder
     def process_job_changes(jobs)
       jobs.each do |job|
         job_id = job.keys.first
-        j = get_item(job_id)
+        j = job_collection.get_item(job_id)
 
         next unless j
 
@@ -414,22 +248,8 @@ module JenkinsPipelineBuilder
       errors
     end
 
-    def process_jobs(jobs, project, errors = {})
-      jobs.each do |job|
-        job_id = job.keys.first
-        settings = project[:settings].clone.merge(job[job_id])
-        success, payload = resolve_job_by_name(job_id, settings)
-        if success
-          job[:result] = payload
-        else
-          errors[job_id] = payload
-        end
-      end
-      errors
-    end
-
     def resolve_project(project)
-      defaults = find_defaults
+      defaults = job_collection.defaults
       settings = defaults.nil? ? {} : defaults[:value] || {}
       project[:settings] = Compiler.get_settings_bag(project, settings) unless project[:settings]
       project_body = project[:value]
@@ -451,41 +271,31 @@ module JenkinsPipelineBuilder
       [true, project]
     end
 
-    def find_defaults
-      @job_collection.each_value do |item|
-        return item if item[:type] == 'defaults' || item[:type] == :defaults
+    def process_jobs(jobs, project, errors = {})
+      jobs.each do |job|
+        job_id = job.keys.first
+        settings = project[:settings].clone.merge(job[job_id])
+        success, payload = resolve_job_by_name(job_id, settings)
+        if success
+          job[:result] = payload
+        else
+          errors[job_id] = payload
+        end
       end
-      # This is here for historical purposes
-      get_item('global')
+      errors
     end
 
     def resolve_job_by_name(name, settings = {})
-      job = get_item(name)
+      job = job_collection.get_item(name)
       fail "Failed to locate job by name '#{name}'" if job.nil?
       job_value = job[:value]
       logger.debug "Compiling job #{name}"
-      success, payload = Compiler.compile(job_value, settings, @job_collection)
+      success, payload = Compiler.compile(job_value, settings, @job_collection.collection)
       [success, payload]
     end
 
-    def projects
-      result = []
-      @job_collection.values.each do |item|
-        result << item if item[:type] == :project
-      end
-      result
-    end
-
-    def jobs
-      result = []
-      @job_collection.values.each do |item|
-        result << item if item[:type] == :job
-      end
-      result
-    end
-
     def publish_project(project_name, errors = {})
-      projects.each do |project|
+      job_collection.projects.each do |project|
         next unless project_name.nil? || project[:name] == project_name
         success, payload = resolve_project(project)
         if success

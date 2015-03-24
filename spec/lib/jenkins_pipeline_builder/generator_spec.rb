@@ -1,11 +1,5 @@
 require File.expand_path('../spec_helper', __FILE__)
 
-def cleanup_compiled_xml(job_name)
-  Dir["#{@generator.out_dir}/#{job_name}*.xml"].each do |file|
-    File.delete(file)
-  end
-end
-
 describe JenkinsPipelineBuilder::Generator do
   after :each do
     JenkinsPipelineBuilder.registry.clear_versions
@@ -24,13 +18,12 @@ describe JenkinsPipelineBuilder::Generator do
 
   after(:each) do
     @generator.debug = false
-    @generator.job_collection = {}
-    @generator.remote_depends = {}
+    @generator.job_collection = JenkinsPipelineBuilder::JobCollection.new
   end
 
   describe 'initialized in before(:example)' do
     it 'creates a new generator' do
-      expect(@generator.job_collection).to be_empty
+      expect(@generator.job_collection.collection).to be_empty
       expect(@generator.module_registry).not_to be_nil
     end
 
@@ -38,9 +31,9 @@ describe JenkinsPipelineBuilder::Generator do
       job_name = 'sample_job'
       job_type = 'project'
       job_value = {}
-      @generator.job_collection[job_name] = { name: job_name, type: job_type, value: job_value }
-      expect(@generator.job_collection).not_to be_empty
-      expect(@generator.job_collection[job_name]).not_to be_nil
+      @generator.job_collection.collection[job_name] = { name: job_name, type: job_type, value: job_value }
+      expect(@generator.job_collection.collection).not_to be_empty
+      expect(@generator.job_collection.collection[job_name]).not_to be_nil
     end
   end
 
@@ -81,7 +74,6 @@ describe JenkinsPipelineBuilder::Generator do
     def bootstrap(fixture_path, job_name)
       @generator.debug = true
       errors = @generator.bootstrap(fixture_path, job_name)
-      cleanup_compiled_xml(job_name)
       errors
     end
 
@@ -114,7 +106,7 @@ describe JenkinsPipelineBuilder::Generator do
     it 'overrides the remote dependencies with local ones' do
       errors = bootstrap(fixture_path('local_override/remote_and_local'), 'TemplatePipeline')
       expect(errors).to be_empty
-      expect(@generator.job_collection['{{name}}-10'][:value][:description]).to eq('Overridden stuff')
+      expect(@generator.job_collection.collection['{{name}}-10'][:value][:description]).to eq('Overridden stuff')
     end
 
     it 'fails to override when there are duplicate local items' do
@@ -174,7 +166,6 @@ describe JenkinsPipelineBuilder::Generator do
       )
       success = @generator.pull_request(path, job_name)
       expect(success).to be_truthy
-      cleanup_compiled_xml(job_name)
     end
 
     it 'correclty creates jobs when there are multiple pulls open' do
@@ -207,7 +198,6 @@ describe JenkinsPipelineBuilder::Generator do
         }
       )
       expect(@generator.pull_request(path, job_name)).to be_truthy
-      cleanup_compiled_xml(job_name)
     end
     # Things to check for
     # Fail - no PR job type found
@@ -226,23 +216,22 @@ describe JenkinsPipelineBuilder::Generator do
       }]
     end
 
+    before :each do
+      expect(@generator.job_collection).to receive(:load_file).once.with(view_hash, false).and_return(true)
+      expect(@generator.job_collection).to receive(:load_file).once.with(project_hash, false).and_return(true)
+    end
+
     it 'loads a yaml collection from a path' do
       path = File.expand_path('../fixtures/generator_tests/test_yaml_files', __FILE__)
-      expect(@generator).to receive(:load_job_collection).once.with(view_hash, false).and_return(true)
-      expect(@generator).to receive(:load_job_collection).once.with(project_hash, false).and_return(true)
-      @generator.send(:load_collection_from_path, path)
+      @generator.job_collection.send(:load_from_path, path)
     end
     it 'loads a json collection from a path' do
       path = File.expand_path('../fixtures/generator_tests/test_json_files', __FILE__)
-      expect(@generator).to receive(:load_job_collection).once.with(view_hash, false).and_return(true)
-      expect(@generator).to receive(:load_job_collection).once.with(project_hash, false).and_return(true)
-      @generator.send(:load_collection_from_path, path)
+      @generator.job_collection.send(:load_from_path, path)
     end
     it 'loads both yaml and json files from a path' do
       path = File.expand_path('../fixtures/generator_tests/test_combo_files', __FILE__)
-      expect(@generator).to receive(:load_job_collection).once.with(view_hash, false).and_return(true)
-      expect(@generator).to receive(:load_job_collection).once.with(project_hash, false).and_return(true)
-      @generator.send(:load_collection_from_path, path)
+      @generator.job_collection.send(:load_from_path, path)
     end
   end
 
