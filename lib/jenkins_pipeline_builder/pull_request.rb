@@ -56,6 +56,8 @@ module JenkinsPipelineBuilder
 
     def override_git_2_params(job)
       job[:value][:scm_params] ||= {}
+      # Only include changelog_to_branch if it's enabled
+      return true unless job[:value][:scm_params][:changelog_to_branch]
       job[:value][:scm_params][:changelog_to_branch] = { remote: 'origin', branch: 'pr-{{pull_request_number}}' }
     end
 
