@@ -18,7 +18,7 @@ module JenkinsPipelineBuilder
       end
     end
 
-    #TODO: Look into remote jobs not working according to sinan
+    # TODO: Look into remote jobs not working according to sinan
 
     def load(dependencies)
       ### Load remote YAML
