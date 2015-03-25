@@ -56,7 +56,7 @@ module JenkinsPipelineBuilder
 
     def override_git_2_params(job)
       job[:value][:scm_params] ||= {}
-      job[:value][:scm_params][:changelog_to_branch] = { remote: 'origin', branch: 'pr-{{pull_request_number}}' }
+      job[:value][:scm_params][:changelog_to_branch] = { remote: 'origin', branch: 'pr/{{pull_request_number}}/head' }
     end
 
     # Change the git branch for each job
