@@ -33,14 +33,12 @@ module JenkinsPipelineBuilder
 
       @errors = {}
       @pull_generator = find
-      raise 'hell'
       success, payload = compile_generator
       unless success
         @errors[@pull_generator[:name]] = payload
         return false
       end
       @jobs = filter_jobs
-      raise 'hell'
 
       # old init
       @pull_requests = check_for_pull payload
@@ -112,24 +110,15 @@ module JenkinsPipelineBuilder
     end
 
     def find
-      puts 'find'
-      puts project.inspect
       project_jobs = project[:value][:jobs] || []
       pull_job = nil
       project_jobs.each do |job|
         job = job.keys.first if job.is_a? Hash
         job = generator.job_collection.collection[job.to_s]
 
-        puts '00000000000000'
-        puts generator.job_collection.collection.inspect
-        puts job.inspect
-        puts '00000000000000'
-
         pull_job = job if job[:value][:job_type] == 'pull_request_generator'
       end
-      puts 'before'
       fail 'No jobs of type pull_request_generator found' unless pull_job
-      puts 'after'
       pull_job
     end
 

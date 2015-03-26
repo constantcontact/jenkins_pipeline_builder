@@ -40,9 +40,6 @@ module JenkinsPipelineBuilder
 
     def run!
       git_version = JenkinsPipelineBuilder.registry.registry[:job][:scm_params].installed_version
-      puts '!@!!!!!'
-      puts git_version.inspect
-      puts '!@!!!!!'
       if git_version >= Gem::Version.new(2.0)
         @jobs.each_value do |j|
           override_git_2_params j
@@ -63,7 +60,7 @@ module JenkinsPipelineBuilder
       @jobs.each_value do |job|
         job[:value][:scm_branch] = 'origin/pr/{{pull_request_number}}/head'
         job[:value][:scm_params] = {} unless job[:value][:scm_params]
-        job[:value][:scm_params][:refspec] = 'refs/pull/*:refs/remotes/origin/pr/*'
+        job[:value][:scm_params][:refspec] = "refs/pull/#{number}/head:refs/remotes/origin/pr/#{number}/head"
       end
     end
 
