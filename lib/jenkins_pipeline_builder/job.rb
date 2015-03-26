@@ -44,6 +44,7 @@ module JenkinsPipelineBuilder
         @xml = setup_freestyle_base(job)
         payload = update_job_dsl
       when 'multi_project'
+        # TODO: Add multi_job as another, more logically named option
         @xml = setup_freestyle_base(job)
         payload = adjust_multi_project
       when 'build_flow'

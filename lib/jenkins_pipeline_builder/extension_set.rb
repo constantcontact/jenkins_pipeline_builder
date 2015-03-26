@@ -51,7 +51,6 @@ module JenkinsPipelineBuilder
     end
 
     def installed_version
-      puts "@version: #{@version}"
       return @version if @version
       reg = JenkinsPipelineBuilder.registry
       version = reg.versions[settings[:plugin_id]]

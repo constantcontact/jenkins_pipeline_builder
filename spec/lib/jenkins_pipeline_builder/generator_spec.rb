@@ -116,21 +116,6 @@ describe JenkinsPipelineBuilder::Generator do
       JenkinsPipelineBuilder.registry.registry[:job][:scm_params].clear_installed_version
     end
 
-    let(:jobs) do
-      {
-        '{{name}}-10-SampleJob' => {
-          name: '{{name}}-10-SampleJob',
-          type: :job,
-          value: {
-            name: '{{name}}-10-SampleJob',
-            scm_branch: 'origin/pr/{{pull_request_number}}/head',
-            scm_params: {
-              refspec: 'refs/pull/*:refs/remotes/origin/pr/*'
-            }
-          }
-        }
-      }
-    end
     let(:path) { File.expand_path('../fixtures/generator_tests/pullrequest_pipeline', __FILE__) }
     it 'produces no errors while creating pipeline PullRequest' do
       job_name = 'PullRequest'
@@ -146,13 +131,13 @@ describe JenkinsPipelineBuilder::Generator do
       job2 = double name: 'job name'
       expect(JenkinsPipelineBuilder::Job).to receive(:new).once.with(
         name: 'PullRequest-PR1-10-SampleJob', scm_branch: 'origin/pr/1/head', scm_params: {
-          refspec: 'refs/pull/*:refs/remotes/origin/pr/*',
+          refspec: 'refs/pull/1/head:refs/remotes/origin/pr/1/head',
           changelog_to_branch: { remote: 'origin', branch: 'pr/1/head' }
         }
       ).and_return job1
       expect(JenkinsPipelineBuilder::Job).to receive(:new).once.with(
         name: 'PullRequest-PR2-10-SampleJob', scm_branch: 'origin/pr/2/head', scm_params: {
-          refspec: 'refs/pull/*:refs/remotes/origin/pr/*',
+          refspec: 'refs/pull/2/head:refs/remotes/origin/pr/2/head',
           changelog_to_branch: { remote: 'origin', branch: 'pr/2/head' }
         }
       ).and_return job2
