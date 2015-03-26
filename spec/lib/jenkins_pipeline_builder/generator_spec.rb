@@ -109,10 +109,13 @@ describe JenkinsPipelineBuilder::Generator do
 
   describe '#pull_request' do
     before :each do
-      allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
-        list_installed: { 'description' => '20.0', 'git' => '20.0' })
       JenkinsPipelineBuilder.debug!
+      JenkinsPipelineBuilder.registry.registry[:job][:scm_params].installed_version = '1000.0'
     end
+    after :each do
+      JenkinsPipelineBuilder.registry.registry[:job][:scm_params].clear_installed_version
+    end
+
     let(:jobs) do
       {
         '{{name}}-10-SampleJob' => {
@@ -130,59 +133,27 @@ describe JenkinsPipelineBuilder::Generator do
     end
     let(:path) { File.expand_path('../fixtures/generator_tests/pullrequest_pipeline', __FILE__) }
     it 'produces no errors while creating pipeline PullRequest' do
-      # Dummy data
-      purge = []
-      create = [
-        {
-          name: 'PullRequest-PR1',
-          type: :project,
-          value: {
-            name: 'PullRequest-PR1',
-            pull_request_number: '1',
-            jobs: [
-              '{{name}}-10-SampleJob'
-            ]
-          }
-        }
-      ]
-      # Run the test
       job_name = 'PullRequest'
-      expect(JenkinsPipelineBuilder::PullRequestGenerator).to receive(:new).once.and_return(
-        double(purge: purge, create: create, jobs: jobs)
-      )
+      allow_any_instance_of(JenkinsPipelineBuilder::PullRequestGenerator).to receive(:check_for_pull).and_return([1])
       success = @generator.pull_request(path, job_name)
       expect(success).to be_truthy
     end
 
-    it 'correclty creates jobs when there are multiple pulls open' do
-      purge = []
-      create = %w(1 2).map do |n|
-        {
-          name: "PullRequest-PR#{n}",
-          type: :project,
-          value: {
-            pull_request_number: n,
-            name: "PullRequest-PR#{n}",
-            jobs: [
-              '{{name}}-10-SampleJob'
-            ]
-          }
-        }
-      end
+    it 'correctly creates jobs when there are multiple pulls open' do
       job_name = 'PullRequest'
-      expect(JenkinsPipelineBuilder::PullRequestGenerator).to receive(:new).once.and_return(
-        double(purge: purge, create: create, jobs: jobs)
-      )
+      allow_any_instance_of(JenkinsPipelineBuilder::PullRequestGenerator).to receive(:check_for_pull).and_return([1, 2])
       job1 = double name: 'job name'
       job2 = double name: 'job name'
       expect(JenkinsPipelineBuilder::Job).to receive(:new).once.with(
         name: 'PullRequest-PR1-10-SampleJob', scm_branch: 'origin/pr/1/head', scm_params: {
-          refspec: 'refs/pull/*:refs/remotes/origin/pr/*'
+          refspec: 'refs/pull/*:refs/remotes/origin/pr/*',
+          changelog_to_branch: { remote: 'origin', branch: 'pr/1/head' }
         }
       ).and_return job1
       expect(JenkinsPipelineBuilder::Job).to receive(:new).once.with(
         name: 'PullRequest-PR2-10-SampleJob', scm_branch: 'origin/pr/2/head', scm_params: {
-          refspec: 'refs/pull/*:refs/remotes/origin/pr/*'
+          refspec: 'refs/pull/*:refs/remotes/origin/pr/*',
+          changelog_to_branch: { remote: 'origin', branch: 'pr/2/head' }
         }
       ).and_return job2
       expect(job1).to receive(:create_or_update).and_return true

@@ -29,6 +29,10 @@ module JenkinsPipelineBuilder
       end
     end
 
+    def clear_installed_version
+      @version = nil
+    end
+
     def installed_version=(version)
       version = version.match(/\d+\.\d+/)
       @version = Gem::Version.new version
@@ -47,6 +51,7 @@ module JenkinsPipelineBuilder
     end
 
     def installed_version
+      puts "@version: #{@version}"
       return @version if @version
       reg = JenkinsPipelineBuilder.registry
       version = reg.versions[settings[:plugin_id]]

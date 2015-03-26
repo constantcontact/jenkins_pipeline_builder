@@ -24,26 +24,25 @@ module JenkinsPipelineBuilder
     attr_reader :project    # The root project YAML as a hash
     attr_reader :number     # The pull request number
     attr_reader :jobs       # The jobs in the pull request as an array of hashes
-    attr_reader :generator  # The generator job YAML as a hash
+    attr_reader :pull_generator  # The generator job YAML as a hash
 
-    # Initialize
-    def initialize(project, number, jobs, generator)
-      # Set instance vars
+    def initialize(project, number, jobs, pull_generator)
       @project = Marshal.load(Marshal.dump(project))
       @number = number
       @jobs = Marshal.load(Marshal.dump(jobs))
-      @generator = Marshal.load(Marshal.dump(generator))
+      @pull_generator = Marshal.load(Marshal.dump(pull_generator))
       @project[:value][:pull_request_number] = "#{@number}"
 
-      # Run
       run!
     end
 
     private
 
-    # Apply all changes
     def run!
       git_version = JenkinsPipelineBuilder.registry.registry[:job][:scm_params].installed_version
+      puts '!@!!!!!'
+      puts git_version.inspect
+      puts '!@!!!!!'
       if git_version >= Gem::Version.new(2.0)
         @jobs.each_value do |j|
           override_git_2_params j
@@ -79,8 +78,7 @@ module JenkinsPipelineBuilder
       @jobs.each_value do |job|
         name = job[:name]
         changes = nil
-        # Search the generator for changes
-        @generator[:jobs].each do |gen|
+        @pull_generator[:value][:jobs].each do |gen|
           changes = gen[name.to_sym] if gen.is_a?(Hash) && gen.keys[0] == name.to_sym
         end
         # Apply changes
