@@ -64,7 +64,8 @@ module JenkinsPipelineBuilder
       @jobs.each_value do |job|
         job[:value][:scm_branch] = 'origin/pr/{{pull_request_number}}/head'
         job[:value][:scm_params] = {} unless job[:value][:scm_params]
-        job[:value][:scm_params][:refspec] = 'refs/pull/*:refs/remotes/origin/pr/*'
+        refspec = 'refs/pull/{{pull_request_number}}/head:refs/remotes/origin/pr/{{pull_request_number}}/head'
+        job[:value][:scm_params][:refspec] = refspec
       end
     end
 
