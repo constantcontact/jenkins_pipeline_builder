@@ -86,6 +86,7 @@ module JenkinsPipelineBuilder
         next unless project[:name] == project_name || project_name.nil?
         logger.info "Using Project #{project}"
         pull_job = find_pull_request_generator(project)
+        next unless pull_job
         p_success, p_payload = compile_pull_request_generator(pull_job[:name], project)
         unless p_success
           errors[pull_job[:name]] = p_payload
@@ -166,7 +167,6 @@ module JenkinsPipelineBuilder
         job = @job_collection.collection[job.to_s]
         pull_job = job if job[:value][:job_type] == 'pull_request_generator'
       end
-      fail 'No jobs of type pull_request_generator found' unless pull_job
       pull_job
     end
 
