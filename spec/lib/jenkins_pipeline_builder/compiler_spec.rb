@@ -9,7 +9,8 @@ describe JenkinsPipelineBuilder::Compiler do
       log_location: '/dev/null'
     }
   end
-  let(:compiler) { JenkinsPipelineBuilder::Compiler }
+  let(:generator) { double(job_collection: double(collection: job_collection)) }
+  let(:compiler) { JenkinsPipelineBuilder::Compiler.new generator }
   let(:settings_project) { { name: 'DummyPipeline', type: :project, value: { name: 'DummyPipeline', jobs: ['{{name}}-00', { '{{name}}-01' => { job_name: '{{name}}-02' } }] } } }
   let(:settings_global) { { name: 'global', description: 'Do not edit this job through the web!', discard_days: '14', pipeline_repo: 'git@github.com:constantcontact/jenkins_pipeline_builder.git', pipeline_branch: 'master' } }
   let(:settings_bag) { { name: 'DummyPipeline', description: 'Do not edit this job through the web!', discard_days: '14', pipeline_repo: 'git@github.com:constantcontact/jenkins_pipeline_builder.git', pipeline_branch: 'master' } }
@@ -28,12 +29,12 @@ describe JenkinsPipelineBuilder::Compiler do
 
   describe '#compile' do
     it 'compiles a job with a name change' do
-      result = compiler.compile(job2, settings_bag, job_collection)
+      result = compiler.compile(job2, settings_bag)
       expect(result[1]).to eq(job2_compiled)
     end
 
     it 'compiles a job with a downstream name change' do
-      result = compiler.compile(job0, settings_bag, job_collection)
+      result = compiler.compile(job0, settings_bag)
       expect(result[1]).to eq(job0_compiled)
     end
 
@@ -44,7 +45,7 @@ describe JenkinsPipelineBuilder::Compiler do
                        triggers: [{ periodic_build: 'this_is_a_var' }] }
       settings_bag = { var: 'this_is_a_var', name: 'name' }
 
-      result = compiler.compile(my_job, settings_bag, job_collection)
+      result = compiler.compile(my_job, settings_bag)
       expect(result[1]).to eq(compiled_job)
     end
   end
@@ -53,8 +54,7 @@ describe JenkinsPipelineBuilder::Compiler do
     it 'generates correct new jobs with true' do
       item = { enabled: '{{use1}}', parameters: { rootPom: 'path_to_pomasd' } }
       settings = { name: 'PushTest', description: 'DB Pipeline tooling', git_repo: 'git@github.roving.com:devops/DBPipeline.git', git_branch: 'master', excluded_user: 'buildmaster', hipchat_room: 'CD Builds', hipchat_auth_token: 'f3e98ed54605b36f56dd2c562e3775', discard_days: '30', discard_number: '100', maven_name: 'tools-maven-3.0.3', hipchat_jenkins_url: 'https://cd-jenkins.ad.prodcc.net/', use1: true }
-      job_collection = { '{{name}}-build' => { name: '{{name}}-build', type: :job, value: { name: '{{name}}-build', project_name: '{{name}}', builders: [{ maven3: { enabled: '{{use1}}', parameters: { rootPom: 'path_to_pomasd' } } }] } }, 'global' => { name: 'global', type: :defaults, value: { name: 'global', description: 'DB Pipeline tooling', git_repo: 'git@github.roving.com:devops/DBPipeline.git', git_branch: 'master', excluded_user: 'buildmaster', hipchat_room: 'CD Builds', hipchat_auth_token: 'f3e98ed54605b36f56dd2c562e3775', discard_days: '30', discard_number: '100', maven_name: 'tools-maven-3.0.3', hipchat_jenkins_url: 'https://cd-jenkins.ad.prodcc.net/', use1: true } }, 'PushTest' => { name: 'PushTest', type: :project, value: { name: 'PushTest', hipchat_jenkins_url: 'https://cd-jenkins.ad.prodcc.net/', jobs: [{ :"{{name}}-build" => {} }] }, settings: { name: 'PushTest', description: 'DB Pipeline tooling', git_repo: 'git@github.roving.com:devops/DBPipeline.git', git_branch: 'master', excluded_user: 'buildmaster', hipchat_room: 'CD Builds', hipchat_auth_token: 'f3e98ed54605b36f56dd2c562e3775', discard_days: '30', discard_number: '100', maven_name: 'tools-maven-3.0.3', hipchat_jenkins_url: 'https://cd-jenkins.ad.prodcc.net/', use1: true } } }
-      success, item = compiler.handle_enable(item, settings, job_collection)
+      success, item = compiler.handle_enable(item, settings)
       expect(success).to be true
       expect(item).to eq(rootPom: 'path_to_pomasd')
     end
@@ -62,8 +62,7 @@ describe JenkinsPipelineBuilder::Compiler do
     it 'generates correct new jobs when the params are a string' do
       item = { enabled: '{{use1}}', parameters: 'path_to_pomasd' }
       settings = { name: 'PushTest', description: 'DB Pipeline tooling', git_repo: 'git@github.roving.com:devops/DBPipeline.git', git_branch: 'master', excluded_user: 'buildmaster', hipchat_room: 'CD Builds', hipchat_auth_token: 'f3e98ed54605b36f56dd2c562e3775', discard_days: '30', discard_number: '100', maven_name: 'tools-maven-3.0.3', hipchat_jenkins_url: 'https://cd-jenkins.ad.prodcc.net/', use1: true }
-      job_collection = { '{{name}}-build' => { name: '{{name}}-build', type: :job, value: { name: '{{name}}-build', project_name: '{{name}}', builders: [{ maven3: { enabled: '{{use1}}', parameters: 'path_to_pomasd' } }] } }, 'global' => { name: 'global', type: :defaults, value: { name: 'global', description: 'DB Pipeline tooling', git_repo: 'git@github.roving.com:devops/DBPipeline.git', git_branch: 'master', excluded_user: 'buildmaster', hipchat_room: 'CD Builds', hipchat_auth_token: 'f3e98ed54605b36f56dd2c562e3775', discard_days: '30', discard_number: '100', maven_name: 'tools-maven-3.0.3', hipchat_jenkins_url: 'https://cd-jenkins.ad.prodcc.net/', use1: true } }, 'PushTest' => { name: 'PushTest', type: :project, value: { name: 'PushTest', hipchat_jenkins_url: 'https://cd-jenkins.ad.prodcc.net/', jobs: [{ :"{{name}}-build" => {} }] }, settings: { name: 'PushTest', description: 'DB Pipeline tooling', git_repo: 'git@github.roving.com:devops/DBPipeline.git', git_branch: 'master', excluded_user: 'buildmaster', hipchat_room: 'CD Builds', hipchat_auth_token: 'f3e98ed54605b36f56dd2c562e3775', discard_days: '30', discard_number: '100', maven_name: 'tools-maven-3.0.3', hipchat_jenkins_url: 'https://cd-jenkins.ad.prodcc.net/', use1: true } } }
-      success, item = compiler.handle_enable(item, settings, job_collection)
+      success, item = compiler.handle_enable(item, settings)
       expect(success).to be true
       expect(item).to eq('path_to_pomasd')
     end
@@ -71,8 +70,7 @@ describe JenkinsPipelineBuilder::Compiler do
     it 'generates correct new jobs with false' do
       item = { enabled: '{{use1}}', parameters: { rootPom: 'path_to_pomasd' } }
       settings = { name: 'PushTest', description: 'DB Pipeline tooling', git_repo: 'git@github.roving.com:devops/DBPipeline.git', git_branch: 'master', excluded_user: 'buildmaster', hipchat_room: 'CD Builds', hipchat_auth_token: 'f3e98ed54605b36f56dd2c562e3775', discard_days: '30', discard_number: '100', maven_name: 'tools-maven-3.0.3', hipchat_jenkins_url: 'https://cd-jenkins.ad.prodcc.net/', use1: false }
-      job_collection = { '{{name}}-build' => { name: '{{name}}-build', type: :job, value: { name: '{{name}}-build', project_name: '{{name}}', builders: [{ maven3: { enabled: '{{use1}}', parameters: { rootPom: 'path_to_pomasd' } } }] } }, 'global' => { name: 'global', type: :defaults, value: { name: 'global', description: 'DB Pipeline tooling', git_repo: 'git@github.roving.com:devops/DBPipeline.git', git_branch: 'master', excluded_user: 'buildmaster', hipchat_room: 'CD Builds', hipchat_auth_token: 'f3e98ed54605b36f56dd2c562e3775', discard_days: '30', discard_number: '100', maven_name: 'tools-maven-3.0.3', hipchat_jenkins_url: 'https://cd-jenkins.ad.prodcc.net/', use1: true } }, 'PushTest' => { name: 'PushTest', type: :project, value: { name: 'PushTest', hipchat_jenkins_url: 'https://cd-jenkins.ad.prodcc.net/', jobs: [{ :"{{name}}-build" => {} }] }, settings: { name: 'PushTest', description: 'DB Pipeline tooling', git_repo: 'git@github.roving.com:devops/DBPipeline.git', git_branch: 'master', excluded_user: 'buildmaster', hipchat_room: 'CD Builds', hipchat_auth_token: 'f3e98ed54605b36f56dd2c562e3775', discard_days: '30', discard_number: '100', maven_name: 'tools-maven-3.0.3', hipchat_jenkins_url: 'https://cd-jenkins.ad.prodcc.net/', use1: true } } }
-      success, item = compiler.handle_enable(item, settings, job_collection)
+      success, item = compiler.handle_enable(item, settings)
       expect(success).to be true
       expect(item).to eq({})
     end
@@ -80,16 +78,14 @@ describe JenkinsPipelineBuilder::Compiler do
     it 'fails when value not found' do
       item = { enabled: '{{use_fail}}', parameters: { rootPom: 'path_to_pomasd' } }
       settings = { name: 'PushTest', description: 'DB Pipeline tooling', git_repo: 'git@github.roving.com:devops/DBPipeline.git', git_branch: 'master', excluded_user: 'buildmaster', hipchat_room: 'CD Builds', hipchat_auth_token: 'f3e98ed54605b36f56dd2c562e3775', discard_days: '30', discard_number: '100', maven_name: 'tools-maven-3.0.3', hipchat_jenkins_url: 'https://cd-jenkins.ad.prodcc.net/', use1: true }
-      job_collection = { '{{name}}-build' => { name: '{{name}}-build', type: :job, value: { name: '{{name}}-build', project_name: '{{name}}', builders: [{ maven3: { enabled: '{{use1}}', parameters: { rootPom: 'path_to_pomasd' } } }] } }, 'global' => { name: 'global', type: :defaults, value: { name: 'global', description: 'DB Pipeline tooling', git_repo: 'git@github.roving.com:devops/DBPipeline.git', git_branch: 'master', excluded_user: 'buildmaster', hipchat_room: 'CD Builds', hipchat_auth_token: 'f3e98ed54605b36f56dd2c562e3775', discard_days: '30', discard_number: '100', maven_name: 'tools-maven-3.0.3', hipchat_jenkins_url: 'https://cd-jenkins.ad.prodcc.net/', use1: true } }, 'PushTest' => { name: 'PushTest', type: :project, value: { name: 'PushTest', hipchat_jenkins_url: 'https://cd-jenkins.ad.prodcc.net/', jobs: [{ :"{{name}}-build" => {} }] }, settings: { name: 'PushTest', description: 'DB Pipeline tooling', git_repo: 'git@github.roving.com:devops/DBPipeline.git', git_branch: 'master', excluded_user: 'buildmaster', hipchat_room: 'CD Builds', hipchat_auth_token: 'f3e98ed54605b36f56dd2c562e3775', discard_days: '30', discard_number: '100', maven_name: 'tools-maven-3.0.3', hipchat_jenkins_url: 'https://cd-jenkins.ad.prodcc.net/', use1: true } } }
-      success, _ = compiler.handle_enable(item, settings, job_collection)
+      success, _ = compiler.handle_enable(item, settings)
       expect(success).to be false
     end
 
     it 'removes empty builders' do
       item = { enabled: '{{use}}', parameters: { rootPom: 'one' } }
       settings = { name: 'PushTest', description: 'DB Pipeline tooling', git_repo: 'git@github.roving.com:devops/DBPipeline.git', git_branch: 'master', excluded_user: 'buildmaster', hipchat_room: 'CD Builds', hipchat_auth_token: 'f3e98ed54605b36f56dd2c562e3775', discard_days: '30', discard_number: '100', maven_name: 'tools-maven-3.0.3', hipchat_jenkins_url: 'https://cd-jenkins.ad.prodcc.net/', use: false }
-      job_collection = { '{{name}}-build' => { name: '{{name}}-build', type: :job, value: { name: '{{name}}-build', project_name: '{{name}}', builders: [{ maven3: { enabled: '{{use}}', parameters: { rootPom: 'one' } } }] }, use: false }, 'global' => { name: 'global', type: :defaults, value: { name: 'global', description: 'DB Pipeline tooling', git_repo: 'git@github.roving.com:devops/DBPipeline.git', git_branch: 'master', excluded_user: 'buildmaster', hipchat_room: 'CD Builds', hipchat_auth_token: 'f3e98ed54605b36f56dd2c562e3775', discard_days: '30', discard_number: '100', maven_name: 'tools-maven-3.0.3', hipchat_jenkins_url: 'https://cd-jenkins.ad.prodcc.net/' } }, 'PushTest' => { name: 'PushTest', type: :project, value: { name: 'PushTest', hipchat_jenkins_url: 'https://cd-jenkins.ad.prodcc.net/', jobs: [{ :"{{name}}-build" => { use: false } }] }, settings: { name: 'PushTest', description: 'DB Pipeline tooling', git_repo: 'git@github.roving.com:devops/DBPipeline.git', git_branch: 'master', excluded_user: 'buildmaster', hipchat_room: 'CD Builds', hipchat_auth_token: 'f3e98ed54605b36f56dd2c562e3775', discard_days: '30', discard_number: '100', maven_name: 'tools-maven-3.0.3', hipchat_jenkins_url: 'https://cd-jenkins.ad.prodcc.net/' } } }
-      success, result = compiler.compile_hash(item, settings, job_collection)
+      success, result = compiler.compile_hash(item, settings)
       expect(success).to be true
       expect(result).to eq({})
     end

@@ -27,16 +27,6 @@ module JenkinsPipelineBuilder
   class Generator
     attr_accessor :no_files, :job_templates, :logger, :module_registry, :job_collection
 
-    # Initialize a Client object with Jenkins Api Client
-    #
-    # @param args [Hash] Arguments to connect to Jenkins server
-    #
-    # @option args [String] :something some option description
-    #
-    # @return [JenkinsPipelineBuilder::Generator] a client generator
-    #
-    # @raise [ArgumentError] when required options are not provided.
-    #
     def initialize
       @job_templates = {}
       @extensions = {}
@@ -52,10 +42,6 @@ module JenkinsPipelineBuilder
       JenkinsPipelineBuilder.client
     end
 
-    # Creates an instance to the View class by passing a reference to self
-    #
-    # @return [JenkinsApi::Client::System] An object to System subclass
-    #
     def view
       JenkinsPipelineBuilder::View.new(self)
     end
@@ -67,7 +53,7 @@ module JenkinsPipelineBuilder
       if job_collection.projects.any?
         errors = publish_project(project_name)
       else
-        errors = publish_jobs(standalone job_collection.jobs)
+        errors = publish_jobs(job_collection.standalone_jobs)
       end
       errors.each do |k, v|
         logger.error "Encountered errors compiling: #{k}:"
@@ -117,14 +103,16 @@ module JenkinsPipelineBuilder
       fail "Failed to locate job by name '#{name}'" if job.nil?
       job_value = job[:value]
       logger.debug "Compiling job #{name}"
-      success, payload = Compiler.compile(job_value, settings, @job_collection.collection)
+      compiler = Compiler.new self
+      success, payload = compiler.compile(job_value, settings)
       [success, payload]
     end
 
     def resolve_project(project)
       defaults = job_collection.defaults
       settings = defaults.nil? ? {} : defaults[:value] || {}
-      project[:settings] = Compiler.get_settings_bag(project, settings) unless project[:settings]
+      compiler = Compiler.new self
+      project[:settings] = compiler.get_settings_bag(project, settings) unless project[:settings]
       project_body = project[:value]
 
       jobs = prepare_jobs(project_body[:jobs]) if project_body[:jobs]
@@ -149,17 +137,6 @@ module JenkinsPipelineBuilder
     #
 
     private
-
-    # Converts standalone jobs to the format that they have when loaded as part of a project.
-    # This addresses an issue where #pubish_jobs assumes that each job will be wrapped
-    # with in a hash a referenced under a key called :result, which is what happens when
-    # it is loaded as part of a project.
-    #
-    # @return An array of jobs
-    #
-    def standalone(jobs)
-      jobs.map! { |job| { result: job } }
-    end
 
     def prepare_jobs(jobs)
       jobs.map! do |job|

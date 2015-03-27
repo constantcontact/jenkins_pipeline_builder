@@ -23,6 +23,10 @@ module JenkinsPipelineBuilder
       result
     end
 
+    def standalone_jobs
+      jobs.map { |job| { result: job } }
+    end
+
     def jobs
       result = []
       collection.values.each do |item|

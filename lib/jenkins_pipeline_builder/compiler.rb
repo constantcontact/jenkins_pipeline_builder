@@ -22,7 +22,14 @@
 
 module JenkinsPipelineBuilder
   class Compiler
-    def self.resolve_value(value, settings, job_collection)
+    attr_reader :generator, :job_collection
+
+    def initialize(generator)
+      @generator = generator
+      @job_collection = generator.job_collection.collection
+    end
+
+    def resolve_value(value, settings)
       # pull@ designates that this is a reference to a job that will be generated
       # for a pull request, so we want to save the resolution for the second pass
       pull_job = value.to_s.match(/{{pull@(.*)}}/)
@@ -50,14 +57,14 @@ module JenkinsPipelineBuilder
       value_s
     end
 
-    def self.get_settings_bag(item_bag, settings_bag = {})
+    def get_settings_bag(item_bag, settings_bag = {})
       item = item_bag[:value]
       bag = {}
       return unless item.is_a?(Hash)
       item.keys.each do |k|
         val = item[k]
         next unless val.is_a? String
-        new_value = resolve_value(val, settings_bag, {})
+        new_value = resolve_value(val, settings_bag)
         return nil if new_value.nil?
         bag[k] = new_value
       end
@@ -65,30 +72,30 @@ module JenkinsPipelineBuilder
       my_settings_bag.merge(bag)
     end
 
-    def self.compile(item, settings = {}, job_collection = {})
-      success, item = handle_enable(item, settings, job_collection)
+    def compile(item, settings = {})
+      success, item = handle_enable(item, settings)
       return false, item unless success
 
       case item
       when String
-        return compile_string item, settings, job_collection
+        return compile_string item, settings
       when Hash
-        return compile_hash item, settings, job_collection
+        return compile_hash item, settings
       when Array
-        return compile_array item, settings, job_collection
+        return compile_array item, settings
       end
       [true, item]
     end
 
-    def self.compile_string(item, settings, job_collection)
+    def compile_string(item, settings)
       errors = {}
-      new_value = resolve_value(item, settings, job_collection)
+      new_value = resolve_value(item, settings)
       errors[item] =  "Failed to resolve #{item}" if new_value.nil?
       return false, errors unless errors.empty?
       [true, new_value]
     end
 
-    def self.compile_array(item, settings, job_collection)
+    def compile_array(item, settings)
       errors = {}
       result = []
       item.each do |value|
@@ -96,7 +103,7 @@ module JenkinsPipelineBuilder
           errors[item] = "found a nil value when processing following array:\n #{item.inspect}"
           break
         end
-        success, payload = compile(value, settings, job_collection)
+        success, payload = compile(value, settings)
         unless success
           errors.merge!(payload)
           next
@@ -111,10 +118,10 @@ module JenkinsPipelineBuilder
       [true, result]
     end
 
-    def self.handle_enable(item, settings, job_collection)
+    def handle_enable(item, settings)
       return true, item unless item.is_a? Hash
       if item.key?(:enabled) && item.key?(:parameters) && item.length == 2
-        enabled_switch = resolve_value(item[:enabled], settings, job_collection)
+        enabled_switch = resolve_value(item[:enabled], settings)
         return [true, {}] if enabled_switch == 'false'
         if enabled_switch != 'true'
           return [false, { 'value error' => "Invalid value for #{item[:enabled]}: #{enabled_switch}" }]
@@ -130,8 +137,8 @@ module JenkinsPipelineBuilder
       [true, item]
     end
 
-    def self.compile_hash(item, settings, job_collection)
-      success, item = handle_enable(item, settings, job_collection)
+    def compile_hash(item, settings)
+      success, item = handle_enable(item, settings)
       return false, item unless success
 
       errors = {}
@@ -142,7 +149,7 @@ module JenkinsPipelineBuilder
           errors[key] = "key: #{key} has a nil value, this is often a yaml syntax error. Skipping children and siblings"
           break
         end
-        success, payload = compile(value, settings, job_collection)
+        success, payload = compile(value, settings)
         unless success
           errors.merge!(payload)
           next

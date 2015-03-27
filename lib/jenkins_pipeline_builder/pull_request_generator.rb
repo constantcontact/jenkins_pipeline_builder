@@ -105,7 +105,8 @@ module JenkinsPipelineBuilder
     def compile_generator
       defaults = generator.job_collection.defaults
       settings = defaults.nil? ? {} : defaults[:value] || {}
-      settings = Compiler.get_settings_bag(project, settings)
+      compiler = Compiler.new generator
+      settings = compiler.get_settings_bag(project, settings)
       generator.resolve_job_by_name(pull_generator[:name], settings)
     end
 
