@@ -38,18 +38,22 @@ describe JenkinsPipelineBuilder::Job do
     it 'does not call the client in debug mode' do
       expect(job).to receive(:to_xml).and_return [true, '']
       expect(JenkinsPipelineBuilder).to receive(:debug).and_return true
+      expect(JenkinsPipelineBuilder).to_not receive(:file_mode)
       expect(JenkinsPipelineBuilder.client.job).to_not receive(:exists?)
       job.create_or_update
     end
 
     it 'does not call the client in file mode' do
       expect(job).to receive(:to_xml).and_return [true, '']
+      expect(JenkinsPipelineBuilder).to receive(:debug).and_return false
       expect(JenkinsPipelineBuilder).to receive(:file_mode).and_return true
       expect(JenkinsPipelineBuilder.client.job).to_not receive(:exists?)
       job.create_or_update
     end
 
     it 'creates if the job does not exist' do
+      expect(JenkinsPipelineBuilder).to receive(:debug).and_return false
+      expect(JenkinsPipelineBuilder).to receive(:file_mode).and_return false
       expect(job).to receive(:to_xml).and_return [true, '']
       expect(@job_double).to receive(:exists?).with('asdf').and_return false
       expect(@job_double).to receive(:create).and_return true
@@ -57,6 +61,8 @@ describe JenkinsPipelineBuilder::Job do
     end
 
     it 'updates if the job exists' do
+      expect(JenkinsPipelineBuilder).to receive(:debug).and_return false
+      expect(JenkinsPipelineBuilder).to receive(:file_mode).and_return false
       expect(job).to receive(:to_xml).and_return [true, '']
       expect(@job_double).to receive(:exists?).with('asdf').and_return true
       expect(@job_double).to receive(:update).and_return true

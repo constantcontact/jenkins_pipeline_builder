@@ -25,7 +25,6 @@ require 'json'
 
 module JenkinsPipelineBuilder
   class Generator
-    attr_reader :debug
     attr_accessor :no_files, :job_templates, :logger, :module_registry, :job_collection
 
     # Initialize a Client object with Jenkins Api Client
@@ -107,8 +106,8 @@ module JenkinsPipelineBuilder
     end
 
     def dump(job_name)
-      @logger.info "Debug #{@debug}"
-      @logger.info "Dumping #{job_name} into #{job_name}.xml"
+      logger.info "Debug #{JenkinsPipelineBuilder.debug}"
+      logger.info "Dumping #{job_name} into #{job_name}.xml"
       xml = client.job.get_config(job_name)
       File.open(job_name + '.xml', 'w') { |f| f.write xml }
     end

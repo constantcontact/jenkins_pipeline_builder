@@ -139,6 +139,8 @@ describe JenkinsPipelineBuilder::ModuleRegistry do
     end
 
     it 'pulls the version from the registry if it is not memoized' do
+      subject.clear_versions
+      expect(JenkinsPipelineBuilder).to receive(:debug).and_return false
       expect(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(list_installed: { 'one' => '0.1' })
       subject.versions
     end

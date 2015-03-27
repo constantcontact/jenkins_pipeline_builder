@@ -1,11 +1,7 @@
 require File.expand_path('../spec_helper', __FILE__)
 
 describe JenkinsPipelineBuilder::Generator do
-  after :each do
-    JenkinsPipelineBuilder.registry.clear_versions
-  end
-
-  before(:all) do
+  before :all do
     JenkinsPipelineBuilder.credentials = {
       server_ip: '127.0.0.1',
       server_port: 8080,
@@ -13,11 +9,17 @@ describe JenkinsPipelineBuilder::Generator do
       password: 'password',
       log_location: '/dev/null'
     }
+  end
+
+  after :each do
+    JenkinsPipelineBuilder.registry.clear_versions
+  end
+
+  before :each do
     @generator = JenkinsPipelineBuilder.generator
   end
 
   after(:each) do
-    JenkinsPipelineBuilder.no_debug!
     @generator.job_collection = JenkinsPipelineBuilder::JobCollection.new
   end
 
@@ -109,7 +111,7 @@ describe JenkinsPipelineBuilder::Generator do
 
   describe '#pull_request' do
     before :each do
-      JenkinsPipelineBuilder.debug!
+      allow(JenkinsPipelineBuilder).to receive(:debug).and_return true
       JenkinsPipelineBuilder.registry.registry[:job][:scm_params].installed_version = '1000.0'
     end
     after :each do
@@ -120,6 +122,7 @@ describe JenkinsPipelineBuilder::Generator do
     it 'produces no errors while creating pipeline PullRequest' do
       job_name = 'PullRequest'
       allow_any_instance_of(JenkinsPipelineBuilder::PullRequestGenerator).to receive(:check_for_pull).and_return([1])
+      allow_any_instance_of(JenkinsPipelineBuilder::PullRequestGenerator).to receive(:purge_jobs).and_return(true)
       success = @generator.pull_request(path, job_name)
       expect(success).to be_truthy
     end
@@ -183,7 +186,7 @@ describe JenkinsPipelineBuilder::Generator do
 
   describe '#dump' do
     it "writes a job's config XML to a file" do
-      JenkinsPipelineBuilder.debug!
+      allow(JenkinsPipelineBuilder).to receive(:debug).and_return true
       job_name = 'test_job'
       body = ''
       test_path = File.expand_path('../fixtures/generator_tests', __FILE__)

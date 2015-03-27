@@ -67,9 +67,9 @@ module JenkinsPipelineBuilder
 
     def purge_jobs
       purge.each do |purge_job|
-        jobs = client.job.list "#{purge_job}.*"
+        jobs = JenkinsPipelineBuilder.client.job.list "#{purge_job}.*"
         jobs.each do |job|
-          client.job.delete job
+          JenkinsPipelineBuilder.client.job.delete job
         end
       end
     end
