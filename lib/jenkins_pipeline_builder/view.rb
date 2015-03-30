@@ -187,26 +187,16 @@ module JenkinsPipelineBuilder
         'Status' => { 'stapler-class' => 'hudson.views.StatusColumn', 'kind' => 'hudson.views.StatusColumn' },
         'Weather' => { 'stapler-class' => 'hudson.views.WeatherColumn', 'kind' => 'hudson.views.WeatherColumn' },
         'Name' => { 'stapler-class' => 'hudson.views.JobColumn', 'kind' => 'hudson.views.JobColumn' },
-        'Last Success' => {
-          'stapler-class' => 'hudson.views.LastSuccessColumn',
-          'kind' => 'hudson.views.LastSuccessColumn'
-        },
-        'Last Failure' => {
-          'stapler-class' => 'hudson.views.LastFailureColumn',
-          'kind' => 'hudson.views.LastFailureColumn'
-        },
-        'Last Duration' => {
-          'stapler-class' => 'hudson.views.LastDurationColumn',
-          'kind' => 'hudson.views.LastDurationColumn'
-        },
-        'Build Button' => {
-          'stapler-class' => 'hudson.views.BuildButtonColumn',
-          'kind' => 'hudson.views.BuildButtonColumn'
-        },
-        'Categorized - Job' => {
-          'stapler-class' => 'org.jenkinsci.plugins.categorizedview.IndentedJobColumn',
-          'kind' => 'org.jenkinsci.plugins.categorizedview.IndentedJobColumn'
-        }
+        'Last Success' => { 'stapler-class' => 'hudson.views.LastSuccessColumn',
+                            'kind' => 'hudson.views.LastSuccessColumn' },
+        'Last Failure' => { 'stapler-class' => 'hudson.views.LastFailureColumn',
+                            'kind' => 'hudson.views.LastFailureColumn' },
+        'Last Duration' => { 'stapler-class' => 'hudson.views.LastDurationColumn',
+                             'kind' => 'hudson.views.LastDurationColumn' },
+        'Build Button' => { 'stapler-class' => 'hudson.views.BuildButtonColumn',
+                            'kind' => 'hudson.views.BuildButtonColumn' },
+        'Categorized - Job' => { 'stapler-class' => 'org.jenkinsci.plugins.categorizedview.IndentedJobColumn',
+                                 'kind' => 'org.jenkinsci.plugins.categorizedview.IndentedJobColumn' }
       }
     end
 

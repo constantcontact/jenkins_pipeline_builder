@@ -43,15 +43,7 @@ module JenkinsPipelineBuilder
       # old init
       @pull_requests = check_for_pull payload
       find_old_pull_requests
-      @pull_requests.each do |number|
-        req = JenkinsPipelineBuilder::PullRequest.new(project, number, jobs, @pull_generator)
-        @jobs.merge! req.jobs
-        project_new = req.project
-
-        # Overwrite the jobs from the generator to the project
-        project_new[:value][:jobs] = req.jobs.keys
-        @create << project_new
-      end
+      generate_pull_requests
 
       @generator.job_collection.collection.merge! @jobs
       @errors.merge! create_jobs
@@ -64,6 +56,18 @@ module JenkinsPipelineBuilder
     end
 
     private
+
+    def generate_pull_requests
+      @pull_requests.each do |number|
+        req = JenkinsPipelineBuilder::PullRequest.new(project, number, jobs, @pull_generator)
+        @jobs.merge! req.jobs
+        project_new = req.project
+
+        # Overwrite the jobs from the generator to the project
+        project_new[:value][:jobs] = req.jobs.keys
+        @create << project_new
+      end
+    end
 
     def purge_jobs
       purge.each do |purge_job|

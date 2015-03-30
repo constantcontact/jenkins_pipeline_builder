@@ -77,6 +77,32 @@ module JenkinsPipelineBuilder
       errors.empty?
     end
 
+    def execute(value, n_xml)
+      errors = []
+      check_parameters value
+      errors.each do |error|
+        logger.error error
+      end
+      return false if errors.any?
+
+      n_builders = n_xml.xpath(path).first
+      n_builders.instance_exec(value, &before) if before
+      Nokogiri::XML::Builder.with(n_builders) do |builder|
+        builder.instance_exec value, &xml
+      end
+      n_builders.instance_exec(value, &after) if after
+      true
+    end
+
+    def check_parameters(value)
+      return if parameters && parameters.empty?
+      return unless value.is_a? Hash
+      value.each_key do |key|
+        next if parameters && parameters.include?(key)
+        errors << "Extension #{extension.name} does not support parameter #{key}"
+      end
+    end
+
     def errors
       errors = {}
       EXT_METHODS.keys.each do |name|

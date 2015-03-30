@@ -93,7 +93,7 @@ module JenkinsPipelineBuilder
         if reg_value.is_a? ExtensionSet
           ext = reg_value.extension
           logger.debug "Using #{ext.type} #{ext.name} version #{ext.min_version}"
-          success = execute_extension ext, value, n_xml
+          success = ext.execute value, n_xml
           fail 'Encountered errors compiling the xml' unless success
         elsif value.is_a? Hash
           traverse_registry reg_value, value, n_xml, true
@@ -103,31 +103,6 @@ module JenkinsPipelineBuilder
           end
         end
       end
-    end
-
-    def execute_extension(extension, value, n_xml)
-      errors = []
-      params = extension.parameters
-      if params == false || params.any?
-        if value.is_a? Hash
-          value.each_key do |key|
-            next if params && params.include?(key)
-            errors << "Extension #{extension.name} does not support parameter #{key}"
-          end
-        end
-      end
-      errors.each do |error|
-        logger.error error
-      end
-      return false if errors.any?
-
-      n_builders = n_xml.xpath(extension.path).first
-      n_builders.instance_exec(value, &extension.before) if extension.before
-      Nokogiri::XML::Builder.with(n_builders) do |xml|
-        xml.instance_exec value, &extension.xml
-      end
-      n_builders.instance_exec(value, &extension.after) if extension.after
-      true
     end
   end
 end

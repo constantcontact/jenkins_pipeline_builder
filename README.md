@@ -3,19 +3,13 @@ jenkins-pipeline-builder
 
 [![Build Status](https://travis-ci.org/constantcontact/jenkins_pipeline_builder.svg)](https://travis-ci.org/constantcontact/jenkins_pipeline_builder)  [![Gem Version](https://badge.fury.io/rb/jenkins_pipeline_builder.svg)](http://badge.fury.io/rb/jenkins_pipeline_builder)
 
-YAML driven CI Jenkins Pipeline Builder enabling to version your artifact pipelines alongside with the artifact source
-itself.
-
-This Gem uses this methodolody by itself. Notice the 'pipeline' folder where we have a declaration of the Gem's build
-pipeline.
+YAML/JSON driven jenkins job generator that lets you version your artifact pipelines alongside with the artifact source itself.
 
 # Background
 
-This project is inspired by a great work done by Arangamani with [jenkins_api_client](https://github.com/arangamani/jenkins_api_client) and
-amazing progress done by the Open Stack community with their [jenkins-job-builder](http://ci.openstack.org/jenkins-job-builder/)
+This project is inspired by the great work done by Arangamani with [jenkins_api_client](https://github.com/arangamani/jenkins_api_client) and amazing progress done by the Open Stack community with their [jenkins-job-builder](http://ci.openstack.org/jenkins-job-builder/)
 
-The YAML structure very closely resembles the OpenStack Job Builder, but, in comparison to Python version, is 100%
-pure Ruby and uses Jenkins API Client and has additional functionlity of building different types of Jenkins views.
+The YAML structure began very closely resembling the OpenStack Job Builder, but, has evolved since then. Under the covers it uses the Jenkins API Client and is very extensible. Any plugin that is not currently supported can be added locally.
 
 # JenkinsPipelineBuilder
 
@@ -47,8 +41,8 @@ Or install it yourself as:
 For more info see [jenkins_api_client](https://github.com/arangamani/jenkins_api_client).
 Supplying credentials to the client is optional, as not all Jenkins instances
 require authentication. This project supports two types of password-based
-authentication. You can just you the plain password by using <tt>password</tt>
-parameter. If you don't prefer leaving plain passwords in the credentials file,
+authentication. You can just use the plain password by using <tt>password</tt>
+parameter. If you don't want to leave plain passwords in the credentials file,
 you can encode your password in base64 format and use <tt>password_base64</tt>
 parameter to specify the password either in the arguments or in the credentials
 file. To use the client without credentials, just leave out the
@@ -66,7 +60,7 @@ initializing the client.
 
 ### Basic usage
 
-Create all your Job description files in a folder (Ex.: ./pipeline). Follow the Job/View/Project DSL.
+Create all your Job description files in a folder (e.g.: ./pipeline). Follow the Job/View/Project DSL.
 Try to extract the reusable values out of jobs into the project.
 
 Put the right information about the location of your Jenkins server and the appropriate credentials

@@ -29,34 +29,6 @@ module JenkinsPipelineBuilder
       @job_collection = generator.job_collection.collection
     end
 
-    def resolve_value(value, settings)
-      # pull@ designates that this is a reference to a job that will be generated
-      # for a pull request, so we want to save the resolution for the second pass
-      pull_job = value.to_s.match(/{{pull@(.*)}}/)
-      return pull_job[1] if pull_job
-
-      settings = settings.with_indifferent_access
-      value_s = value.to_s.clone
-      # First we try to do job name correction
-      vars = value_s.scan(/{{job@(.*)}}/).flatten
-      if vars.count > 0
-        vars.select! do |var|
-          var_val = job_collection[var.to_s]
-          value_s.gsub!("{{job@#{var}}}", var_val[:value][:name]) unless var_val.nil?
-          var_val.nil?
-        end
-      end
-      # Then we look for normal values to replace
-      vars = value_s.scan(/{{([^{}@]+)}}/).flatten
-      vars.select! do |var|
-        var_val = settings[var]
-        value_s.gsub!("{{#{var}}}", var_val.to_s) unless var_val.nil?
-        var_val.nil?
-      end
-      return nil if vars.count != 0
-      value_s
-    end
-
     def get_settings_bag(item_bag, settings_bag = {})
       item = item_bag[:value]
       bag = {}
@@ -86,6 +58,27 @@ module JenkinsPipelineBuilder
       end
       [true, item]
     end
+
+    def handle_enable(item, settings)
+      return true, item unless item.is_a? Hash
+      if item.key?(:enabled) && item.key?(:parameters) && item.length == 2
+        enabled_switch = resolve_value(item[:enabled], settings)
+        return [true, {}] if enabled_switch == 'false'
+        if enabled_switch != 'true'
+          return [false, { 'value error' => "Invalid value for #{item[:enabled]}: #{enabled_switch}" }]
+        end
+        if item[:parameters].is_a? Hash
+          item = item.merge item[:parameters]
+          item.delete :parameters
+          item.delete :enabled
+        else
+          item = item[:parameters]
+        end
+      end
+      [true, item]
+    end
+
+    private
 
     def compile_string(item, settings)
       errors = {}
@@ -118,23 +111,21 @@ module JenkinsPipelineBuilder
       [true, result]
     end
 
-    def handle_enable(item, settings)
-      return true, item unless item.is_a? Hash
-      if item.key?(:enabled) && item.key?(:parameters) && item.length == 2
-        enabled_switch = resolve_value(item[:enabled], settings)
-        return [true, {}] if enabled_switch == 'false'
-        if enabled_switch != 'true'
-          return [false, { 'value error' => "Invalid value for #{item[:enabled]}: #{enabled_switch}" }]
-        end
-        if item[:parameters].is_a? Hash
-          item = item.merge item[:parameters]
-          item.delete :parameters
-          item.delete :enabled
-        else
-          item = item[:parameters]
-        end
+    def compile_item(key, value, errors, settings)
+      if value.nil?
+        errors[key] = "key: #{key} has a nil value, this is often a yaml syntax error. Skipping children and siblings"
+        return false, errors[key]
       end
-      [true, item]
+      success, payload = compile(value, settings)
+      unless success
+        errors.merge!(payload)
+        return false, payload
+      end
+      if payload.nil?
+        errors[key] = "Failed to resolve:\n===>key: #{key}\n\n===>value: #{value}\n\n===>of: #{item}"
+        return false, errors[key]
+      end
+      [true, payload]
     end
 
     def compile_hash(item, settings)
@@ -145,23 +136,40 @@ module JenkinsPipelineBuilder
       result = {}
 
       item.each do |key, value|
-        if value.nil?
-          errors[key] = "key: #{key} has a nil value, this is often a yaml syntax error. Skipping children and siblings"
-          break
-        end
-        success, payload = compile(value, settings)
-        unless success
-          errors.merge!(payload)
-          next
-        end
-        if payload.nil?
-          errors[key] = "Failed to resolve:\n===>key: #{key}\n\n===>value: #{value}\n\n===>of: #{item}"
-          next
-        end
+        success, payload = compile_item(key, value, errors, settings)
+        next unless success
         result[key] = payload unless payload == {}
       end
       return false, errors unless errors.empty?
       [true, result]
+    end
+
+    def resolve_value(value, settings)
+      # pull@ designates that this is a reference to a job that will be generated
+      # for a pull request, so we want to save the resolution for the second pass
+      pull_job = value.to_s.match(/{{pull@(.*)}}/)
+      return pull_job[1] if pull_job
+
+      settings = settings.with_indifferent_access
+      value_s = value.to_s.clone
+      # First we try to do job name correction
+      vars = value_s.scan(/{{job@(.*)}}/).flatten
+      if vars.count > 0
+        vars.select! do |var|
+          var_val = job_collection[var.to_s]
+          value_s.gsub!("{{job@#{var}}}", var_val[:value][:name]) unless var_val.nil?
+          var_val.nil?
+        end
+      end
+      # Then we look for normal values to replace
+      vars = value_s.scan(/{{([^{}@]+)}}/).flatten
+      vars.select! do |var|
+        var_val = settings[var]
+        value_s.gsub!("{{#{var}}}", var_val.to_s) unless var_val.nil?
+        var_val.nil?
+      end
+      return nil if vars.count != 0
+      value_s
     end
   end
 end
