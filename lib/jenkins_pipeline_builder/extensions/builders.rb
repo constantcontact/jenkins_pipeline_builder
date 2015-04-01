@@ -43,6 +43,12 @@ builder do
                       properties job[:config][:predefined_build_parameters]
                     end
                   end
+                  if job[:config].key? :properties_file
+                    send('hudson.plugins.parameterizedtrigger.FileBuildParameters') do
+                      propertiesFile job[:config][:properties_file][:file]
+                      failTriggerOnMissing job[:config][:properties_file][:skip_if_missing] || 'false'
+                    end
+                  end
                 end
               end
               killPhaseOnJobResultCondition job[:kill_phase_on] || 'FAILURE'
