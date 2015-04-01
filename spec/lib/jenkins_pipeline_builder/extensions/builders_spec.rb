@@ -63,13 +63,20 @@ describe 'builders' do
 
     it 'provides job specific config' do
       params = { builders: { multi_job: { phases: { foo: { jobs: [{ name: 'foo', config: {
-        predefined_build_parameters: 'bar'
+        predefined_build_parameters: 'bar',
+        properties_file: { file: 'props', skip_if_missing: true }
       } }] } } } } }
 
       JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
 
       node = @n_xml.xpath '//hudson.plugins.parameterizedtrigger.PredefinedBuildParameters'
       expect(node.children.first.content).to eq 'bar'
+
+      node = @n_xml.xpath '//hudson.plugins.parameterizedtrigger.FileBuildParameters/propertiesFile'
+      expect(node.children.first.content).to eq 'props'
+
+      node = @n_xml.xpath '//hudson.plugins.parameterizedtrigger.FileBuildParameters/failTriggerOnMissing'
+      expect(node.children.first.content).to eq 'true'
     end
   end
 end
