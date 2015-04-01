@@ -53,29 +53,27 @@ module JenkinsPipelineBuilder
       if File.directory?(path)
         logger.info "Generating from folder #{path}"
         Dir[File.join(path, '/*.{yaml,yml}')].each do |file|
-          logger.info "Loading file #{file}"
-          yaml = YAML.load_file(file)
-          load_file(yaml, remote)
+          load_file(file, remote)
         end
         Dir[File.join(path, '/*.json')].each do |file|
-          logger.info "Loading file #{file}"
-          json = JSON.parse(IO.read(file))
-          load_file(json, remote)
+          load_file(file, remote)
         end
       else
-        logger.info "Loading file #{path}"
-        if path.end_with? 'json'
-          hash = JSON.parse(IO.read(path))
-        else  # elsif path.end_with?("yml") || path.end_with?("yaml")
-          hash = YAML.load_file(path)
-        end
-        load_file(hash, remote)
+        load_file(path, remote)
       end
       remote_dependencies.cleanup if remote
     end
 
-    def load_file(yaml, remote = false)
-      yaml.each do |section|
+    private
+
+    def load_file(path, remote = false)
+      if path.end_with? 'json'
+        hash = JSON.parse(IO.read(path))
+      else  # elsif path.end_with?("yml") || path.end_with?("yaml")
+        hash = YAML.load_file(path)
+      end
+      logger.info "Loading file #{path}"
+      hash.each do |section|
         Utils.symbolize_keys_deep!(section)
         key = section.keys.first
         value = section[key]
