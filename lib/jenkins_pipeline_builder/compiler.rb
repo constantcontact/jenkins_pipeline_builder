@@ -148,7 +148,10 @@ module JenkinsPipelineBuilder
       # pull@ designates that this is a reference to a job that will be generated
       # for a pull request, so we want to save the resolution for the second pass
       pull_job = value.to_s.match(/{{pull@(.*)}}/)
-      return pull_job[1] if pull_job
+      if pull_job
+        return pull_job[1] unless settings[:pull_request_number]
+        value = pull_job[1]
+      end
 
       settings = settings.with_indifferent_access
       value_s = value.to_s.clone
