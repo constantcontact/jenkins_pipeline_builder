@@ -350,3 +350,76 @@ publisher do
     send('hudson.plugins.claim.ClaimPublisher', 'plugin' => 'claim') if allow_claim
   end
 end
+
+publisher do
+  name :cobertura_report
+  plugin_id 'cobertura'
+  description 'This plugin integrates Cobertura coverage reports to Jenkins.'
+  jenkins_name 'This plugin integrates Cobertura coverage reports to Jenkins.'
+  announced false
+
+  xml do |params|
+    send('hudson.plugins.cobertura.CoberturaPublisher', 'plugin' => 'cobertura') do
+
+      def send_metric_targets(target, thresholds)
+        case target
+        when :healthy
+          name = 'healthyTarget'
+        when :unhealthy
+          name = 'unhealthyTarget'
+        when :failing
+          name = 'failingTarget'
+        end
+
+        send name do
+          targets 'class' => 'enum-map', 'enum-type' => 'hudson.plugins.cobertura.targets.CoverageMetric' do
+            thresholds.each do |threshold|
+              entry do
+                send('hudson.plugins.cobertura.targets.CoverageMetric') { text threshold[:type].upcase }
+                send('int') { text (threshold[:value] * 100_000).to_i }
+              end
+            end
+          end
+        end
+      end
+
+      coberturaReportFile params[:cobertura_report_file]
+      onlyStable params[:only_stable] || false
+      failUnhealthy params[:fail_unhealthy] || false
+      failUnstable params[:fail_unstable] || false
+      autoUpdateHealth params[:auto_update_health] || false
+      autoUpdateStability params[:auto_update_stability] || false
+      zoomCoverageChart params[:zoom_coverage_chart] || false
+      maxNumberOfBuilds params[:max_number_of_builds] || 0
+      failNoReports params[:fail_no_reports] || true
+
+      targets = params[:metric_targets]
+      if targets.nil?
+        targets = {
+          failing: [
+            { type: 'type', value: 0 },
+            { type: 'line', value: 0 },
+            { type: 'conditional', value: 0 }
+          ],
+          unhealthy: [
+            { type: 'type', value: 0 },
+            { type: 'line', value: 0 },
+            { type: 'conditional', value: 0 }
+          ],
+          healthy: [
+            { type: 'type', value: 80 },
+            { type: 'line', value: 80 },
+            { type: 'conditional', value: 70 }
+          ]
+        }
+      end
+
+      send_metric_targets(:failing, targets[:failing])
+      send_metric_targets(:unhealthy, targets[:unhealthy])
+      send_metric_targets(:healthy, targets[:healthy])
+
+      sourceEncoding params[:source_encoding] || 'ASCII'
+    end
+  end
+
+end
