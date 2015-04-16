@@ -650,3 +650,26 @@ publisher do
     end
   end
 end
+
+publisher do
+  name :publish_tap_results
+  plugin_id 'tap'
+  description 'This plug-in adds support to TAP test result files to Jenkins. It lets you specify an ant-like pattern for a directory that contains your TAP files.'
+  jenkins_name 'This plug-in adds support to TAP test result files to Jenkins. It lets you specify an ant-like pattern for a directory that contains your TAP files.'
+  announced false
+
+  xml do |params|
+    send('org.tap4j.plugin.TapPublisher', 'plugin' => 'tap') do
+      testResults params[:test_results]
+      failIfNoResults params[:fail_if_no_results] || false
+      failedTestsMarkBuildAsFailure params[:failed_test_mark_as_failure] || false
+      outputTapToConsole params[:output_to_console] || false
+      enableSubtests params[:enable_subtests] || false
+      discardOldReports params[:discard_old_reports] || false
+      todoIsFailure params[:todo_is_failure] || false
+      includeCommentDiagnostics params[:include_comment_diagnostics] || false
+      validateNumberOfTests params[:validate_number_tests] || false
+    end
+  end
+
+end
