@@ -423,3 +423,203 @@ publisher do
   end
 
 end
+
+publisher do
+  name :email_ext
+  plugin_id 'email-ext'
+  description 'This plugin is a replacement for Jenkins\'s email publisher.'
+  jenkins_name 'Email-ext plugin'
+  announced false
+
+  xml do |config|
+    send('hudson.plugins.emailext.ExtendedEmailPublisher', 'plugin' => 'email-ext') do
+      recipientList { text(config[:recipient_list] || '$DEFAULT_RECIPIENTS') }
+
+      unless config[:triggers].nil?
+        trigger_defaults = {
+          first_failure: {
+            name: 'FirstFailureTrigger',
+            send_to_recipient_list: true,
+            send_to_developers: true,
+            send_to_requester: false,
+            include_culprits: false
+          },
+          first_unstable: {
+            name: 'FirstUnstableTrigger',
+            send_to_recipient_list: false,
+            send_to_developers: true,
+            send_to_requester: false,
+            include_culprits: false
+          },
+          second_failure: {
+            name: 'SecondFailureTrigger',
+            send_to_recipient_list: true,
+            send_to_developers: true,
+            send_to_requester: false,
+            include_culprits: false
+          },
+          aborted: {
+            name: 'AbortedTrigger',
+            send_to_recipient_list: true,
+            send_to_developers: true,
+            send_to_requester: false,
+            include_culprits: false
+          },
+          always: {
+            name: 'AlwaysTrigger',
+            send_to_recipient_list: true,
+            send_to_developers: true,
+            send_to_requester: false,
+            include_culprits: false
+          },
+          before_build: {
+            name: 'PreBuildTrigger',
+            send_to_recipient_list: true,
+            send_to_developers: false,
+            send_to_requester: false,
+            include_culprits: false
+          },
+          building: {
+            name: 'BuildingTrigger',
+            send_to_recipient_list: true,
+            send_to_developers: true,
+            send_to_requester: false,
+            include_culprits: false
+          },
+          failure: {
+            name: 'FailureTrigger',
+            send_to_recipient_list: false,
+            send_to_developers: true,
+            send_to_requester: false,
+            include_culprits: false
+          },
+          fixed: {
+            name: 'FixedTrigger',
+            send_to_recipient_list: true,
+            send_to_developers: true,
+            send_to_requester: false,
+            include_culprits: false
+          },
+          fixed_unhealthy: {
+            name: 'FixedUnhealthyTrigger',
+            send_to_recipient_list: true,
+            send_to_developers: true,
+            send_to_requester: false,
+            include_culprits: false
+          },
+          improvement: {
+            name: 'ImprovementTrigger',
+            send_to_recipient_list: true,
+            send_to_developers: true,
+            send_to_requester: false,
+            include_culprits: false
+          },
+          not_built: {
+            name: 'NotBuiltTrigger',
+            send_to_recipient_list: true,
+            send_to_developers: true,
+            send_to_requester: false,
+            include_culprits: false
+          },
+          prebuild_script: {
+            name: 'PreBuildScriptTrigger',
+            send_to_recipient_list: false,
+            send_to_developers: false,
+            send_to_requester: false,
+            include_culprits: false
+          },
+          regression: {
+            name: 'RegressionTrigger',
+            send_to_recipient_list: true,
+            send_to_developers: true,
+            send_to_requester: false,
+            include_culprits: false
+          },
+          script: {
+            name: 'ScriptTrigger',
+            send_to_recipient_list: true,
+            send_to_developers: false,
+            send_to_requester: false,
+            include_culprits: false
+          },
+          status_changed: {
+            name: 'StatusChangedTrigger',
+            send_to_recipient_list: false,
+            send_to_developers: true,
+            send_to_requester: false,
+            include_culprits: false
+          },
+          still_failing: {
+            name: 'StillFailingTrigger',
+            send_to_recipient_list: false,
+            send_to_developers: true,
+            send_to_requester: false,
+            include_culprits: false
+          },
+          still_unstable: {
+            name: 'StillUnstableTrigger',
+            send_to_recipient_list: false,
+            send_to_developers: true,
+            send_to_requester: false,
+            include_culprits: false
+          },
+          success: {
+            name: 'SuccessTrigger',
+            send_to_recipient_list: false,
+            send_to_developers: true,
+            send_to_requester: false,
+            include_culprits: false
+          },
+          unstable: {
+            name: 'UnstableTrigger',
+            send_to_recipient_list: false,
+            send_to_developers: true,
+            send_to_requester: false,
+            include_culprits: false
+          }
+        }
+
+        configuredTriggers do
+          config[:triggers].each do |trigger_params|
+
+            trigger_type = trigger_params[:type].to_sym
+            defaults = trigger_defaults[trigger_type]
+
+            send("hudson.plugins.emailext.plugins.trigger.#{defaults[:name]}") do
+              email do
+                recipientList { text(trigger_params[:recipient_list] || '') }
+                subject { text(trigger_params[:subject] || '$PROJECT_DEFAULT_SUBJECT') }
+                body { text(trigger_params[:body] || '$PROJECT_DEFAULT_CONTENT') }
+                sendToDevelopers { text(!trigger_params[:send_to_developers].nil? ? trigger_params[:send_to_developers] : defaults[:send_to_developers]) }
+                sendToRequester { text(!trigger_params[:send_to_requester].nil? ? trigger_params[:send_to_requester] : defaults[:send_to_requester]) }
+                includeCulprits { text(!trigger_params[:include_culprits].nil? ? trigger_params[:include_culprits] : defaults[:include_culprits]) }
+                sendToRecipientList { text(!trigger_params[:send_to_recipient_list].nil? ? trigger_params[:send_to_recipient_list] : defaults[:send_to_recipient_list]) }
+                attachmentsPattern { text(trigger_params[:attachments_pattern] || '') }
+                attachBuildLog { text(trigger_params[:attach_build_log] || false) }
+                compressBuildLog { text(trigger_params[:compress_build_log] || false) }
+                replyTo { text(trigger_params[:reply_to] || '$PROJECT_DEFAULT_REPLYTO') }
+                contentType { text(trigger_params[:content_type] || 'project') }
+              end
+
+              failureCount { text '1' } if trigger_type == :first_failure
+              failureCount { text '2' } if trigger_type == :second_failure
+              if trigger_type == :prebuild_script || trigger_type == :script
+                triggerScript { text(trigger_params[:trigger_script] || '') }
+              end
+            end
+          end
+        end
+      end
+
+      contentType { text(config[:content_type] || 'default') }
+      defaultSubject { text(config[:default_subject] || '$DEFAULT_SUBJECT') }
+      defaultContent { text(config[:default_content] || '$DEFAULT_CONTENT') }
+      attachmentsPattern { text(config[:attachments_pattern] || '') }
+      presendScript { text(config[:presend_script] || '$DEFAULT_PRESEND_SCRIPT') }
+      attachBuildLog { text(config[:attach_build_log] || 'false') }
+      compressBuildLog { text(config[:compress_build_log] || 'false') }
+      replyTo { text(config[:reply_to] || '$DEFAULT_REPLYTO') }
+      saveOutput { text(config[:save_output] || 'false') }
+    end
+  end
+end
