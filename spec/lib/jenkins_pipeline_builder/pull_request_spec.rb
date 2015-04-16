@@ -95,7 +95,6 @@ describe JenkinsPipelineBuilder::PullRequest do
       {
         name: 'pull_req_test',
         type: :project,
-        inject_pr_into: :app_name,
         app_name: 'my_app',
         value: {
           name: 'pull_req_test',
@@ -113,6 +112,7 @@ describe JenkinsPipelineBuilder::PullRequest do
         git_repo: 'jenkins_pipeline_builder',
         git_org: 'constantcontact',
         value: {
+          inject_pr_into: :app_name,
           jobs: ['{{app_name}}-10', '{{app_name}}-11']
         },
         builders: [
@@ -143,8 +143,7 @@ describe JenkinsPipelineBuilder::PullRequest do
     end
     it 'injects the pr number into the job name when told to' do
       pull = pull_request_class.new project, 2, jobs, pull_request
-      expect(pull.project[:app_name]).to eq 'my_app-PR2'
-      expect(pull.project[:value][:app_name]).to eq 'my_app-PR2'
+      expect(pull.project[:value][:app_name]).to eq '{{app_name}}-PR2'
     end
   end
 end

@@ -70,11 +70,10 @@ module JenkinsPipelineBuilder
       @project[:name] = "#{@project[:name]}-PR#{@number}" if @project[:name]
       @project[:value][:name] = "#{@project[:value][:name]}-PR#{@number}" if @project[:value][:name]
 
-      return unless project[:inject_pr_into]
+      return unless pull_generator[:value][:inject_pr_into]
 
-      key = project[:inject_pr_into].to_sym
-      project[key] = "#{project[key]}-PR#{@number}" if project[key]
-      project[:value][key] = "#{project[:value][key]}-PR#{@number}" if @project[:value][key]
+      key = pull_generator[:value][:inject_pr_into].to_sym
+      project[:value][key] = "{{#{key}}}-PR#{@number}" if project[:value]
     end
 
     # Apply any specified changes to each job
