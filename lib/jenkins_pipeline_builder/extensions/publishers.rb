@@ -376,7 +376,7 @@ publisher do
             thresholds.each do |threshold|
               entry do
                 send('hudson.plugins.cobertura.targets.CoverageMetric') { text threshold[:type].upcase }
-                send('int') { text (threshold[:value] * 100_000).to_i }
+                send('int') { text(threshold[:value] * 100_000).to_i }
               end
             end
           end
