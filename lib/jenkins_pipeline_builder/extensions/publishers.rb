@@ -673,3 +673,49 @@ publisher do
   end
 
 end
+
+publisher do
+  name :xunit
+  plugin_id 'xunit'
+  description 'This plugin makes it possible to record xUnit test reports.'
+  jenkins_name 'This plugin makes it possible to record xUnit test reports.'
+  announced false
+
+  xml do |params|
+    send('xunit', 'plugin' => 'xunit') do
+      send('types') do
+        unless params[:types].nil?
+          params[:types].each do |type|
+            send(type[:type]) do
+              pattern type[:pattern]
+              skipNoTestFiles type[:skip_no_test_files] || false
+              failIfNotNew type[:fail_if_not_new] || true
+              deleteOutputFiles type[:delete_output_files] || true
+              stopProcessingIfError type[:stop_processing_error] || true
+            end
+          end
+        end
+      end
+
+      params[:thresholds] ||= {}
+      failed_thresholds = params[:thresholds][:failed] || {}
+      skipped_thresholds = params[:thresholds][:skipped] || {}
+      thresholds do
+        send('org.jenkinsci.plugins.xunit.threshold.FailedThreshold') do
+          unstableThreshold failed_thresholds[:unstable_threshold] || ''
+          unstableNewThreshold failed_thresholds[:unstable_new_threshold] || ''
+          failureThreshold failed_thresholds[:failure_threshold] || ''
+          failureNewThreshold failed_thresholds[:failure_new_threshold] || ''
+        end
+        send('org.jenkinsci.plugins.xunit.threshold.SkippedThreshold') do
+          unstableThreshold skipped_thresholds[:unstable_threshold] || ''
+          unstableNewThreshold skipped_thresholds[:unstable_new_threshold] || ''
+          failureThreshold skipped_thresholds[:failure_threshold] || ''
+          failureNewThreshold skipped_thresholds[:failure_new_threshold] || ''
+        end
+      end
+
+      thresholdMode params[:threshold_mode] || 1
+    end
+  end
+end
