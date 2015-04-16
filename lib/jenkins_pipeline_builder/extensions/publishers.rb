@@ -338,3 +338,15 @@ publisher do
 
   end
 end
+
+publisher do
+  name :claim_broken_build
+  plugin_id 'claim'
+  description 'This plugin allows users to claim failed builds.'
+  jenkins_name 'Jenkins Claim Plugin'
+  announced false
+
+  xml do |allow_claim|
+    send('hudson.plugins.claim.ClaimPublisher', 'plugin' => 'claim') if allow_claim
+  end
+end
