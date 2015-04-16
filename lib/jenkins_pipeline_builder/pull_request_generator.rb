@@ -22,6 +22,8 @@
 
 module JenkinsPipelineBuilder
   class PullRequestGenerator
+    class NotFound < StandardError; end
+
     attr_reader :purge, :create, :jobs, :project, :generator, :pull_generator, :errors, :pull_requests
 
     def initialize(project, generator)
@@ -123,7 +125,7 @@ module JenkinsPipelineBuilder
 
         pull_job = job if job[:value][:job_type] == 'pull_request_generator'
       end
-      fail 'No jobs of type pull_request_generator found' unless pull_job
+      fail NotFound, 'No jobs of type pull_request_generator found' unless pull_job
       pull_job
     end
 
