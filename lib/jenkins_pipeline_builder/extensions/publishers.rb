@@ -298,3 +298,43 @@ publisher do
     end
   end
 end
+
+publisher do
+  name :brakeman
+  plugin_id 'brakeman'
+  description 'Parses results from Brakeman, a static-analysis vulnerability scanner for Ruby on Rails.'
+  jenkins_name 'Brakeman Plugin'
+  announced false
+
+  xml do |params|
+
+    send('hudson.plugins.brakeman.BrakemanPublisher', 'plugin' => 'brakeman') do
+      healthy params[:healthy] || ''
+      unHealthy params[:unhealthy] || ''
+      thresholdLimit params[:threshold_limit] || 'low'
+      pluginName '[BRAKEMAN] '
+      defaultEncoding 'UTF-8'
+      canRunOnFailed params[:can_run_on_failed] || false
+      useStableBuildAsReference params[:use_stable_build_as_reference] || false
+      useDeltaValues params[:use_delta_values] || false
+
+      thresholds = params[:thresholds] || {}
+      send('thresholds', 'plugin' => 'analysis-core') do
+        unstableTotalAll { text(thresholds[:unstable_total_all] || '') }
+        unstableTotalHigh { text(thresholds[:unstable_total_high] || '') }
+        unstableTotalNormal { text(thresholds[:unstable_total_normal] || '') }
+        unstableTotalLow { text(thresholds[:unstable_total_low] || '') }
+        failedTotalAll { text(thresholds[:failed_total_all] || '') }
+        failedTotalHigh { text(thresholds[:failed_total_high] || '') }
+        failedTotalNormal { text(thresholds[:failed_total_normal] || '') }
+        failedTotalLow { text(thresholds[:failed_total_low] || '') }
+      end
+
+      shouldDetectModules { text(params[:should_detect_modules] || false) }
+      dontComputeNew { text(params[:dont_compute_new] || true) }
+      doNotResolveRelativePaths { text(params[:do_not_resolve_relative_paths] || false) }
+      outputFile { text(params[:output_file] || 'brakeman-output.tabs') }
+    end
+
+  end
+end
