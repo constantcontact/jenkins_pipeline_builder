@@ -91,7 +91,14 @@ describe JenkinsPipelineBuilder::ModuleRegistry do
         groovy_postbuild: ['0'],
         archive_artifact: ['0'],
         email_notifications: ['0'],
-        sonar_result: ['0']
+        sonar_result: ['0'],
+        brakeman: ['0'],
+        claim_broken_build: ['0'],
+        cobertura_report: ['0'],
+        email_ext: ['0'],
+        html_publisher: ['0'],
+        publish_tap_results: ['0'],
+        xunit: ['0']
       }
       registry = JenkinsPipelineBuilder.registry.registry
       expect(registry[:job][:publishers].keys).to match_array publishers.keys
