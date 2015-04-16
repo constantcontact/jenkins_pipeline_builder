@@ -623,3 +623,30 @@ publisher do
     end
   end
 end
+
+publisher do
+  name :html_publisher
+  plugin_id 'htmlpublisher'
+  description 'This plugin publishes HTML reports.'
+  jenkins_name 'This plugin publishes HTML reports.'
+  announced false
+
+  xml do |params|
+    send('htmlpublisher.HtmlPublisher', 'plugin' => 'htmlpublisher') do
+      send('reportTargets') do
+        unless params[:report_targets].nil?
+          params[:report_targets].each do |target|
+            send('htmlpublisher.HtmlPublisherTarget') do
+              reportName target[:report_title] || 'HTML Report'
+              reportDir target[:report_dir] || ''
+              reportFiles target[:index_pages] || 'index.html'
+              keepAll target[:keep_past] || false
+              allowMissing target[:allow_missing] || false
+              wrapperName 'htmlpublisher-wrapper.html'
+            end
+          end
+        end
+      end
+    end
+  end
+end
