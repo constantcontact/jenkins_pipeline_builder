@@ -362,14 +362,7 @@ publisher do
     send('hudson.plugins.cobertura.CoberturaPublisher', 'plugin' => 'cobertura') do
 
       def send_metric_targets(target, thresholds)
-        case target
-        when :healthy
-          name = 'healthyTarget'
-        when :unhealthy
-          name = 'unhealthyTarget'
-        when :failing
-          name = 'failingTarget'
-        end
+        name = '#{target}Target'
 
         send name do
           targets 'class' => 'enum-map', 'enum-type' => 'hudson.plugins.cobertura.targets.CoverageMetric' do
