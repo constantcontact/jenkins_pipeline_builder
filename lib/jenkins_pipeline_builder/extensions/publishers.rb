@@ -298,3 +298,417 @@ publisher do
     end
   end
 end
+
+publisher do
+  name :brakeman
+  plugin_id 'brakeman'
+  description 'Parses results from Brakeman, a static-analysis vulnerability scanner for Ruby on Rails.'
+  jenkins_name 'Brakeman Plugin'
+  announced false
+
+  xml do |params|
+
+    send('hudson.plugins.brakeman.BrakemanPublisher', 'plugin' => 'brakeman') do
+      healthy params[:healthy] || ''
+      unHealthy params[:unhealthy] || ''
+      thresholdLimit params[:threshold_limit] || 'low'
+      pluginName '[BRAKEMAN] '
+      defaultEncoding 'UTF-8'
+      canRunOnFailed params[:can_run_on_failed] || false
+      useStableBuildAsReference params[:use_stable_build_as_reference] || false
+      useDeltaValues params[:use_delta_values] || false
+
+      thresholds = params[:thresholds] || {}
+      send('thresholds', 'plugin' => 'analysis-core') do
+        unstableTotalAll { text(thresholds[:unstable_total_all] || '') }
+        unstableTotalHigh { text(thresholds[:unstable_total_high] || '') }
+        unstableTotalNormal { text(thresholds[:unstable_total_normal] || '') }
+        unstableTotalLow { text(thresholds[:unstable_total_low] || '') }
+        failedTotalAll { text(thresholds[:failed_total_all] || '') }
+        failedTotalHigh { text(thresholds[:failed_total_high] || '') }
+        failedTotalNormal { text(thresholds[:failed_total_normal] || '') }
+        failedTotalLow { text(thresholds[:failed_total_low] || '') }
+      end
+
+      shouldDetectModules { text(params[:should_detect_modules] || false) }
+      dontComputeNew { text(params[:dont_compute_new] || true) }
+      doNotResolveRelativePaths { text(params[:do_not_resolve_relative_paths] || false) }
+      outputFile { text(params[:output_file] || 'brakeman-output.tabs') }
+    end
+
+  end
+end
+
+publisher do
+  name :claim_broken_build
+  plugin_id 'claim'
+  description 'This plugin allows users to claim failed builds.'
+  jenkins_name 'Jenkins Claim Plugin'
+  announced false
+
+  xml do |allow_claim|
+    send('hudson.plugins.claim.ClaimPublisher', 'plugin' => 'claim') if allow_claim
+  end
+end
+
+publisher do
+  name :cobertura_report
+  plugin_id 'cobertura'
+  description 'This plugin integrates Cobertura coverage reports to Jenkins.'
+  jenkins_name 'Cobertura Plugin'
+  announced false
+
+  xml do |params|
+    send('hudson.plugins.cobertura.CoberturaPublisher', 'plugin' => 'cobertura') do
+
+      def send_metric_targets(target, thresholds)
+        name = "#{target}Target"
+
+        send name do
+          targets 'class' => 'enum-map', 'enum-type' => 'hudson.plugins.cobertura.targets.CoverageMetric' do
+            thresholds.each do |threshold|
+              entry do
+                send('hudson.plugins.cobertura.targets.CoverageMetric') { text threshold[:type].upcase }
+                send('int') { text(threshold[:value] * 100_000).to_i }
+              end
+            end
+          end
+        end
+      end
+
+      coberturaReportFile params[:cobertura_report_file]
+      onlyStable params[:only_stable] || false
+      failUnhealthy params[:fail_unhealthy] || false
+      failUnstable params[:fail_unstable] || false
+      autoUpdateHealth params[:auto_update_health] || false
+      autoUpdateStability params[:auto_update_stability] || false
+      zoomCoverageChart params[:zoom_coverage_chart] || false
+      maxNumberOfBuilds params[:max_number_of_builds] || 0
+      failNoReports params[:fail_no_reports] || true
+
+      targets = params[:metric_targets]
+      if targets.nil?
+        targets = {
+          failing: [
+            { type: 'type', value: 0 },
+            { type: 'line', value: 0 },
+            { type: 'conditional', value: 0 }
+          ],
+          unhealthy: [
+            { type: 'type', value: 0 },
+            { type: 'line', value: 0 },
+            { type: 'conditional', value: 0 }
+          ],
+          healthy: [
+            { type: 'type', value: 80 },
+            { type: 'line', value: 80 },
+            { type: 'conditional', value: 70 }
+          ]
+        }
+      end
+
+      send_metric_targets(:failing, targets[:failing])
+      send_metric_targets(:unhealthy, targets[:unhealthy])
+      send_metric_targets(:healthy, targets[:healthy])
+
+      sourceEncoding params[:source_encoding] || 'ASCII'
+    end
+  end
+
+end
+
+publisher do
+  name :email_ext
+  plugin_id 'email-ext'
+  description 'This plugin is a replacement for Jenkins\'s email publisher.'
+  jenkins_name 'Email-ext plugin'
+  announced false
+
+  xml do |config|
+    send('hudson.plugins.emailext.ExtendedEmailPublisher', 'plugin' => 'email-ext') do
+      recipientList { text(config[:recipient_list] || '$DEFAULT_RECIPIENTS') }
+
+      unless config[:triggers].nil?
+        trigger_defaults = {
+          first_failure: {
+            name: 'FirstFailureTrigger',
+            send_to_recipient_list: true,
+            send_to_developers: true,
+            send_to_requester: false,
+            include_culprits: false
+          },
+          first_unstable: {
+            name: 'FirstUnstableTrigger',
+            send_to_recipient_list: false,
+            send_to_developers: true,
+            send_to_requester: false,
+            include_culprits: false
+          },
+          second_failure: {
+            name: 'SecondFailureTrigger',
+            send_to_recipient_list: true,
+            send_to_developers: true,
+            send_to_requester: false,
+            include_culprits: false
+          },
+          aborted: {
+            name: 'AbortedTrigger',
+            send_to_recipient_list: true,
+            send_to_developers: true,
+            send_to_requester: false,
+            include_culprits: false
+          },
+          always: {
+            name: 'AlwaysTrigger',
+            send_to_recipient_list: true,
+            send_to_developers: true,
+            send_to_requester: false,
+            include_culprits: false
+          },
+          before_build: {
+            name: 'PreBuildTrigger',
+            send_to_recipient_list: true,
+            send_to_developers: false,
+            send_to_requester: false,
+            include_culprits: false
+          },
+          building: {
+            name: 'BuildingTrigger',
+            send_to_recipient_list: true,
+            send_to_developers: true,
+            send_to_requester: false,
+            include_culprits: false
+          },
+          failure: {
+            name: 'FailureTrigger',
+            send_to_recipient_list: false,
+            send_to_developers: true,
+            send_to_requester: false,
+            include_culprits: false
+          },
+          fixed: {
+            name: 'FixedTrigger',
+            send_to_recipient_list: true,
+            send_to_developers: true,
+            send_to_requester: false,
+            include_culprits: false
+          },
+          fixed_unhealthy: {
+            name: 'FixedUnhealthyTrigger',
+            send_to_recipient_list: true,
+            send_to_developers: true,
+            send_to_requester: false,
+            include_culprits: false
+          },
+          improvement: {
+            name: 'ImprovementTrigger',
+            send_to_recipient_list: true,
+            send_to_developers: true,
+            send_to_requester: false,
+            include_culprits: false
+          },
+          not_built: {
+            name: 'NotBuiltTrigger',
+            send_to_recipient_list: true,
+            send_to_developers: true,
+            send_to_requester: false,
+            include_culprits: false
+          },
+          prebuild_script: {
+            name: 'PreBuildScriptTrigger',
+            send_to_recipient_list: false,
+            send_to_developers: false,
+            send_to_requester: false,
+            include_culprits: false
+          },
+          regression: {
+            name: 'RegressionTrigger',
+            send_to_recipient_list: true,
+            send_to_developers: true,
+            send_to_requester: false,
+            include_culprits: false
+          },
+          script: {
+            name: 'ScriptTrigger',
+            send_to_recipient_list: true,
+            send_to_developers: false,
+            send_to_requester: false,
+            include_culprits: false
+          },
+          status_changed: {
+            name: 'StatusChangedTrigger',
+            send_to_recipient_list: false,
+            send_to_developers: true,
+            send_to_requester: false,
+            include_culprits: false
+          },
+          still_failing: {
+            name: 'StillFailingTrigger',
+            send_to_recipient_list: false,
+            send_to_developers: true,
+            send_to_requester: false,
+            include_culprits: false
+          },
+          still_unstable: {
+            name: 'StillUnstableTrigger',
+            send_to_recipient_list: false,
+            send_to_developers: true,
+            send_to_requester: false,
+            include_culprits: false
+          },
+          success: {
+            name: 'SuccessTrigger',
+            send_to_recipient_list: false,
+            send_to_developers: true,
+            send_to_requester: false,
+            include_culprits: false
+          },
+          unstable: {
+            name: 'UnstableTrigger',
+            send_to_recipient_list: false,
+            send_to_developers: true,
+            send_to_requester: false,
+            include_culprits: false
+          }
+        }
+
+        configuredTriggers do
+          config[:triggers].each do |trigger_params|
+
+            trigger_type = trigger_params[:type].to_sym
+            defaults = trigger_defaults[trigger_type]
+
+            send("hudson.plugins.emailext.plugins.trigger.#{defaults[:name]}") do
+              email do
+                recipientList { text(trigger_params[:recipient_list] || '') }
+                subject { text(trigger_params[:subject] || '$PROJECT_DEFAULT_SUBJECT') }
+                body { text(trigger_params[:body] || '$PROJECT_DEFAULT_CONTENT') }
+                sendToDevelopers { text(!trigger_params[:send_to_developers].nil? ? trigger_params[:send_to_developers] : defaults[:send_to_developers]) }
+                sendToRequester { text(!trigger_params[:send_to_requester].nil? ? trigger_params[:send_to_requester] : defaults[:send_to_requester]) }
+                includeCulprits { text(!trigger_params[:include_culprits].nil? ? trigger_params[:include_culprits] : defaults[:include_culprits]) }
+                sendToRecipientList { text(!trigger_params[:send_to_recipient_list].nil? ? trigger_params[:send_to_recipient_list] : defaults[:send_to_recipient_list]) }
+                attachmentsPattern { text(trigger_params[:attachments_pattern] || '') }
+                attachBuildLog { text(trigger_params[:attach_build_log] || false) }
+                compressBuildLog { text(trigger_params[:compress_build_log] || false) }
+                replyTo { text(trigger_params[:reply_to] || '$PROJECT_DEFAULT_REPLYTO') }
+                contentType { text(trigger_params[:content_type] || 'project') }
+              end
+
+              failureCount { text '1' } if trigger_type == :first_failure
+              failureCount { text '2' } if trigger_type == :second_failure
+              if trigger_type == :prebuild_script || trigger_type == :script
+                triggerScript { text(trigger_params[:trigger_script] || '') }
+              end
+            end
+          end
+        end
+      end
+
+      contentType { text(config[:content_type] || 'default') }
+      defaultSubject { text(config[:default_subject] || '$DEFAULT_SUBJECT') }
+      defaultContent { text(config[:default_content] || '$DEFAULT_CONTENT') }
+      attachmentsPattern { text(config[:attachments_pattern] || '') }
+      presendScript { text(config[:presend_script] || '$DEFAULT_PRESEND_SCRIPT') }
+      attachBuildLog { text(config[:attach_build_log] || 'false') }
+      compressBuildLog { text(config[:compress_build_log] || 'false') }
+      replyTo { text(config[:reply_to] || '$DEFAULT_REPLYTO') }
+      saveOutput { text(config[:save_output] || 'false') }
+    end
+  end
+end
+
+publisher do
+  name :html_publisher
+  plugin_id 'htmlpublisher'
+  description 'This plugin publishes HTML reports.'
+  jenkins_name 'HTML Publisher Plugin'
+  announced false
+
+  xml do |params|
+    send('htmlpublisher.HtmlPublisher', 'plugin' => 'htmlpublisher') do
+      send('reportTargets') do
+        unless params[:report_targets].nil?
+          params[:report_targets].each do |target|
+            send('htmlpublisher.HtmlPublisherTarget') do
+              reportName target[:report_title] || 'HTML Report'
+              reportDir target[:report_dir] || ''
+              reportFiles target[:index_pages] || 'index.html'
+              keepAll target[:keep_past] || false
+              allowMissing target[:allow_missing] || false
+              wrapperName 'htmlpublisher-wrapper.html'
+            end
+          end
+        end
+      end
+    end
+  end
+end
+
+publisher do
+  name :publish_tap_results
+  plugin_id 'tap'
+  description 'This plug-in adds support to TAP test result files to Jenkins. It lets you specify an ant-like pattern for a directory that contains your TAP files.'
+  jenkins_name 'TAP Plugin'
+  announced false
+
+  xml do |params|
+    send('org.tap4j.plugin.TapPublisher', 'plugin' => 'tap') do
+      testResults params[:test_results]
+      failIfNoResults params[:fail_if_no_results] || false
+      failedTestsMarkBuildAsFailure params[:failed_test_mark_as_failure] || false
+      outputTapToConsole params[:output_to_console] || false
+      enableSubtests params[:enable_subtests] || false
+      discardOldReports params[:discard_old_reports] || false
+      todoIsFailure params[:todo_is_failure] || false
+      includeCommentDiagnostics params[:include_comment_diagnostics] || false
+      validateNumberOfTests params[:validate_number_tests] || false
+    end
+  end
+
+end
+
+publisher do
+  name :xunit
+  plugin_id 'xunit'
+  description 'This plugin makes it possible to record xUnit test reports.'
+  jenkins_name 'xUnit Plugin'
+  announced false
+
+  xml do |params|
+    send('xunit', 'plugin' => 'xunit') do
+      send('types') do
+        unless params[:types].nil?
+          params[:types].each do |type|
+            send(type[:type]) do
+              pattern type[:pattern]
+              skipNoTestFiles type[:skip_no_test_files] || false
+              failIfNotNew type[:fail_if_not_new] || true
+              deleteOutputFiles type[:delete_output_files] || true
+              stopProcessingIfError type[:stop_processing_error] || true
+            end
+          end
+        end
+      end
+
+      params[:thresholds] ||= {}
+      failed_thresholds = params[:thresholds][:failed] || {}
+      skipped_thresholds = params[:thresholds][:skipped] || {}
+      thresholds do
+        send('org.jenkinsci.plugins.xunit.threshold.FailedThreshold') do
+          unstableThreshold failed_thresholds[:unstable_threshold] || ''
+          unstableNewThreshold failed_thresholds[:unstable_new_threshold] || ''
+          failureThreshold failed_thresholds[:failure_threshold] || ''
+          failureNewThreshold failed_thresholds[:failure_new_threshold] || ''
+        end
+        send('org.jenkinsci.plugins.xunit.threshold.SkippedThreshold') do
+          unstableThreshold skipped_thresholds[:unstable_threshold] || ''
+          unstableNewThreshold skipped_thresholds[:unstable_new_threshold] || ''
+          failureThreshold skipped_thresholds[:failure_threshold] || ''
+          failureNewThreshold skipped_thresholds[:failure_new_threshold] || ''
+        end
+      end
+
+      thresholdMode params[:threshold_mode] || 1
+    end
+  end
+end
