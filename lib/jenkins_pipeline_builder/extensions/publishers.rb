@@ -355,7 +355,7 @@ publisher do
   name :cobertura_report
   plugin_id 'cobertura'
   description 'This plugin integrates Cobertura coverage reports to Jenkins.'
-  jenkins_name 'This plugin integrates Cobertura coverage reports to Jenkins.'
+  jenkins_name 'Cobertura Plugin'
   announced false
 
   xml do |params|
@@ -628,7 +628,7 @@ publisher do
   name :html_publisher
   plugin_id 'htmlpublisher'
   description 'This plugin publishes HTML reports.'
-  jenkins_name 'This plugin publishes HTML reports.'
+  jenkins_name 'HTML Publisher Plugin'
   announced false
 
   xml do |params|
@@ -655,7 +655,7 @@ publisher do
   name :publish_tap_results
   plugin_id 'tap'
   description 'This plug-in adds support to TAP test result files to Jenkins. It lets you specify an ant-like pattern for a directory that contains your TAP files.'
-  jenkins_name 'This plug-in adds support to TAP test result files to Jenkins. It lets you specify an ant-like pattern for a directory that contains your TAP files.'
+  jenkins_name 'TAP Plugin'
   announced false
 
   xml do |params|
@@ -678,7 +678,7 @@ publisher do
   name :xunit
   plugin_id 'xunit'
   description 'This plugin makes it possible to record xUnit test reports.'
-  jenkins_name 'This plugin makes it possible to record xUnit test reports.'
+  jenkins_name 'xUnit Plugin'
   announced false
 
   xml do |params|
