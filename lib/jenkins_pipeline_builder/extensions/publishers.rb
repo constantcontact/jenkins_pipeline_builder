@@ -362,7 +362,7 @@ publisher do
     send('hudson.plugins.cobertura.CoberturaPublisher', 'plugin' => 'cobertura') do
 
       def send_metric_targets(target, thresholds)
-        name = '#{target}Target'
+        name = "#{target}Target"
 
         send name do
           targets 'class' => 'enum-map', 'enum-type' => 'hudson.plugins.cobertura.targets.CoverageMetric' do
