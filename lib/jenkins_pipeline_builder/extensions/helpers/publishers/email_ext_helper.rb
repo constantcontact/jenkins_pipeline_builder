@@ -1,4 +1,5 @@
 class EmailExtHelper < ExtensionHelper
+  # rubocop:disable Metrics/MethodLength
   def trigger_defaults
     {
       first_failure: {
@@ -143,4 +144,5 @@ class EmailExtHelper < ExtensionHelper
       }
     }
   end
+  # rubocop:enable Metrics/MethodLength
 end
