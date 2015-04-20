@@ -76,27 +76,13 @@ trigger do
   announced false
 
   xml do |params|
-    case params[:status]
-    when 'unstable'
-      name = 'UNSTABLE'
-      ordinal = '1'
-      color = 'yellow'
-    when 'failed'
-      name = 'FAILURE'
-      ordinal = '2'
-      color = 'RED'
-    else
-      name = 'SUCCESS'
-      ordinal = '0'
-      color = 'BLUE'
-    end
     send('jenkins.triggers.ReverseBuildTrigger') do
       spec
       upstreamProjects params[:projects]
       send('threshold') do
-        name name
-        ordinal ordinal
-        color color
+        name helper.name
+        ordinal helper.ordinal
+        color helper.color
         completeBuild true
       end
     end

@@ -19,31 +19,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-require 'jenkins_pipeline_builder'
-JenkinsPipelineBuilder.registry.entries.each do |type, path|
-  singular_type = type.to_s.singularize
-  define_method singular_type do |&block|
-    set = JenkinsPipelineBuilder::ExtensionSet.new singular_type, path, &block
-    return false unless set.valid?
-
-    JenkinsPipelineBuilder.registry.register([:job, type], set)
-    versions = set.extensions.map(&:min_version)
-    puts "Successfully registered #{set.name} for versions #{versions}" if set.announced
-    true
-  end
-end
-
-def job_attribute(&block)
-  set = JenkinsPipelineBuilder::ExtensionSet.new :job_attribute, &block
-  return false unless set.valid?
-
-  JenkinsPipelineBuilder.registry.register([:job], set)
-  versions = set.extensions.map(&:min_version)
-  puts "Successfully registered #{set.name} for versions #{versions}" if set.announced
-end
-
 module JenkinsPipelineBuilder
   class Extension
+    attr_accessor :helper
     EXT_METHODS = {
       name: false,
       plugin_id: false,
@@ -88,7 +66,8 @@ module JenkinsPipelineBuilder
       n_builders = n_xml.xpath(path).first
       n_builders.instance_exec(value, &before) if before
       Nokogiri::XML::Builder.with(n_builders) do |builder|
-        builder.instance_exec value, &xml
+        include_helper value, builder
+        builder.instance_exec helper, &xml
       end
       n_builders.instance_exec(value, &after) if after
       true
@@ -109,6 +88,14 @@ module JenkinsPipelineBuilder
         errors[name] = 'Must be set' if send(name).nil?
       end
       errors
+    end
+
+    private
+
+    def include_helper(params, builder)
+      klass = "#{name.to_s.camelize}Helper".safe_constantize
+      klass ||= ExtensionHelper
+      self.helper = klass.new params, builder
     end
   end
 end

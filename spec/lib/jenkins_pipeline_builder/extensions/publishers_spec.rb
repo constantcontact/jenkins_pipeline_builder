@@ -107,6 +107,42 @@ describe 'publishers' do
     it 'sets the file'
   end
 
+  context 'cobertura_report' do
+    before :each do
+      allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
+        list_installed: { 'cobertura' => '20.0'
+    })
+    end
+    it 'generates a configuration' do
+      params = { publishers: { cobertura_report: {} } }
+
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+
+      publisher = @n_xml.root.children.first
+      expect(publisher.name).to match 'hudson.plugins.cobertura.CoberturaPublisher'
+      expect(publisher.children.map(&:name)).to_not include 'send_metric_targets'
+      expect(publisher.to_xml).to include 'hudson.plugins.cobertura.targets.CoverageMetric'
+    end
+  end
+
+  context 'email_ext' do
+    before :each do
+      allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
+        list_installed: { 'email-ext' => '20.0'
+    })
+    end
+    it 'generates a configuration' do
+      params = { publishers: { email_ext: { triggers: [{ type: :first_failure }] } } }
+
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+
+      publisher = @n_xml.root.children.first
+      expect(publisher.name).to match 'hudson.plugins.emailext.ExtendedEmailPublisher'
+      expect(publisher.children.map(&:name)).to_not include 'trigger_defaults'
+      expect(publisher.to_xml).to include 'FirstFailureTrigger'
+    end
+  end
+
   context 'hipchat' do
     it 'generates a configuration'
     it 'does an option'

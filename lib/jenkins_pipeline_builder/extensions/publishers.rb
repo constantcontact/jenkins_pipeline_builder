@@ -361,21 +361,6 @@ publisher do
   xml do |params|
     send('hudson.plugins.cobertura.CoberturaPublisher', 'plugin' => 'cobertura') do
 
-      def send_metric_targets(target, thresholds)
-        name = "#{target}Target"
-
-        send name do
-          targets 'class' => 'enum-map', 'enum-type' => 'hudson.plugins.cobertura.targets.CoverageMetric' do
-            thresholds.each do |threshold|
-              entry do
-                send('hudson.plugins.cobertura.targets.CoverageMetric') { text threshold[:type].upcase }
-                send('int') { text(threshold[:value] * 100_000).to_i }
-              end
-            end
-          end
-        end
-      end
-
       coberturaReportFile params[:cobertura_report_file]
       onlyStable params[:only_stable] || false
       failUnhealthy params[:fail_unhealthy] || false
@@ -386,30 +371,9 @@ publisher do
       maxNumberOfBuilds params[:max_number_of_builds] || 0
       failNoReports params[:fail_no_reports] || true
 
-      targets = params[:metric_targets]
-      if targets.nil?
-        targets = {
-          failing: [
-            { type: 'type', value: 0 },
-            { type: 'line', value: 0 },
-            { type: 'conditional', value: 0 }
-          ],
-          unhealthy: [
-            { type: 'type', value: 0 },
-            { type: 'line', value: 0 },
-            { type: 'conditional', value: 0 }
-          ],
-          healthy: [
-            { type: 'type', value: 80 },
-            { type: 'line', value: 80 },
-            { type: 'conditional', value: 70 }
-          ]
-        }
-      end
-
-      send_metric_targets(:failing, targets[:failing])
-      send_metric_targets(:unhealthy, targets[:unhealthy])
-      send_metric_targets(:healthy, targets[:healthy])
+      params.send_metric_targets(:failing)
+      params.send_metric_targets(:unhealthy)
+      params.send_metric_targets(:healthy)
 
       sourceEncoding params[:source_encoding] || 'ASCII'
     end
@@ -424,159 +388,17 @@ publisher do
   jenkins_name 'Email-ext plugin'
   announced false
 
-  xml do |config|
+  xml do |params|
     send('hudson.plugins.emailext.ExtendedEmailPublisher', 'plugin' => 'email-ext') do
-      recipientList { text(config[:recipient_list] || '$DEFAULT_RECIPIENTS') }
+      recipientList { text(params[:recipient_list] || '$DEFAULT_RECIPIENTS') }
 
-      unless config[:triggers].nil?
-        trigger_defaults = {
-          first_failure: {
-            name: 'FirstFailureTrigger',
-            send_to_recipient_list: true,
-            send_to_developers: true,
-            send_to_requester: false,
-            include_culprits: false
-          },
-          first_unstable: {
-            name: 'FirstUnstableTrigger',
-            send_to_recipient_list: false,
-            send_to_developers: true,
-            send_to_requester: false,
-            include_culprits: false
-          },
-          second_failure: {
-            name: 'SecondFailureTrigger',
-            send_to_recipient_list: true,
-            send_to_developers: true,
-            send_to_requester: false,
-            include_culprits: false
-          },
-          aborted: {
-            name: 'AbortedTrigger',
-            send_to_recipient_list: true,
-            send_to_developers: true,
-            send_to_requester: false,
-            include_culprits: false
-          },
-          always: {
-            name: 'AlwaysTrigger',
-            send_to_recipient_list: true,
-            send_to_developers: true,
-            send_to_requester: false,
-            include_culprits: false
-          },
-          before_build: {
-            name: 'PreBuildTrigger',
-            send_to_recipient_list: true,
-            send_to_developers: false,
-            send_to_requester: false,
-            include_culprits: false
-          },
-          building: {
-            name: 'BuildingTrigger',
-            send_to_recipient_list: true,
-            send_to_developers: true,
-            send_to_requester: false,
-            include_culprits: false
-          },
-          failure: {
-            name: 'FailureTrigger',
-            send_to_recipient_list: false,
-            send_to_developers: true,
-            send_to_requester: false,
-            include_culprits: false
-          },
-          fixed: {
-            name: 'FixedTrigger',
-            send_to_recipient_list: true,
-            send_to_developers: true,
-            send_to_requester: false,
-            include_culprits: false
-          },
-          fixed_unhealthy: {
-            name: 'FixedUnhealthyTrigger',
-            send_to_recipient_list: true,
-            send_to_developers: true,
-            send_to_requester: false,
-            include_culprits: false
-          },
-          improvement: {
-            name: 'ImprovementTrigger',
-            send_to_recipient_list: true,
-            send_to_developers: true,
-            send_to_requester: false,
-            include_culprits: false
-          },
-          not_built: {
-            name: 'NotBuiltTrigger',
-            send_to_recipient_list: true,
-            send_to_developers: true,
-            send_to_requester: false,
-            include_culprits: false
-          },
-          prebuild_script: {
-            name: 'PreBuildScriptTrigger',
-            send_to_recipient_list: false,
-            send_to_developers: false,
-            send_to_requester: false,
-            include_culprits: false
-          },
-          regression: {
-            name: 'RegressionTrigger',
-            send_to_recipient_list: true,
-            send_to_developers: true,
-            send_to_requester: false,
-            include_culprits: false
-          },
-          script: {
-            name: 'ScriptTrigger',
-            send_to_recipient_list: true,
-            send_to_developers: false,
-            send_to_requester: false,
-            include_culprits: false
-          },
-          status_changed: {
-            name: 'StatusChangedTrigger',
-            send_to_recipient_list: false,
-            send_to_developers: true,
-            send_to_requester: false,
-            include_culprits: false
-          },
-          still_failing: {
-            name: 'StillFailingTrigger',
-            send_to_recipient_list: false,
-            send_to_developers: true,
-            send_to_requester: false,
-            include_culprits: false
-          },
-          still_unstable: {
-            name: 'StillUnstableTrigger',
-            send_to_recipient_list: false,
-            send_to_developers: true,
-            send_to_requester: false,
-            include_culprits: false
-          },
-          success: {
-            name: 'SuccessTrigger',
-            send_to_recipient_list: false,
-            send_to_developers: true,
-            send_to_requester: false,
-            include_culprits: false
-          },
-          unstable: {
-            name: 'UnstableTrigger',
-            send_to_recipient_list: false,
-            send_to_developers: true,
-            send_to_requester: false,
-            include_culprits: false
-          }
-        }
+      unless params[:triggers].nil?
 
         configuredTriggers do
-          config[:triggers].each do |trigger_params|
+          params[:triggers].each do |trigger_params|
 
             trigger_type = trigger_params[:type].to_sym
-            defaults = trigger_defaults[trigger_type]
+            defaults = params.trigger_defaults[trigger_type]
 
             send("hudson.plugins.emailext.plugins.trigger.#{defaults[:name]}") do
               email do
@@ -604,15 +426,15 @@ publisher do
         end
       end
 
-      contentType { text(config[:content_type] || 'default') }
-      defaultSubject { text(config[:default_subject] || '$DEFAULT_SUBJECT') }
-      defaultContent { text(config[:default_content] || '$DEFAULT_CONTENT') }
-      attachmentsPattern { text(config[:attachments_pattern] || '') }
-      presendScript { text(config[:presend_script] || '$DEFAULT_PRESEND_SCRIPT') }
-      attachBuildLog { text(config[:attach_build_log] || 'false') }
-      compressBuildLog { text(config[:compress_build_log] || 'false') }
-      replyTo { text(config[:reply_to] || '$DEFAULT_REPLYTO') }
-      saveOutput { text(config[:save_output] || 'false') }
+      contentType { text(params[:content_type] || 'default') }
+      defaultSubject { text(params[:default_subject] || '$DEFAULT_SUBJECT') }
+      defaultContent { text(params[:default_content] || '$DEFAULT_CONTENT') }
+      attachmentsPattern { text(params[:attachments_pattern] || '') }
+      presendScript { text(params[:presend_script] || '$DEFAULT_PRESEND_SCRIPT') }
+      attachBuildLog { text(params[:attach_build_log] || 'false') }
+      compressBuildLog { text(params[:compress_build_log] || 'false') }
+      replyTo { text(params[:reply_to] || '$DEFAULT_REPLYTO') }
+      saveOutput { text(params[:save_output] || 'false') }
     end
   end
 end

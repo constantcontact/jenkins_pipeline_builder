@@ -92,11 +92,11 @@ wrapper do
 
   xml do |wrapper|
     EnvInjectPasswordWrapper do
-      if wrapper.is_a? Array
-        passwords = wrapper
-      else
+      if wrapper.respond_to? :keys
         injectGlobalPasswords wrapper[:inject_global_passwords]
         passwords = wrapper[:passwords]
+      else
+        passwords = wrapper
       end
       break unless passwords
       passwordEntries do

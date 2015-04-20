@@ -105,7 +105,7 @@ module JenkinsPipelineBuilder
       return unless File.directory?(path)
       logger.info "Loading extensions from folder #{path}"
       logger.info Dir.glob("#{path}/*.rb").inspect
-      Dir.glob("#{path}/*.rb").each do |file|
+      Dir.glob("#{path}/**/*.rb").each do |file|
         logger.info "Loaded #{file}"
         require file
       end

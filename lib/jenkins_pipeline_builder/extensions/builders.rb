@@ -116,11 +116,6 @@ builder do
   announced false
 
   xml do |params|
-    colors = {
-      'SUCCESS' => { ordinal:  0, color:  'BLUE' },
-      'FAILURE' => { ordinal:  2, color:  'RED' },
-      'UNSTABLE' => { ordinal:  1, color:  'YELLOW' }
-    }
     send('hudson.plugins.parameterizedtrigger.TriggerBuilder', 'plugin' => 'parameterized-trigger') do
       configs do
         send('hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig') do
@@ -144,27 +139,27 @@ builder do
           condition 'ALWAYS'
           triggerWithNoParameters params[:trigger_with_no_parameters] || false
           block do
-            if params[:fail] && colors.include?(params[:fail])
+            if params[:fail] && helper.colors.include?(params[:fail])
               buildStepFailureThreshold do
                 name params[:fail]
-                ordinal colors[params[:fail]][:ordinal]
-                color colors[params[:fail]][:color]
+                ordinal helper.colors[params[:fail]][:ordinal]
+                color helper.colors[params[:fail]][:color]
                 completeBuild 'true'
               end
             end
-            if params[:mark_fail] && colors.include?(params[:mark_fail])
+            if params[:mark_fail] && helper.colors.include?(params[:mark_fail])
               failureThreshold do
                 name params[:mark_fail]
-                ordinal colors[params[:mark_fail]][:ordinal]
-                color colors[params[:mark_fail]][:color]
+                ordinal helper.colors[params[:mark_fail]][:ordinal]
+                color helper.colors[params[:mark_fail]][:color]
                 completeBuild 'true'
               end
             end
-            if params[:mark_unstable] && colors.include?(params[:mark_unstable])
+            if params[:mark_unstable] && helper.colors.include?(params[:mark_unstable])
               unstableThreshold do
                 name params[:mark_unstable]
-                ordinal colors[params[:mark_unstable]][:ordinal]
-                color colors[params[:mark_unstable]][:color]
+                ordinal helper.colors[params[:mark_unstable]][:ordinal]
+                color helper.colors[params[:mark_unstable]][:color]
                 completeBuild 'true'
               end
             end

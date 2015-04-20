@@ -80,6 +80,11 @@ JenkinsPipelineBuilder.generator
 require 'jenkins_pipeline_builder/extensions'
 require 'jenkins_pipeline_builder/extension_dsl'
 require 'jenkins_pipeline_builder/extension_set'
+require 'jenkins_pipeline_builder/extensions/helpers/extension_helper'
+Dir[File.join(File.dirname(__FILE__), 'jenkins_pipeline_builder/extensions/helpers/**/*.rb')].each do |file|
+  require file
+end
+
 require 'jenkins_pipeline_builder/extensions/builders'
 require 'jenkins_pipeline_builder/extensions/job_attributes'
 require 'jenkins_pipeline_builder/extensions/wrappers'

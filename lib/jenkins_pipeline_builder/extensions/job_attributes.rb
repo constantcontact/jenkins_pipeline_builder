@@ -238,22 +238,8 @@ job_attribute do
     send('hudson.model.ParametersDefinitionProperty') do
       parameterDefinitions do
         params.each do |param|
-          case param[:type]
-          when 'string'
-            paramType = 'hudson.model.StringParameterDefinition'
-          when 'bool'
-            paramType = 'hudson.model.BooleanParameterDefinition'
-          when 'text'
-            paramType = 'hudson.model.TextParameterDefinition'
-          when 'password'
-            paramType = 'hudson.model.PasswordParameterDefinition'
-          when 'choice'
-            paramType = 'hudson.model.ChoiceParameterDefinition'
-          else
-            paramType = 'hudson.model.StringParameterDefinition'
-          end
 
-          send(paramType) do
+          send(helper.param_type param) do
             name param[:name]
             description param[:description]
             defaultValue param[:default]
