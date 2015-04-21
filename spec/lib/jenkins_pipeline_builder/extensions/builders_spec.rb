@@ -103,16 +103,38 @@ describe 'builders' do
     before :each do
       allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
         list_installed: { 'parameterized-trigger' => '20.0' })
-    end
-
-    it 'generates a configuration for failure' do
-      params = { builders: { blocking_downstream: { fail: 'FAILURE' } } }
 
       JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
 
       builder = @n_xml.root.children.first
       expect(builder.name).to match 'hudson.plugins.parameterizedtrigger.TriggerBuilder'
-      expect(@n_xml.root.css('mavenName').first.text).to eq 'tools-maven-3.0.3'
+    end
+
+    context 'step failure threshold' do
+      let(:params) { { builders: { blocking_downstream: { fail: 'FAILURE' } } } }
+
+      it 'generates a configuration' do
+        expect(@n_xml.root.css('buildStepFailureThreshold').first).to_not be_nil
+        expect(@n_xml.root.css('buildStepFailureThreshold').first.css('color').first.text).to eq 'RED'
+      end
+    end
+
+    context 'unstable threshold' do
+      let(:params) { { builders: { blocking_downstream: { mark_unstable: 'UNSTABLE' } } } }
+
+      it 'generates a configuration' do
+        expect(@n_xml.root.css('unstableThreshold').first).to_not be_nil
+        expect(@n_xml.root.css('unstableThreshold').first.css('color').first.text).to eq 'YELLOW'
+      end
+    end
+
+    context 'failure threshold' do
+      let(:params) { { builders: { blocking_downstream: { mark_fail: 'FAILURE' } } } }
+
+      it 'generates a configuration' do
+        expect(@n_xml.root.css('failureThreshold').first).to_not be_nil
+        expect(@n_xml.root.css('failureThreshold').first.css('color').first.text).to eq 'RED'
+      end
     end
   end
 end
