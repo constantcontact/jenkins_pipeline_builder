@@ -67,6 +67,7 @@ module JenkinsPipelineBuilder
       n_builders.instance_exec(value, &before) if before
       Nokogiri::XML::Builder.with(n_builders) do |builder|
         include_helper value, builder
+        helper.extension = self
         builder.instance_exec helper, &xml
       end
       n_builders.instance_exec(value, &after) if after

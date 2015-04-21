@@ -67,13 +67,19 @@ builder do
   description 'Jenkins plugin for building Maven 2/3 jobs via a special project type.'
   jenkins_name 'Invoke Maven 3'
   announced false
+  parameters [
+    :mavenName,
+    :rootPom,
+    :goals,
+    :options
+  ]
 
-  xml do |params|
+  xml do |helper|
     send('org.jfrog.hudson.maven3.Maven3Builder') do
-      mavenName params[:mavenName] || 'tools-maven-3.0.3'
-      rootPom params[:rootPom]
-      goals params[:goals]
-      mavenOpts params[:options]
+      mavenName helper.mavenName
+      rootPom helper.rootPom
+      goals helper.goals
+      mavenOpts helper.options
     end
   end
 end
@@ -114,14 +120,22 @@ builder do
   description 'This plugin lets you trigger new builds when your build has completed, with various ways of specifying parameters for the new build.'
   jenkins_name 'Trigger/call builds on other projects'
   announced false
+  parameters [
+    :data,
+    :project,
+    :trigger_with_no_parameters,
+    :fail,
+    :mark_fail,
+    :mark_unstable
+  ]
 
-  xml do |params|
+  xml do |helper|
     send('hudson.plugins.parameterizedtrigger.TriggerBuilder', 'plugin' => 'parameterized-trigger') do
       configs do
         send('hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig') do
           configs do
-            params[:data] = [{ params: '' }] unless params[:data]
-            params[:data].each do |config|
+            helper.data
+            helper.data.each do |config|
               if config[:params]
                 send('hudson.plugins.parameterizedtrigger.PredefinedBuildParameters') do
                   properties config[:params]
@@ -135,31 +149,31 @@ builder do
               end
             end
           end
-          projects params[:project]
+          projects helper[:project]
           condition 'ALWAYS'
-          triggerWithNoParameters params[:trigger_with_no_parameters] || false
+          triggerWithNoParameters helper.trigger_with_no_parameters
           block do
-            if params[:fail] && helper.colors.include?(params[:fail])
+            if helper.fail && helper.colors.include?(helper.fail)
               buildStepFailureThreshold do
-                name params[:fail]
-                ordinal helper.colors[params[:fail]][:ordinal]
-                color helper.colors[params[:fail]][:color]
+                name helper.fail
+                ordinal helper.colors[helper.fail][:ordinal]
+                color helper.colors[helper.fail][:color]
                 completeBuild 'true'
               end
             end
-            if params[:mark_fail] && helper.colors.include?(params[:mark_fail])
+            if helper.mark_fail && helper.colors.include?(helper.mark_fail)
               failureThreshold do
-                name params[:mark_fail]
-                ordinal helper.colors[params[:mark_fail]][:ordinal]
-                color helper.colors[params[:mark_fail]][:color]
+                name helper.mark_fail
+                ordinal helper.colors[helper.mark_fail][:ordinal]
+                color helper.colors[helper.mark_fail][:color]
                 completeBuild 'true'
               end
             end
-            if params[:mark_unstable] && helper.colors.include?(params[:mark_unstable])
+            if helper.mark_unstable && helper.colors.include?(helper.mark_unstable)
               unstableThreshold do
-                name params[:mark_unstable]
-                ordinal helper.colors[params[:mark_unstable]][:ordinal]
-                color helper.colors[params[:mark_unstable]][:color]
+                name helper.mark_unstable
+                ordinal helper.colors[helper.mark_unstable][:ordinal]
+                color helper.colors[helper.mark_unstable][:color]
                 completeBuild 'true'
               end
             end

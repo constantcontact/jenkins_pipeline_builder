@@ -81,4 +81,38 @@ describe 'builders' do
       expect(node.children.first.content).to eq 'true'
     end
   end
+
+  context 'maven3' do
+    before :each do
+      allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
+        list_installed: { 'maven-plugin' => '20.0' })
+    end
+
+    it 'generates a configuration' do
+      params = { builders: { maven3: {} } }
+
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+
+      builder = @n_xml.root.children.first
+      expect(builder.name).to match 'org.jfrog.hudson.maven3.Maven3Builder'
+      expect(@n_xml.root.css('mavenName').first.text).to eq 'tools-maven-3.0.3'
+    end
+  end
+
+  context 'blocking_downstream' do
+    before :each do
+      allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
+        list_installed: { 'parameterized-trigger' => '20.0' })
+    end
+
+    it 'generates a configuration for failure' do
+      params = { builders: { blocking_downstream: { fail: 'FAILURE' } } }
+
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+
+      builder = @n_xml.root.children.first
+      expect(builder.name).to match 'hudson.plugins.parameterizedtrigger.TriggerBuilder'
+      expect(@n_xml.root.css('mavenName').first.text).to eq 'tools-maven-3.0.3'
+    end
+  end
 end

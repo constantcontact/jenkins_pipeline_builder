@@ -1,13 +1,23 @@
 class ExtensionHelper < SimpleDelegator
   attr_reader :params, :builder
-  def initialize(params, builder)
+  attr_accessor :extension
+  def initialize(params, builder, defaults = {})
     # TODO: We should allow for default values to be passed in here
     # That will allow for defaults to be pulled out of the extension and it
     # will also let better enable overriding of those values that do not have
     # an option to do so currently.
-    @params = params
+    if params.is_a? Hash
+      @params = defaults.merge params
+    else
+      @params = params
+    end
     @builder = builder
     super @params
+  end
+
+  def method_missing(name, *args, &block)
+    return super unless extension.parameters.include? name
+    self[name]
   end
 
   # TODO: Method missing that pulls out of params?
