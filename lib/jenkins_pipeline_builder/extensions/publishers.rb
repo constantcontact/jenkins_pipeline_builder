@@ -80,14 +80,35 @@ publisher do
   jenkins_name 'HipChat Notifications'
   announced false
 
-  xml do |params|
-    params = {} if params == true
-    send('jenkins.plugins.hipchat.HipChatNotifier') do
-      jenkinsUrl params[:jenkinsUrl] || ''
-      authToken params[:authToken] || ''
-      room params[:room] || ''
+  version '0' do
+    xml do |params|
+      params = {} if params == true
+      send('jenkins.plugins.hipchat.HipChatNotifier') do
+        jenkinsUrl params[:jenkinsUrl] || ''
+        authToken params[:authToken] || ''
+        room params[:room] || ''
+      end
     end
   end
+
+  version '1.9' do
+    xml do |params|
+      send('jenkins.plugins.hipchat.HipChatNotifier') do
+        token params[:token] || params[:authToken] || ''
+        room params[:room] || ''
+        startNotification params[:start_notify] || false
+        notifySuccess params[:success_notify] || false
+        notifyAborted params[:aborted_notify] || false
+        notifyNotBuilt params[:notbuilt_notify] || false
+        notifyUnstable params[:unstable_notify] || false
+        notifyFailure params[:failure_notify] || false
+        notifyBackToNormal params[:normal_notify] || false
+        startJobMessage params[:start_message] || ''
+        completeJobMessage params[:complete_message] || ''
+      end
+    end
+  end
+
 end
 
 publisher do
