@@ -23,3 +23,15 @@ RSpec.configure do |config|
     c.syntax = :expect
   end
 end
+
+RSpec::Matchers.define :have_registered_versions do |versions|
+  match do |set|
+    @set = set
+    @registered_versions = set.versions.keys.map(&:version)
+    @registered_versions.sort == versions.sort
+  end
+
+  failure_message do
+    "Expected #{@set.name} to have registered versions #{versions}. Got #{@registered_versions}"
+  end
+end
