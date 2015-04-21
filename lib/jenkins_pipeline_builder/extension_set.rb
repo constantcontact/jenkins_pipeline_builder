@@ -83,7 +83,7 @@ module JenkinsPipelineBuilder
       end
       fail 'Values did not match, cannot merge extension sets' if mismatch.any?
 
-      blocks.merge other_set.blocks
+      self.extensions = versions.merge(other_set.versions).values
     end
 
     def parameters(params)
@@ -145,6 +145,12 @@ module JenkinsPipelineBuilder
       errors
     end
 
+    def versions
+      @versions ||= extensions.each_with_object({}) do |ext, hash|
+        hash[Gem::Version.new(ext.min_version)] = ext
+      end
+    end
+
     private
 
     def highest_allowed_version
@@ -158,12 +164,6 @@ module JenkinsPipelineBuilder
         blocks[version].merge!(xml: block, path: path)
       else
         blocks[version] = { xml: block, path: path }
-      end
-    end
-
-    def versions
-      @versions ||= extensions.each_with_object({}) do |ext, hash|
-        hash[Gem::Version.new(ext.min_version)] = ext
       end
     end
 
