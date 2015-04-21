@@ -15,9 +15,94 @@ describe 'job_attributes' do
     }
   end
 
+  before :each do
+    properties = Nokogiri::XML::Builder.new { |xml| xml.properties }
+    @n_xml = properties.doc
+  end
+
   after :each do |example|
     name = example.description.gsub ' ', '_'
     File.open("./out/xml/job_attribute_#{name}.xml", 'w') { |f| @n_xml.write_xml_to f }
+  end
+
+  context 'generic' do
+    it 'can register a job_attribute' do
+      result = job_attribute do
+        name :test_generic
+        plugin_id :foo
+        xml do
+          foo :bar
+        end
+      end
+      puts result.inspect
+      JenkinsPipelineBuilder.registry.registry[:job].delete :test_generic
+      expect(result).to be true
+    end
+
+    it 'fails to register an invalid job_attribute' do
+      result = job_attribute do
+        name :test_generic
+      end
+      JenkinsPipelineBuilder.registry.registry[:job].delete :test_generic
+      expect(result).to be false
+    end
+  end
+
+  context 'parameters' do
+    let(:params) { { parameters: [{ type: type, name: :foo, description: :desc, default: :default }] } }
+
+    before :each do
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+      @parameters = @n_xml.root.children.first
+      expect(@parameters.name).to match 'hudson.model.ParametersDefinitionProperty'
+    end
+
+    context 'string parameter' do
+      let(:type) { 'string' }
+      it 'generates correct config' do
+        expect(@parameters.to_s).to include 'hudson.model.StringParameterDefinition'
+      end
+    end
+
+    context 'password parameter' do
+      let(:type) { 'password' }
+      it 'generates correct config' do
+        expect(@parameters.to_s).to include 'hudson.model.PasswordParameterDefinition'
+      end
+    end
+
+    context 'bool parameter' do
+      let(:type) { 'bool' }
+      it 'generates correct config' do
+        expect(@parameters.to_s).to include 'hudson.model.BooleanParameterDefinition'
+      end
+    end
+
+    context 'text parameter' do
+      let(:type) { 'text' }
+      it 'generates correct config' do
+        expect(@parameters.to_s).to include 'hudson.model.TextParameterDefinition'
+      end
+    end
+
+    context 'choice parameter' do
+      let(:params) do
+        { parameters: [{ type: 'choice', values: [:foo, :bar], name: :foo, description: :desc, default: :default }] }
+      end
+
+      it 'generates correct config' do
+        expect(@parameters.to_s).to include 'hudson.model.ChoiceParameterDefinition'
+        expect(@n_xml.root.css('string').map(&:text)).to include 'foo'
+        expect(@n_xml.root.css('string').map(&:text)).to include 'bar'
+      end
+    end
+
+    context 'defaults to string' do
+      let(:type) { 'bad_choice' }
+      it 'generates correct config' do
+        expect(@parameters.to_s).to include 'hudson.model.StringParameterDefinition'
+      end
+    end
   end
 
   context 'disabled' do

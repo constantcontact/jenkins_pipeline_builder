@@ -80,9 +80,9 @@ trigger do
       spec
       upstreamProjects params[:projects]
       send('threshold') do
-        name helper.name
-        ordinal helper.ordinal
-        color helper.color
+        name params.name
+        ordinal params.ordinal
+        color params.color
         completeBuild true
       end
     end

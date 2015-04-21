@@ -1,7 +1,7 @@
 class UpstreamHelper < ExtensionHelper
   attr_reader :color, :name, :ordinal
-  def initialize(params)
-    super params
+  def initialize(params, builder)
+    super params, builder
 
     case params[:status]
     when 'unstable'

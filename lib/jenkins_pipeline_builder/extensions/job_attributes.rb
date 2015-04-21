@@ -239,7 +239,7 @@ job_attribute do
       parameterDefinitions do
         params.each do |param|
 
-          send(helper.param_type param) do
+          send(params.param_type param) do
             name param[:name]
             description param[:description]
             defaultValue param[:default]
