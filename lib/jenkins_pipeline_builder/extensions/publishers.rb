@@ -91,7 +91,7 @@ publisher do
     end
   end
 
-  version '1.9' do
+  version '0.1.9' do
     xml do |params|
       send('jenkins.plugins.hipchat.HipChatNotifier') do
         token params[:token] || params[:authToken] || ''

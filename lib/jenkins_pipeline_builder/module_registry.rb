@@ -33,8 +33,12 @@ module JenkinsPipelineBuilder
       @versions ||= JenkinsPipelineBuilder.client.plugin.list_installed
     end
 
-    def clear_versions
+    def clear_versions(sets = registry.values)
       @versions = nil
+      sets.each do |entry|
+        entry.clear_installed_version if entry.is_a? ExtensionSet
+        clear_versions entry.values if entry.respond_to? :values
+      end
     end
 
     def logger

@@ -23,6 +23,18 @@ describe JenkinsPipelineBuilder::ExtensionSet do
     end
   end
 
+  context '#installed_version' do
+    it 'parses three digits' do
+      set.installed_version = '0.1.2'
+      expect(set.installed_version.version).to eq '0.1.2'
+    end
+
+    it 'parses only two digits' do
+      set.installed_version = '0.1'
+      expect(set.installed_version.version).to eq '0.1'
+    end
+  end
+
   context '#extension' do
     def new_ext(version = '0.0')
       ext = JenkinsPipelineBuilder::Extension.new

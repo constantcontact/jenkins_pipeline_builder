@@ -144,42 +144,78 @@ describe 'publishers' do
   end
 
   context 'hipchat' do
-    it 'generates a configuration'
-    it 'does an option'
+    context '0.1.9' do
+      before :each do
+        allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
+          list_installed: { 'hipchat' => '0.1.9' })
+      end
+      it 'generates a configuration' do
+        params = { publishers: { hipchat: {} } }
+        hipchat = JenkinsPipelineBuilder.registry.registry[:job][:publishers][:hipchat]
+        expect(hipchat.extension.min_version).to eq '0.1.9'
+
+        JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+
+        publisher = @n_xml.root.children.first
+        expect(publisher.name).to match 'jenkins.plugins.hipchat.HipChatNotifier'
+        children = publisher.children.map(&:name)
+        expect(children).to include 'token'
+        expect(children).to include 'room'
+        expect(children).to include 'startNotification'
+        expect(children).to include 'notifySuccess'
+        expect(children).to include 'completeJobMessage'
+      end
+    end
+
+    context '0' do
+      before :each do
+        expect(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
+          list_installed: { 'hipchat' => '0'
+        })
+        puts JenkinsPipelineBuilder.registry.versions
+      end
+
+      it 'generates a configuration' do
+        expect(JenkinsPipelineBuilder.registry.registry[:job][:publishers][:hipchat].extension.min_version).to eq '0'
+        params = { publishers: { hipchat: {} } }
+
+        JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+
+        publisher = @n_xml.root.children.first
+        expect(publisher.name).to match 'jenkins.plugins.hipchat.HipChatNotifier'
+        children = publisher.children.map(&:name)
+        expect(children).to include 'jenkinsUrl'
+        expect(children).to include 'room'
+        expect(children).to include 'authToken'
+      end
+    end
   end
 
   context 'git' do
     it 'generates a configuration'
-    it 'does an option'
   end
 
   context 'junit_result' do
     it 'generates a configuration'
-    it 'does an option'
   end
 
   context 'coverage_result' do
     it 'generates a configuration'
-    it 'does an option'
   end
 
   context 'post_build_script' do
     it 'generates a configuration'
-    it 'does an option'
   end
 
   context 'groovy_postbuild' do
     it 'generates a configuration'
-    it 'does an option'
   end
 
   context 'archive_artifact' do
     it 'generates a configuration'
-    it 'does an option'
   end
 
   context 'email_notification' do
     it 'generates a configuration'
-    it 'does an option'
   end
 end
