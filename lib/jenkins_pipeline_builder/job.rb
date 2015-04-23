@@ -18,13 +18,7 @@ module JenkinsPipelineBuilder
       success, payload = to_xml
       return success, payload unless success
       xml = payload
-      if JenkinsPipelineBuilder.debug || JenkinsPipelineBuilder.file_mode
-        logger.info "Will create job #{job}"
-        logger.info "#{xml}" if @debug
-        FileUtils.mkdir_p(out_dir) unless File.exist?(out_dir)
-        File.open("#{out_dir}/#{name}.xml", 'w') { |f| f.write xml }
-        return [true, nil]
-      end
+      return local_output(xml) if JenkinsPipelineBuilder.debug || JenkinsPipelineBuilder.file_mode
 
       if JenkinsPipelineBuilder.client.job.exists?(name)
         JenkinsPipelineBuilder.client.job.update(name, xml)
@@ -39,27 +33,37 @@ module JenkinsPipelineBuilder
 
       logger.info "Creating Yaml Job #{job}"
       job[:job_type] = 'free_style' unless job[:job_type]
-      case job[:job_type]
-      when 'job_dsl'
-        @xml = setup_freestyle_base(job)
-        payload = update_job_dsl
-      when 'multi_project'
-        # TODO: Add multi_job as another, more logically named option
-        @xml = setup_freestyle_base(job)
-        payload = adjust_multi_project
-      when 'build_flow'
-        @xml = setup_freestyle_base(job)
-        payload = add_job_dsl
-      when 'free_style', 'pull_request_generator'
-        payload = setup_freestyle_base job
-      else
-        return false, "Job type: #{job[:job_type]} is not one of job_dsl, multi_project, build_flow or free_style"
-      end
+      type = job[:job_type]
+      return false, "Job type: #{type} is not one of #{job_methods.join(', ')}" unless known_type? type
+      @xml = setup_freestyle_base(job)
+      payload = send("update_#{type}")
 
       [true, payload]
     end
 
     private
+
+    [:free_style, :pull_request_generator].each do |method_name|
+      define_method "update_#{method_name}" do
+        @xml
+      end
+    end
+
+    def known_type?(type)
+      job_methods.include? type
+    end
+
+    def job_methods
+      %w(job_dsl multi_project build_flow free_style pull_request_generator)
+    end
+
+    def local_output(xml)
+      logger.info "Will create job #{job}"
+      logger.info "#{xml}" if @debug
+      FileUtils.mkdir_p(out_dir) unless File.exist?(out_dir)
+      File.open("#{out_dir}/#{name}.xml", 'w') { |f| f.write xml }
+      [true, nil]
+    end
 
     def out_dir
       'out/xml'
@@ -88,14 +92,14 @@ module JenkinsPipelineBuilder
       end
     end
 
-    def adjust_multi_project
+    def update_multi_project
       n_xml = Nokogiri::XML(@xml)
       root = n_xml.root
       root.name = 'com.tikal.jenkins.plugins.multijob.MultiJobProject'
       n_xml.to_xml
     end
 
-    def add_job_dsl
+    def update_build_flow
       n_xml = Nokogiri::XML(@xml)
       n_xml.root.name = 'com.cloudbees.plugins.flow.BuildFlow'
       Nokogiri::XML::Builder.with(n_xml.root) do |b_xml|

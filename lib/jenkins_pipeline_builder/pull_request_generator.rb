@@ -29,17 +29,13 @@ module JenkinsPipelineBuilder
     def initialize(project, generator)
       @project = project
       @generator = generator
-
       @purge = []
       @create = []
-
       @errors = {}
+
       @pull_generator = find
-      success, payload = compile_generator
-      unless success
-        @errors[@pull_generator[:name]] = payload
-        return false
-      end
+      payload = compile_generator
+      return unless payload
       @jobs = filter_jobs
 
       # old init
@@ -113,7 +109,11 @@ module JenkinsPipelineBuilder
       settings = defaults.nil? ? {} : defaults[:value] || {}
       compiler = Compiler.new generator
       settings = compiler.get_settings_bag(project, settings)
-      generator.resolve_job_by_name(pull_generator[:name], settings)
+      success, payload = generator.resolve_job_by_name(pull_generator[:name], settings)
+      return payload if success
+
+      @errors[@pull_generator[:name]] = payload
+      false
     end
 
     def find

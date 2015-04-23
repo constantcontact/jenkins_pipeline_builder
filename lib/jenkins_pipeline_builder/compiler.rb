@@ -88,27 +88,24 @@ module JenkinsPipelineBuilder
       [true, new_value]
     end
 
-    def compile_array(item, settings)
+    def compile_array(array, settings)
       errors = {}
       result = []
-      item.each do |value|
-        if value.nil?
-          errors[item] = "found a nil value when processing following array:\n #{item.inspect}"
-          break
-        end
-        success, payload = compile(value, settings)
-        unless success
-          errors.merge!(payload)
-          next
-        end
-        if payload.nil?
-          errors[value] = "Failed to resolve:\n===>item #{value}\n\n===>of list: #{item}"
-          next
-        end
+      array.each do |value|
+        success, payload = compile_array_item value, settings, array
+        errors[value] =  payload unless success
         result << payload
       end
       return false, errors unless errors.empty?
       [true, result]
+    end
+
+    def compile_array_item(item, settings, array)
+      success, payload = compile(item, settings)
+      return false, "found a nil value when processing following array:\n #{array.inspect}" if item.nil?
+      return false, payload unless success
+      return false, "Failed to resolve:\n===>item #{item}\n\n===>of list: #{array.inspect}" if payload.nil?
+      [true, payload]
     end
 
     def compile_item(key, value, errors, settings)
@@ -155,16 +152,12 @@ module JenkinsPipelineBuilder
 
       settings = settings.with_indifferent_access
       value_s = value.to_s.clone
-      # First we try to do job name correction
-      vars = value_s.scan(/{{job@(.*)}}/).flatten
-      if vars.count > 0
-        vars.select! do |var|
-          var_val = job_collection[var.to_s]
-          value_s.gsub!("{{job@#{var}}}", var_val[:value][:name]) unless var_val.nil?
-          var_val.nil?
-        end
-      end
+      correct_job_names! value_s
       # Then we look for normal values to replace
+      # TODO: This needs to be pulled out into a 'replace_values' method
+      # However, there is not testing around if we can't replace everything
+      # (the return nil line can be removed and we are still green)
+      # Also, this should *not* be calling gsub! inside a select
       vars = value_s.scan(/{{([^{}@]+)}}/).flatten
       vars.select! do |var|
         var_val = settings[var]
@@ -173,6 +166,16 @@ module JenkinsPipelineBuilder
       end
       return nil if vars.count != 0
       value_s
+    end
+
+    def correct_job_names!(value)
+      vars = value.scan(/{{job@(.*)}}/).flatten
+      return unless vars.count > 0
+      vars.select! do |var|
+        var_val = job_collection[var.to_s]
+        value.gsub!("{{job@#{var}}}", var_val[:value][:name]) unless var_val.nil?
+        var_val.nil?
+      end
     end
   end
 end

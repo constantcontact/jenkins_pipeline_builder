@@ -74,29 +74,39 @@ module JenkinsPipelineBuilder
       end
       logger.info "Loading file #{path}"
       hash.each do |section|
-        Utils.symbolize_keys_deep!(section)
-        key = section.keys.first
-        value = section[key]
-        if key == :dependencies
-          logger.info 'Resolving Dependencies for remote project'
-          remote_dependencies.load value
-          next
-        end
-        name = value[:name]
-        if collection.key?(name)
-          existing_remote = collection[name.to_s][:remote]
-          # skip if the existing item is local and the new item is remote
-          if remote && !existing_remote
-            next
-          # override if the existing item is remote and the new is local
-          elsif existing_remote && !remote
-            logger.info "Duplicate item with name '#{name}' was detected from the remote folder."
-          else
-            fail "Duplicate item with name '#{name}' was detected."
-          end
-        end
-        collection[name.to_s] = { name: name.to_s, type: key, value: value, remote: remote }
+        load_section section, remote
       end
+    end
+
+    def load_section(section, remote)
+      Utils.symbolize_keys_deep!(section)
+      key = section.keys.first
+      value = section[key]
+      if key == :dependencies
+        logger.info 'Resolving Dependencies for remote project'
+        remote_dependencies.load value
+        return
+      end
+      name = value[:name]
+      process_collection! name, key, value, remote
+    end
+
+    # TODO: This should be cleaned up a bit. I'm sure we can get rid of
+    # the elsif and we should be more clear on the order of loading of things
+    def process_collection!(name, key, value, remote)
+      if collection.key?(name)
+        existing_remote = collection[name.to_s][:remote]
+        # skip if the existing item is local and the new item is remote
+        if remote && !existing_remote
+          return
+          # override if the existing item is remote and the new is local
+        elsif existing_remote && !remote
+          logger.info "Duplicate item with name '#{name}' was detected from the remote folder."
+        else
+          fail "Duplicate item with name '#{name}' was detected."
+        end
+      end
+      collection[name.to_s] = { name: name.to_s, type: key, value: value, remote: remote }
     end
 
     def load_extensions(path)

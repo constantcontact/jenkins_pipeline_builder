@@ -69,13 +69,7 @@ module JenkinsPipelineBuilder
       errors = {}
       job_collection.projects.each do |project|
         next unless project[:name] == project_name || project_name.nil?
-        logger.info "Using Project #{project}"
-
-        pull_request_generator = JenkinsPipelineBuilder::PullRequestGenerator.new project, self
-
-        unless pull_request_generator.valid?
-          errors[pull_request_generator.pull_generator[:name]] = pull_request_generator.errors
-        end
+        errors.merge! process_pull_request_project project
 
       end
       errors.each do |k, v|
@@ -132,11 +126,16 @@ module JenkinsPipelineBuilder
       [true, project]
     end
 
-    #
-    # BEGIN PRIVATE METHODS
-    #
-
     private
+
+    def process_pull_request_project(project)
+      logger.info "Using Project #{project}"
+
+      pull_request_generator = JenkinsPipelineBuilder::PullRequestGenerator.new project, self
+
+      return {} if pull_request_generator.valid?
+      { pull_request_generator.pull_generator[:name] => pull_request_generator.errors }
+    end
 
     def prepare_jobs(jobs)
       jobs.map! do |job|

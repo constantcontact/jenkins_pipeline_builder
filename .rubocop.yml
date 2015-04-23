@@ -5,7 +5,7 @@ Metrics/CyclomaticComplexity:
 Metrics/PerceivedComplexity:
   Max: 11
 Metrics/MethodLength:
-  Max: 30
+  Max: 20
 Metrics/ClassLength:
   Max: 175
 
