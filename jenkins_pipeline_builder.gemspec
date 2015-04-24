@@ -15,8 +15,8 @@ automating Job & Pipeline creation from the YAML files checked-in with your appl
   spec.license       = 'MIT'
 
   spec.files         = `git ls-files`.split($RS)
-  spec.executables   = spec.files.grep(/^bin\//) { |f| File.basename(f) }
-  spec.test_files    = spec.files.grep(/^(test|spec|features)\//)
+  spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
+  spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ['lib']
 
   ENV['NOKOGIRI_USE_SYSTEM_LIBRARIES'] = 'true'
@@ -43,6 +43,6 @@ automating Job & Pipeline creation from the YAML files checked-in with your appl
   spec.add_development_dependency 'rspec_junit_formatter'
   spec.add_development_dependency 'webmock'
   # Eventually, we'll fix all the Complexity that ties us to 0.26.1
-  # spec.add_development_dependency 'rubocop'
-  spec.add_development_dependency 'rubocop', '= 0.26.1'
+  spec.add_development_dependency 'rubocop'
+  # spec.add_development_dependency 'rubocop', '= 0.26.1'
 end

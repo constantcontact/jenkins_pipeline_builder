@@ -108,7 +108,6 @@ publisher do
       end
     end
   end
-
 end
 
 publisher do
@@ -328,7 +327,6 @@ publisher do
   announced false
 
   xml do |params|
-
     send('hudson.plugins.brakeman.BrakemanPublisher', 'plugin' => 'brakeman') do
       healthy params[:healthy] || ''
       unHealthy params[:unhealthy] || ''
@@ -356,7 +354,6 @@ publisher do
       doNotResolveRelativePaths { text(params[:do_not_resolve_relative_paths] || false) }
       outputFile { text(params[:output_file] || 'brakeman-output.tabs') }
     end
-
   end
 end
 
@@ -381,7 +378,6 @@ publisher do
 
   xml do |params|
     send('hudson.plugins.cobertura.CoberturaPublisher', 'plugin' => 'cobertura') do
-
       coberturaReportFile params[:cobertura_report_file]
       onlyStable params[:only_stable] || false
       failUnhealthy params[:fail_unhealthy] || false
@@ -399,7 +395,6 @@ publisher do
       sourceEncoding params[:source_encoding] || 'ASCII'
     end
   end
-
 end
 
 publisher do
@@ -417,7 +412,6 @@ publisher do
 
         configuredTriggers do
           params[:triggers].each do |trigger_params|
-
             trigger_type = trigger_params[:type].to_sym
             defaults = params.trigger_defaults[trigger_type]
 
@@ -507,7 +501,6 @@ publisher do
       validateNumberOfTests params[:validate_number_tests] || false
     end
   end
-
 end
 
 publisher do

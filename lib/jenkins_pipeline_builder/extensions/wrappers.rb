@@ -174,7 +174,7 @@ wrapper do
         repositoryKey wrapper[:'release-repo']
         snapshotsRepositoryKey wrapper.fetch(:'snapshot-repo', wrapper[:'release-repo'])
       end
-      deployArtifacts wrapper.fetch(:'deploy', true)
+      deployArtifacts wrapper.fetch(:deploy, true)
       artifactDeploymentPatterns do
         includePatterns
         excludePatterns

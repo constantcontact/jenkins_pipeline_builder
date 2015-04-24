@@ -70,7 +70,6 @@ module JenkinsPipelineBuilder
       job_collection.projects.each do |project|
         next unless project[:name] == project_name || project_name.nil?
         errors.merge! process_pull_request_project project
-
       end
       errors.each do |k, v|
         logger.error "Encountered errors compiling: #{k}:"

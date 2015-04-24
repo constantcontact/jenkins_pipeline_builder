@@ -238,7 +238,6 @@ job_attribute do
     send('hudson.model.ParametersDefinitionProperty') do
       parameterDefinitions do
         params.each do |param|
-
           send(params.param_type param) do
             name param[:name]
             description param[:description]
