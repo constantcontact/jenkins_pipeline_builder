@@ -113,6 +113,15 @@ module JenkinsPipelineBuilder
       process_job_changes(jobs)
       errors = process_jobs(jobs, project)
       errors = process_views(project_body[:views], project, errors) if project_body[:views]
+      print_project_errors errors
+      return false, 'Encountered errors exiting' unless errors.empty?
+
+      [true, project]
+    end
+
+    private
+
+    def print_project_errors(errors)
       errors.each do |k, v|
         puts "Encountered errors processing: #{k}:"
         v.each do |key, error|
@@ -120,12 +129,7 @@ module JenkinsPipelineBuilder
           puts "  #{error.inspect}"
         end
       end
-      return false, 'Encountered errors exiting' unless errors.empty?
-
-      [true, project]
     end
-
-    private
 
     def process_pull_request_project(project)
       logger.info "Using Project #{project}"

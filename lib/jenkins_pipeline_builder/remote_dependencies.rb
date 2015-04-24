@@ -18,11 +18,7 @@ module JenkinsPipelineBuilder
       end
     end
 
-    # TODO: Look into remote jobs not working according to sinan
-
     def load(dependencies)
-      ### Load remote YAML
-      # Download Tar.gz
       dependencies.each do |source|
         source = source[:source]
         url = source[:url]
@@ -37,13 +33,7 @@ module JenkinsPipelineBuilder
         end
 
         path = File.expand_path(file, Dir.getwd)
-        # Load templates recursively
-        unless source[:templates]
-          logger.info 'No specific template specified'
-          # Try to load the folder or the pipeline folder
-          path = File.join(path, 'pipeline') if Dir.entries(path).include? 'pipeline'
-          return job_collection.load_from_path(path, true)
-        end
+        return load_default_path path unless source[:templates]
 
         load_templates(path, source[:templates])
       end
@@ -51,8 +41,26 @@ module JenkinsPipelineBuilder
 
     private
 
+    def load_default_path(path)
+      logger.info 'No specific template specified'
+      path = File.join(path, 'pipeline') if Dir.entries(path).include? 'pipeline'
+      job_collection.load_from_path(path, true)
+    end
+
     def load_template(path, template)
       # If we specify what folder the yaml is in, load that
+      path = template_path path, template
+
+      if File.directory?(path)
+        logger.info "Loading from #{path}"
+        job_collection.load_from_path(path, true)
+        true
+      else
+        false
+      end
+    end
+
+    def template_path(path, template)
       if template[:folder]
         path = File.join(path, template[:folder])
       else
@@ -67,13 +75,7 @@ module JenkinsPipelineBuilder
         path = File.join(path, 'pipeline')
       end
 
-      if File.directory?(path)
-        logger.info "Loading from #{path}"
-        job_collection.load_from_path(path, true)
-        true
-      else
-        false
-      end
+      path
     end
 
     def download_yaml(url, file, remote_opts = {})

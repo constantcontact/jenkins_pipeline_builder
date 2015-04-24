@@ -50,24 +50,26 @@ module JenkinsPipelineBuilder
 
       def self.process_creds(options)
         if options[:username] && options[:server] && (options[:password] || options[:password_base64])
-          return process_cli_creds(options)
+          process_cli_creds(options)
         elsif options[:creds_file]
-          if options[:creds_file].end_with? 'json'
-            return JSON.parse(IO.read(File.expand_path(options[:creds_file])))
-          else
-            return YAML.load_file(File.expand_path(options[:creds_file]))
-          end
+          process_creds_file options[:creds_file]
         elsif File.exist?("#{ENV['HOME']}/.jenkins_api_client/login.yml")
-          return YAML.load_file(
-            File.expand_path("#{ENV['HOME']}/.jenkins_api_client/login.yml", __FILE__)
-          )
+          YAML.load_file(File.expand_path("#{ENV['HOME']}/.jenkins_api_client/login.yml", __FILE__))
         elsif options[:debug]
-          return { username: :foo, password: :bar, server_ip: :baz }
+          { username: :foo, password: :bar, server_ip: :baz }
         else
           msg = 'Credentials are not set. Please pass them as parameters or'
           msg << ' set them in the default credentials file'
           $stderr.puts msg
           exit 1
+        end
+      end
+
+      def self.process_creds_file(file)
+        if file.end_with? 'json'
+          return JSON.parse(IO.read(File.expand_path(file)))
+        else
+          return YAML.load_file(File.expand_path(file))
         end
       end
 

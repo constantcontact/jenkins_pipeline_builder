@@ -43,7 +43,7 @@ module JenkinsPipelineBuilder
       find_old_pull_requests
       generate_pull_requests
 
-      @generator.job_collection.collection.merge! @jobs
+      collection.merge! @jobs
       @errors.merge! create_jobs
 
       purge_jobs
@@ -90,14 +90,18 @@ module JenkinsPipelineBuilder
       errors
     end
 
+    def collection
+      generator.job_collection.collection
+    end
+
     def filter_jobs
       jobs = {}
       pull_jobs = pull_generator[:value][:jobs] || []
       pull_jobs.each do |job|
         if job.is_a? String
-          jobs[job.to_s] = generator.job_collection.collection[job.to_s]
+          jobs[job.to_s] = collection[job.to_s]
         else
-          jobs[job.keys.first.to_s] = generator.job_collection.collection[job.keys.first.to_s]
+          jobs[job.keys.first.to_s] = collection[job.keys.first.to_s]
         end
       end
       fail 'No jobs found for pull request' if jobs.empty?
@@ -121,7 +125,7 @@ module JenkinsPipelineBuilder
       pull_job = nil
       project_jobs.each do |job|
         job = job.keys.first if job.is_a? Hash
-        job = generator.job_collection.collection[job.to_s]
+        job = collection[job.to_s]
 
         pull_job = job if job[:value][:job_type] == 'pull_request_generator'
       end
