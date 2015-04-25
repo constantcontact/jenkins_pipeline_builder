@@ -65,11 +65,7 @@ module JenkinsPipelineBuilder
 
       n_builders = n_xml.xpath(path).first
       n_builders.instance_exec(value, &before) if before
-      Nokogiri::XML::Builder.with(n_builders) do |builder|
-        include_helper value, builder
-        helper.extension = self
-        builder.instance_exec helper, &xml
-      end
+      build_extension_xml n_builders, value
       n_builders.instance_exec(value, &after) if after
       true
     end
@@ -92,6 +88,14 @@ module JenkinsPipelineBuilder
     end
 
     private
+
+    def build_extension_xml(n_builders, value)
+      Nokogiri::XML::Builder.with(n_builders) do |builder|
+        include_helper value, builder
+        helper.extension = self
+        builder.instance_exec helper, &xml
+      end
+    end
 
     def include_helper(params, builder)
       klass = "#{name.to_s.camelize}Helper".safe_constantize

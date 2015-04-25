@@ -55,10 +55,7 @@ module JenkinsPipelineBuilder
       else
         errors = publish_jobs(job_collection.standalone_jobs)
       end
-      errors.each do |k, v|
-        logger.error "Encountered errors compiling: #{k}:"
-        logger.error v
-      end
+      print_compile_errors errors
       errors
     end
 
@@ -71,10 +68,7 @@ module JenkinsPipelineBuilder
         next unless project[:name] == project_name || project_name.nil?
         errors.merge! process_pull_request_project project
       end
-      errors.each do |k, v|
-        logger.error "Encountered errors compiling: #{k}:"
-        logger.error v
-      end
+      print_compile_errors errors
       errors.empty?
     end
 
@@ -120,6 +114,13 @@ module JenkinsPipelineBuilder
     end
 
     private
+
+    def print_compile_errors(errors)
+      errors.each do |k, v|
+        logger.error "Encountered errors compiling: #{k}:"
+        logger.error v
+      end
+    end
 
     def print_project_errors(errors)
       errors.each do |k, v|
