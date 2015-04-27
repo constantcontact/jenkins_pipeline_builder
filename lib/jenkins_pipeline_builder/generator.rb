@@ -100,13 +100,8 @@ module JenkinsPipelineBuilder
       settings = defaults.nil? ? {} : defaults[:value] || {}
       compiler = Compiler.new self
       project[:settings] = compiler.get_settings_bag(project, settings) unless project[:settings]
-      project_body = project[:value]
 
-      jobs = prepare_jobs(project_body[:jobs]) if project_body[:jobs]
-      logger.info project
-      process_job_changes(jobs)
-      errors = process_jobs(jobs, project)
-      errors = process_views(project_body[:views], project, errors) if project_body[:views]
+      errors = process_project project
       print_project_errors errors
       return false, 'Encountered errors exiting' unless errors.empty?
 
@@ -114,6 +109,16 @@ module JenkinsPipelineBuilder
     end
 
     private
+
+    def process_project(project)
+      project_body = project[:value]
+      jobs = prepare_jobs(project_body[:jobs]) if project_body[:jobs]
+      logger.info project
+      process_job_changes(jobs)
+      errors = process_jobs(jobs, project)
+      errors = process_views(project_body[:views], project, errors) if project_body[:views]
+      errors
+    end
 
     def print_compile_errors(errors)
       errors.each do |k, v|
@@ -191,6 +196,13 @@ module JenkinsPipelineBuilder
       errors
     end
 
+    def create_views(views)
+      views.each do |v|
+        compiled_view = v[:result]
+        view.create(compiled_view)
+      end
+    end
+
     def publish_project(project_name, errors = {})
       job_collection.projects.each do |project|
         next unless project_name.nil? || project[:name] == project_name
@@ -204,10 +216,7 @@ module JenkinsPipelineBuilder
 
         errors = publish_jobs(compiled_project[:value][:jobs]) if compiled_project[:value][:jobs]
         next unless compiled_project[:value][:views]
-        compiled_project[:value][:views].each do |v|
-          compiled_view = v[:result]
-          view.create(compiled_view)
-        end
+        create_views compiled_project[:value][:views]
       end
       errors
     end

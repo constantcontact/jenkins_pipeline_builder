@@ -96,6 +96,14 @@ module JenkinsPipelineBuilder
     end
 
     def post_params(params)
+      payload = post_payload params
+      payload.merge!('filterQueue' => 'on') if params[:filter_queue]
+      payload.merge!('filterExecutors' => 'on') if params[:filter_executors]
+      payload.merge!('useincluderegex' => 'on', 'includeRegex' => params[:regex]) if params[:regex]
+      payload
+    end
+
+    def post_payload(params)
       statuses = { 'enabled_jobs_only' => '1', 'disabled_jobs_only' => '2' }
 
       json = {
@@ -106,36 +114,27 @@ module JenkinsPipelineBuilder
         'columns' => get_columns(params[:type])
       }
       json.merge!('groupingRules' => params[:groupingRules]) if params[:groupingRules]
-      payload = {
+
+      {
         'name' => params[:name],
         'mode' => get_mode(params[:type]),
         'description' => params[:description],
         'statusFilter' => statuses.fetch(params[:status_filter], ''),
         'json' => json.to_json
       }
-      payload.merge!('filterQueue' => 'on') if params[:filter_queue]
-      payload.merge!('filterExecutors' => 'on') if params[:filter_executors]
-      payload.merge!('useincluderegex' => 'on', 'includeRegex' => params[:regex]) if params[:regex]
-      payload
     end
 
     def get_mode(type)
-      case type
-      when 'listview'
-        'hudson.model.ListView'
-      when 'myview'
-        'hudson.model.MyView'
-      when 'nestedView'
-        'hudson.plugins.nested_view.NestedView'
-      when 'categorizedView'
-        'org.jenkinsci.plugins.categorizedview.CategorizedJobsView'
-      when 'dashboardView'
-        'hudson.plugins.view.dashboard.Dashboard'
-      when 'multijobView'
-        'com.tikal.jenkins.plugins.multijob.views.MultiJobView'
-      else
-        fail "Type #{type} is not supported by Jenkins."
-      end
+      types = {
+        'listview' => 'hudson.model.ListView',
+        'myview' => 'hudson.model.MyView',
+        'nestedView' => 'hudson.plugins.nested_view.NestedView',
+        'categorizedView' => 'org.jenkinsci.plugins.categorizedview.CategorizedJobsView',
+        'dashboardView' => 'hudson.plugins.view.dashboard.Dashboard',
+        'multijobView' => 'com.tikal.jenkins.plugins.multijob.views.MultiJobView'
+      }
+      fail "Type #{type} is not supported by Jenkins." unless types.keys.include? type
+      types[type]
     end
 
     # Creates a new empty view of the given type

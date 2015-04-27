@@ -49,7 +49,7 @@ module JenkinsPipelineBuilder
       end
 
       def self.process_creds(options)
-        if options[:username] && options[:server] && (options[:password] || options[:password_base64])
+        if valid_cli_creds? options
           process_cli_creds(options)
         elsif options[:creds_file]
           process_creds_file options[:creds_file]
@@ -63,6 +63,10 @@ module JenkinsPipelineBuilder
           $stderr.puts msg
           exit 1
         end
+      end
+
+      def self.valid_cli_creds?(options)
+        options[:username] && options[:server] && (options[:password] || options[:password_base64])
       end
 
       def self.process_creds_file(file)
