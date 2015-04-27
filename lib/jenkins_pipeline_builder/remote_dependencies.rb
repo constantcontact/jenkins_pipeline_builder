@@ -60,16 +60,25 @@ module JenkinsPipelineBuilder
       end
     end
 
+    def highest_template_version(path)
+      folders = Dir.entries(path)
+      highest = folders.max
+      highest = highest  unless highest == 0
+      highest
+    end
+
+    def use_newest_version?(template, path)
+      (template[:version].nil? || template[:version] == 'newest') && File.directory?(path)
+    end
+
     def template_path(path, template)
       if template[:folder]
         path = File.join(path, template[:folder])
       else
         path = File.join(path, template[:name]) unless template[:name] == 'default'
         # If we are looking for the newest version or no version was set
-        if (template[:version].nil? || template[:version] == 'newest') && File.directory?(path)
-          folders = Dir.entries(path)
-          highest = folders.max
-          template[:version] = highest unless highest == 0
+        if use_newest_version? template, path
+          template[:version] = highest_template_version path
         end
         path = File.join(path, template[:version]) unless template[:version].nil?
         path = File.join(path, 'pipeline')

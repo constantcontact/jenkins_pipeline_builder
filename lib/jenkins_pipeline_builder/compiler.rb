@@ -61,7 +61,7 @@ module JenkinsPipelineBuilder
 
     def handle_enable(item, settings)
       return true, item unless item.is_a? Hash
-      if item.key?(:enabled) && item.key?(:parameters) && item.length == 2
+      if enable_block_present? item
         enabled_switch = resolve_value(item[:enabled], settings)
         return [true, {}] if enabled_switch == 'false'
         if enabled_switch != 'true'
@@ -79,6 +79,10 @@ module JenkinsPipelineBuilder
     end
 
     private
+
+    def enable_block_present?(item)
+      item.key?(:enabled) && item.key?(:parameters) && item.length == 2
+    end
 
     def compile_string(item, settings)
       errors = {}

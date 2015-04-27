@@ -1,15 +1,11 @@
 #######
 # WIP These should all go back to defaults at some point
-Metrics/CyclomaticComplexity:
-  Max: 9
-Metrics/PerceivedComplexity:
-  Max: 11
 Metrics/AbcSize:
-  Max: 25
+  Max: 22
 Metrics/MethodLength:
   Max: 20
 Metrics/ClassLength:
-  Max: 175
+  Max: 180
 
 #######
 # Finalized settings

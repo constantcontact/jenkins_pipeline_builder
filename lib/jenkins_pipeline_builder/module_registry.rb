@@ -94,19 +94,28 @@ module JenkinsPipelineBuilder
           next
         end
         reg_value = registry[key]
-        if reg_value.is_a? ExtensionSet
-          ext = reg_value.extension
-          logger.debug "Using #{ext.type} #{ext.name} version #{ext.min_version}"
-          success = ext.execute value, n_xml
-          fail 'Encountered errors compiling the xml' unless success
-        elsif value.is_a? Hash
-          traverse_registry reg_value, value, n_xml, true
-        elsif value.is_a? Array
-          value.each do |v|
-            traverse_registry reg_value, v, n_xml, true
-          end
+        execute_registry_value reg_value, value, n_xml
+      end
+    end
+
+    private
+
+    def execute_registry_value(reg_value, value, n_xml)
+      if reg_value.is_a? ExtensionSet
+        execute_extension reg_value.extension, value, n_xml
+      elsif value.is_a? Hash
+        traverse_registry reg_value, value, n_xml, true
+      elsif value.is_a? Array
+        value.each do |v|
+          traverse_registry reg_value, v, n_xml, true
         end
       end
+    end
+
+    def execute_extension(ext, value, n_xml)
+      logger.debug "Using #{ext.type} #{ext.name} version #{ext.min_version}"
+      success = ext.execute value, n_xml
+      fail 'Encountered errors compiling the xml' unless success
     end
   end
 end
