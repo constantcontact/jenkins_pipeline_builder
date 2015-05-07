@@ -8,7 +8,6 @@ describe JenkinsPipelineBuilder::PullRequest do
   after :each do
     JenkinsPipelineBuilder.registry.registry[:job][:scm_params].clear_installed_version
   end
-  let(:pull_request_class) { JenkinsPipelineBuilder::PullRequest }
   let(:project) do
     {
       name: 'pull_req_test',
@@ -19,6 +18,7 @@ describe JenkinsPipelineBuilder::PullRequest do
       }
     }
   end
+  let(:value) { { jobs: ['{{name}}-10', '{{name}}-11'] } }
   let(:pull_request) do
     {
       name: '{{name}}-00',
@@ -28,15 +28,45 @@ describe JenkinsPipelineBuilder::PullRequest do
       git_url: 'https://www.github.com/',
       git_repo: 'jenkins_pipeline_builder',
       git_org: 'constantcontact',
-      value: {
-        jobs: ['{{name}}-10', '{{name}}-11']
-      },
+      value: value,
       builders: [
-        { shell_command: 'generate -v || gem install jenkins_pipeline_builder\ngenerate pipeline -c config/{{login_config}} pull_request pipeline/ {{name}}\n' }
+        { shell_command: 'echo "shell command"' }
       ]
     }
   end
+  let(:job1) { '{{name}}-10' }
+  let(:job2) { '{{name}}-11' }
   let(:jobs) do
+    {
+      job1 => {
+        name: job1,
+        type: :'job-template',
+        value: {
+          name: job1,
+          description: '{{description}}',
+          publishers: [{ downstream: { project: "{{job@#{job2}}}" } }]
+        }
+      },
+      job2 => {
+        name: job2,
+        type: :'job-template',
+        value: {
+          name: job2,
+          description: '{{description}}'
+        }
+      }
+    }
+  end
+  let(:post_scm_params) do
+    {
+      changelog_to_branch: {
+        remote: 'origin',
+        branch: 'pr/{{pull_request_number}}/head'
+      },
+      refspec: 'refs/pull/{{pull_request_number}}/head:refs/remotes/origin/pr/{{pull_request_number}}/head'
+    }
+  end
+  let(:post_jobs) do
     {
       '{{name}}-10' => {
         name: '{{name}}-10',
@@ -44,7 +74,9 @@ describe JenkinsPipelineBuilder::PullRequest do
         value: {
           name: '{{name}}-10',
           description: '{{description}}',
-          publishers: [{ downstream: { project: '{{job@{{name}}-11}}' } }]
+          publishers: [{ downstream: { project: '{{job@{{name}}-11}}' } }],
+          scm_branch: 'origin/pr/{{pull_request_number}}/head',
+          scm_params: post_scm_params
         }
       },
       '{{name}}-11' => {
@@ -52,16 +84,25 @@ describe JenkinsPipelineBuilder::PullRequest do
         type: :'job-template',
         value: {
           name: '{{name}}-11',
-          description: '{{description}}'
+          description: '{{description}}',
+          scm_branch: 'origin/pr/{{pull_request_number}}/head',
+          scm_params: post_scm_params
         }
       }
     }
   end
   describe '#initialize' do
     it 'process pull_request' do
-      pull = pull_request_class.new(project, 2, jobs, pull_request)
-      post_jobs = { '{{name}}-10' => { name: '{{name}}-10', type: :'job-template', value: { name: '{{name}}-10', description: '{{description}}', publishers: [{ downstream: { project: '{{job@{{name}}-11}}' } }], scm_branch: 'origin/pr/{{pull_request_number}}/head', scm_params: { changelog_to_branch: { remote: 'origin', branch: 'pr/{{pull_request_number}}/head' }, refspec: 'refs/pull/{{pull_request_number}}/head:refs/remotes/origin/pr/{{pull_request_number}}/head' } } }, '{{name}}-11' => { name: '{{name}}-11', type: :'job-template', value: { name: '{{name}}-11', description: '{{description}}', scm_branch: 'origin/pr/{{pull_request_number}}/head', scm_params: { changelog_to_branch: { remote: 'origin', branch: 'pr/{{pull_request_number}}/head' },  refspec: 'refs/pull/{{pull_request_number}}/head:refs/remotes/origin/pr/{{pull_request_number}}/head' } } } }
-      post_project = { name: 'pull_req_test-PR2', type: :project, value: { name: 'pull_req_test-PR2', jobs: ['{{name}}-00', '{{name}}-10', '{{name}}-11'], pull_request_number: '2' } }
+      pull = described_class.new(project, 2, jobs, pull_request)
+      post_project = {
+        name: 'pull_req_test-PR2',
+        type: :project,
+        value: {
+          name: 'pull_req_test-PR2',
+          jobs: ['{{name}}-00', '{{name}}-10', '{{name}}-11'],
+          pull_request_number: '2'
+        }
+      }
 
       expect(pull.project).to eq(post_project)
       expect(pull.jobs).to eq(post_jobs)
@@ -69,12 +110,15 @@ describe JenkinsPipelineBuilder::PullRequest do
   end
 
   describe '#git_version_0' do
+    let(:post_scm_params) do
+      { refspec: 'refs/pull/{{pull_request_number}}/head:refs/remotes/origin/pr/{{pull_request_number}}/head' }
+    end
+
     before :each do
       JenkinsPipelineBuilder.registry.registry[:job][:scm_params].installed_version = '0'
     end
     it 'process pull_request' do
-      pull = pull_request_class.new(project, 2, jobs, pull_request)
-      post_jobs = { '{{name}}-10' => { name: '{{name}}-10', type: :'job-template', value: { name: '{{name}}-10', description: '{{description}}', publishers: [{ downstream: { project: '{{job@{{name}}-11}}' } }], scm_branch: 'origin/pr/{{pull_request_number}}/head', scm_params: { refspec: 'refs/pull/{{pull_request_number}}/head:refs/remotes/origin/pr/{{pull_request_number}}/head' } } }, '{{name}}-11' => { name: '{{name}}-11', type: :'job-template', value: { name: '{{name}}-11', description: '{{description}}', scm_branch: 'origin/pr/{{pull_request_number}}/head', scm_params: { refspec: 'refs/pull/{{pull_request_number}}/head:refs/remotes/origin/pr/{{pull_request_number}}/head' } } } }
+      pull = described_class.new(project, 2, jobs, pull_request)
       expect(pull.jobs).to eq(post_jobs)
     end
   end
@@ -84,8 +128,7 @@ describe JenkinsPipelineBuilder::PullRequest do
       JenkinsPipelineBuilder.registry.registry[:job][:scm_params].installed_version = '2.0'
     end
     it 'process pull_request' do
-      pull = pull_request_class.new(project, 2, jobs, pull_request)
-      post_jobs = { '{{name}}-10' => { name: '{{name}}-10', type: :'job-template', value: { name: '{{name}}-10', description: '{{description}}', publishers: [{ downstream: { project: '{{job@{{name}}-11}}' } }], scm_branch: 'origin/pr/{{pull_request_number}}/head', scm_params: { refspec: 'refs/pull/{{pull_request_number}}/head:refs/remotes/origin/pr/{{pull_request_number}}/head', changelog_to_branch: { remote: 'origin', branch: 'pr/{{pull_request_number}}/head' } } } }, '{{name}}-11' => { name: '{{name}}-11', type: :'job-template', value: { name: '{{name}}-11', description: '{{description}}', scm_branch: 'origin/pr/{{pull_request_number}}/head', scm_params: { refspec: 'refs/pull/{{pull_request_number}}/head:refs/remotes/origin/pr/{{pull_request_number}}/head', changelog_to_branch: { remote: 'origin', branch: 'pr/{{pull_request_number}}/head' } } } } }
+      pull = described_class.new(project, 2, jobs, pull_request)
       expect(pull.jobs).to eq(post_jobs)
     end
   end
@@ -103,46 +146,16 @@ describe JenkinsPipelineBuilder::PullRequest do
         }
       }
     end
-    let(:pull_request) do
+    let(:value) do
       {
-        name: '{{name}}-00',
-        type: :pull_request_generator,
-        job_type: 'pull_request_generator',
-        git_url: 'https://www.github.com/',
-        git_repo: 'jenkins_pipeline_builder',
-        git_org: 'constantcontact',
-        value: {
-          inject_pr_into: :app_name,
-          jobs: ['{{app_name}}-10', '{{app_name}}-11']
-        },
-        builders: [
-          { shell_command: 'generate -v || gem install jenkins_pipeline_builder\ngenerate pipeline -c config/{{login_config}} pull_request pipeline/ {{name}}\n' }
-        ]
+        inject_pr_into: :app_name,
+        jobs: ['{{app_name}}-10', '{{app_name}}-11']
       }
     end
-    let(:jobs) do
-      {
-        '{{app_name}}-10' => {
-          name: '{{app_name}}-10',
-          type: :'job-template',
-          value: {
-            name: '{{app_name}}-10',
-            description: '{{description}}',
-            publishers: [{ downstream: { project: '{{job@{{name}}-11}}' } }]
-          }
-        },
-        '{{app_name}}-11' => {
-          name: '{{app_name}}-11',
-          type: :'job-template',
-          value: {
-            name: '{{app_name}}-11',
-            description: '{{description}}'
-          }
-        }
-      }
-    end
+    let(:job1) { '{{app_name}}-10' }
+    let(:job2) { '{{app_name}}-11' }
     it 'injects the pr number into the job name when told to' do
-      pull = pull_request_class.new project, 2, jobs, pull_request
+      pull = described_class.new project, 2, jobs, pull_request
       expect(pull.project[:value][:app_name]).to eq '{{app_name}}-PR2'
     end
   end
