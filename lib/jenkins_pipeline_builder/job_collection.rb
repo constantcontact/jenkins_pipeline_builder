@@ -61,7 +61,6 @@ module JenkinsPipelineBuilder
       else
         load_file(path, remote)
       end
-      remote_dependencies.cleanup if remote
     end
 
     private

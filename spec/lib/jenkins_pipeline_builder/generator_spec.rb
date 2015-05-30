@@ -61,8 +61,7 @@ describe JenkinsPipelineBuilder::Generator do
 
     def bootstrap(fixture_path, job_name)
       JenkinsPipelineBuilder.debug!
-      errors = @generator.bootstrap(fixture_path, job_name)
-      errors
+      @generator.bootstrap(fixture_path, job_name)
     end
 
     def fixture_path(fixture)
@@ -81,6 +80,11 @@ describe JenkinsPipelineBuilder::Generator do
 
     it 'produces no errors while creating pipeline TemplatePipeline' do
       errors = bootstrap(fixture_path('template_pipeline'), 'TemplatePipeline')
+      expect(errors).to be_empty
+    end
+
+    it 'produces no errors while creating pipeline TemplatePipeline_nested' do
+      errors = bootstrap(fixture_path('template_pipeline_nested'), 'TemplatePipeline_nested')
       expect(errors).to be_empty
     end
 
