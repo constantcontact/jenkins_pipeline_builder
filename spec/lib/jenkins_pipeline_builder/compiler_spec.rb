@@ -139,7 +139,7 @@ describe JenkinsPipelineBuilder::Compiler do
     it 'fails when value not found' do
       item = { enabled: '{{use_fail}}', parameters: { rootPom: 'path_to_pomasd' } }
       settings = { name: 'PushTest', description: 'DB Pipeline tooling', git_repo: 'git@github.roving.com:devops/DBPipeline.git', git_branch: 'master', excluded_user: 'buildmaster', hipchat_room: 'CD Builds', hipchat_auth_token: 'f3e98ed54605b36f56dd2c562e3775', discard_days: '30', discard_number: '100', maven_name: 'tools-maven-3.0.3', hipchat_jenkins_url: 'https://cd-jenkins.ad.prodcc.net/', use1: true }
-      success, _ = compiler.handle_enable(item, settings)
+      success, _item = compiler.handle_enable(item, settings)
       expect(success).to be false
     end
 

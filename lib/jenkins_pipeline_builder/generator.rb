@@ -49,7 +49,8 @@ module JenkinsPipelineBuilder
     def bootstrap(path, project_name = nil)
       logger.info "Bootstrapping pipeline from path #{path}"
       job_collection.load_from_path(path)
-      errors = {}
+      job_collection.remote_dependencies.cleanup
+
       if job_collection.projects.any?
         errors = publish_project(project_name)
       else
@@ -62,6 +63,7 @@ module JenkinsPipelineBuilder
     def pull_request(path, project_name)
       logger.info "Pull Request Generator Running from path #{path}"
       job_collection.load_from_path(path)
+      job_collection.remote_dependencies.cleanup
       logger.info "Project: #{job_collection.projects}"
       errors = {}
       job_collection.projects.each do |project|
@@ -90,7 +92,7 @@ module JenkinsPipelineBuilder
       fail "Failed to locate job by name '#{name}'" if job.nil?
       job_value = job[:value]
       logger.debug "Compiling job #{name}"
-      compiler = Compiler.new self
+      compiler = JenkinsPipelineBuilder::Compiler.new self
       success, payload = compiler.compile(job_value, settings)
       [success, payload]
     end
@@ -98,7 +100,7 @@ module JenkinsPipelineBuilder
     def resolve_project(project)
       defaults = job_collection.defaults
       settings = defaults.nil? ? {} : defaults[:value] || {}
-      compiler = Compiler.new self
+      compiler = JenkinsPipelineBuilder::Compiler.new self
       project[:settings] = compiler.get_settings_bag(project, settings) unless project[:settings]
 
       errors = process_project project
