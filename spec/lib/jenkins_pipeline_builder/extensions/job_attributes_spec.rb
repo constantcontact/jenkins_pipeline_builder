@@ -205,7 +205,8 @@ describe 'job_attributes' do
             remote_name: :foo,
             refspec: :refspec,
             remote_url: :remote_url,
-            credentials_id: :creds
+            credentials_id: :creds,
+            skip_tag: true
           },
           scm_url: 'http://foo.com'
         }
@@ -238,6 +239,7 @@ describe 'job_attributes' do
         expect(scm_config.css('includedRegions').first.content).to eq 'included_region'
         expect(scm_config.css('excludedRegions').first.content).to eq 'excluded_region'
         expect(scm_config.css('credentialsId').first.content).to eq 'creds'
+        expect(scm_config.css('skipTag').first.content).to eq 'true'
       end
     end
 

@@ -77,8 +77,7 @@ job_attribute do
     # XML preprocessing
     # TODO: Actually figure out how to merge using the builder DSL
     # This delete the things we are going to add later is pretty crappy
-    # Alternately don't use/tweak the xml the api client generates
-    # (which is where I assume this is coming from)
+    # Alternately don't use/tweak the xml the jenkins_api_client generates
     before do |params|
       xpath('//scm/localBranch').remove if params[:local_branch]
       xpath('//scm/recursiveSubmodules').remove if params[:recursive_update]
@@ -126,13 +125,20 @@ job_attribute do
       :refspec,
       :remote_name,
       :remote_url,
+      :skip_tag,
       :wipe_workspace
     ]
 
     before do |params|
       remote_url = xpath('//scm/userRemoteConfigs/hudson.plugins.git.UserRemoteConfig/url').first
       params[:remote_url] = remote_url.content if remote_url
+
+      # XML preprocessing
+      # TODO: Actually figure out how to merge using the builder DSL
+      # This delete the things we are going to add later is pretty crappy
+      # Alternately don't use/tweak the xml the jenkins_api_client generates
       xpath('//scm/userRemoteConfigs').remove
+      xpath('//scm/skipTag').remove if params[:skip_tag]
     end
 
     xml path: '//scm' do |params|
@@ -147,6 +153,7 @@ job_attribute do
       end
       doGenerateSubmoduleConfigurations false
       submoduleCfg
+      skipTag params[:skip_tag] if params[:skip_tag]
       extensions do
         if params[:changelog_to_branch]
           opts = params[:changelog_to_branch]
