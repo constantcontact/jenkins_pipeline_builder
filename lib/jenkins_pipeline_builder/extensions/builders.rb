@@ -296,3 +296,59 @@ builder do
     end
   end
 end
+
+builder do
+  name :checkmarx_scan
+  plugin_id 'checkmarx'
+  description 'Jenkins plugin for checkmarx security audit'
+  jenkins_name 'Trigger a checkmarx security audit of your build'
+  announced false
+  parameters [
+    :serverUrl,
+    :useOwnServerCredentials,
+    :username,
+    :password,
+    :incremental,
+    :isThisBuildIncremental,
+    :projectName,
+    :groupId,
+    :skipSCMTriggers,
+    :waitForResultsEnabled,
+    :vulnerabilityThresholdEnabled,
+    :highThreshold,
+    :mediumThreshold,
+    :lowThreshold,
+    :preset,
+    :presetSpecified,
+    :generatePdfReport,
+    :excludeFolders,
+    :fullScansScheduled,
+    :filterPattern
+  ]
+
+  xml do |params|
+    send('com.checkmarx.jenkins.CxScanBuilder', 'plugin' => 'checkmarx@7.1.8-24') do
+      useOwnServerCredentials params[:useOwnServerCredentials]
+      serverUrl params[:serverUrl]
+      useOwnServerCredentials params[:useOwnServerCredentials]
+      username params[:username]
+      password params[:password]
+      incremental params[:incremental]
+      isThisBuildIncremental params[:isThisBuildIncremental]
+      projectName params[:projectName]
+      groupId params[:groupId]
+      skipSCMTriggers params[:skipSCMTriggers]
+      waitForResultsEnabled params[:waitForResultsEnabled]
+      vulnerabilityThresholdEnabled params[:vulnerabilityThresholdEnabled]
+      highThreshold params[:highThreshold]
+      mediumThreshold params[:mediumThreshold]
+      lowThreshold params[:lowThreshold]
+      generatePdfReport params[:generatePdfReport]
+      excludeFolders params[:excludeFolders]
+      presetSpecified params[:presetSpecified]
+      preset params[:preset]
+      fullScansScheduled params[:fullScansScheduled]
+      filterPattern params[:filterPattern]
+    end
+  end
+end
