@@ -69,6 +69,26 @@ describe 'publishers' do
       root_pom = sonar_nodes.select { |node| node.name == 'rootPom' }
       expect(root_pom.first.content).to match 'project_war/pom.xml'
     end
+
+    it 'populates the jdk by with default' do
+      params = { publishers: { sonar_result: {} } }
+
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+
+      sonar_nodes = @n_xml.root.children.first.children
+      root_pom = sonar_nodes.select { |node| node.name == 'jdk' }
+      expect(root_pom.first.content).to match '(Inherit From Job)'
+    end
+
+    it 'populates the jdk by' do
+      params = { publishers: { sonar_result: { jdk: 'java8' } } }
+
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+
+      sonar_nodes = @n_xml.root.children.first.children
+      root_pom = sonar_nodes.select { |node| node.name == 'jdk' }
+      expect(root_pom.first.content).to match 'java8'
+    end
   end
 
   context 'description_setter' do
