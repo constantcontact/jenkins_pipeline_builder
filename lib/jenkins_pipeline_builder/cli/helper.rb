@@ -27,6 +27,7 @@ require 'jenkins_api_client'
 require 'open-uri'
 require 'zlib'
 require 'archive/tar/minitar'
+require 'resolv'
 
 module JenkinsPipelineBuilder
   module CLI
