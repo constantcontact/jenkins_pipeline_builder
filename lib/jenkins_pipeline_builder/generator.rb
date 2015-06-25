@@ -205,21 +205,31 @@ module JenkinsPipelineBuilder
       end
     end
 
-    def publish_project(project_name, errors = {})
-      job_collection.projects.each do |project|
-        next unless project_name.nil? || project[:name] == project_name
-        success, payload = resolve_project(project)
-        if success
-          logger.info 'successfully resolved project'
-          compiled_project = payload
-        else
-          return { project_name: 'Failed to resolve' }
-        end
-
-        errors = publish_jobs(compiled_project[:value][:jobs]) if compiled_project[:value][:jobs]
-        next unless compiled_project[:value][:views]
-        create_views compiled_project[:value][:views]
+    def create_jobs_and_views(project)
+      success, payload = resolve_project(project)
+      if success
+        logger.info 'successfully resolved project'
+        compiled_project = payload
+      else
+        return { project_name: 'Failed to resolve' }
       end
+
+      errors = publish_jobs(compiled_project[:value][:jobs]) if compiled_project[:value][:jobs]
+      return errors unless compiled_project[:value][:views]
+      create_views compiled_project[:value][:views]
+      errors
+    end
+
+    def publish_project(project_name)
+      return {} if project_name.nil?
+      errors = {}
+      found = false
+      job_collection.projects.each do |project|
+        next unless project[:name] == project_name
+        found = true
+        errors = create_jobs_and_views(project)
+      end
+      fail "Project #{project_name} not found!" unless found
       errors
     end
 
