@@ -309,6 +309,9 @@ builder do
       if params.key?(:script) && params.key?(:file)
         fail 'Configuration invalid. Both \'script\' and \'file\' keys can not be specified'
       end
+      unless params.key?(:script) || params.key?(:file)
+        fail 'Configuration invalid. At least one of \'script\' and \'file\' keys must be specified'
+      end
 
       scriptSource('class' => 'hudson.plugins.groovy.StringScriptSource') do
         command params[:script]
