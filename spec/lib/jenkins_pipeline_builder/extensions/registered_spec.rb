@@ -51,6 +51,7 @@ TRIGGERS = {
 JOB_ATTRIBUTES = {
   concurrent_build: ['0'],
   description: ['0'],
+  jdk: ['0'],
   disabled: ['0'],
   discard_old: ['0'],
   hipchat: ['0'],
