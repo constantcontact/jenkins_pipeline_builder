@@ -37,6 +37,18 @@ job_attribute do
 end
 
 job_attribute do
+  name :jdk
+  plugin_id 'builtin'
+  description 'This is the jdk used in the job.'
+  jenkins_name 'JDK'
+  announced false
+
+  xml path: '//project' do |jdk|
+    jdk "#{jdk}"
+  end
+end
+
+job_attribute do
   name :disabled
   plugin_id 'builtin'
   description 'Prevents new builds from being executed until the job(project) is re-enabled.'

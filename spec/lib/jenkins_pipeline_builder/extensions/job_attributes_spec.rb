@@ -123,6 +123,20 @@ describe 'job_attributes' do
     end
   end
 
+  context 'jdk' do
+    it 'sets jdk' do
+      params = { jdk: 'JDK-8u45' }
+
+      builder = Nokogiri::XML::Builder.new do |xml|
+        xml.project
+      end
+      @n_xml = builder.doc
+
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+      expect(@n_xml.root.css('jdk').first.content).to eq 'JDK-8u45'
+    end
+  end
+
   context 'scm params' do
     before :each do
       builder = Nokogiri::XML::Builder.new { |xml| xml.scm }

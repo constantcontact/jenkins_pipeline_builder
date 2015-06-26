@@ -137,4 +137,74 @@ describe 'builders' do
       end
     end
   end
+
+  context 'system_groovy' do
+    error = ''
+    before :each do
+      error = ''
+      allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
+        list_installed: { 'groovy' => '1.24' })
+
+      begin
+        JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+      rescue RuntimeError => boom
+        puts "Caught error #{boom}"
+        error = boom.to_s
+      end
+      builder = @n_xml.root.children.first
+      expect(builder.name).to match 'hudson.plugins.groovy.SystemGroovy'
+    end
+
+    context 'script given as string' do
+      let(:params) { { builders: { system_groovy: { script: 'print "Hello world"' } } } }
+
+      it 'generates a configuration' do
+        node = @n_xml.xpath '//hudson.plugins.groovy.SystemGroovy/scriptSource/command'
+        expect(node.children.first.content).to eq 'print "Hello world"'
+      end
+    end
+
+    context 'script given as file' do
+      let(:params) { { builders: { system_groovy: { file: 'myScript.groovy' } } } }
+
+      it 'generates a configuration' do
+        node = @n_xml.xpath '//hudson.plugins.groovy.SystemGroovy/scriptSource/scriptFile'
+        expect(node.children.first.content).to eq 'myScript.groovy'
+      end
+    end
+
+    context 'bindings' do
+      let(:params) { { builders: { system_groovy: { file: 'myScript.groovy', bindings: 'myVar=foo' } } } }
+
+      it 'generates a configuration' do
+        node = @n_xml.xpath '//hudson.plugins.groovy.SystemGroovy/bindings'
+        expect(node.children.first.content).to eq 'myVar=foo'
+      end
+    end
+
+    context 'classpath' do
+      let(:params) { { builders: { system_groovy: { file: 'myScript.groovy', classpath: '/tmp/myJar.jar' } } } }
+
+      it 'generates a configuration' do
+        node = @n_xml.xpath '//hudson.plugins.groovy.SystemGroovy/classpath'
+        expect(node.children.first.content).to eq '/tmp/myJar.jar'
+      end
+    end
+
+    context 'both script and file specified' do
+      let(:params) { { builders: { system_groovy: { file: 'myScript.groovy', script: 'print "Hello world"' } } } }
+
+      it 'fails' do
+        expect(error).to eq 'Configuration invalid. Both \'script\' and \'file\' keys can not be specified'
+      end
+    end
+
+    context 'neither script and file specified' do
+      let(:params) { { builders: { system_groovy: {} } } }
+
+      it 'fails' do
+        expect(error).to eq 'Configuration invalid. At least one of \'script\' and \'file\' keys must be specified'
+      end
+    end
+  end
 end

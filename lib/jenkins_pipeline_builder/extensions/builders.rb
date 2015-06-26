@@ -298,6 +298,36 @@ builder do
 end
 
 builder do
+  name :system_groovy
+  plugin_id 'groovy'
+  description 'Lets you run groovy scripts as a build step.'
+  jenkins_name 'System Groovy'
+  announced false
+
+  xml do |params|
+    send('hudson.plugins.groovy.SystemGroovy', 'plugin' => 'groovy@1.24') do
+      if params.key?(:script) && params.key?(:file)
+        fail 'Configuration invalid. Both \'script\' and \'file\' keys can not be specified'
+      end
+      unless params.key?(:script) || params.key?(:file)
+        fail 'Configuration invalid. At least one of \'script\' and \'file\' keys must be specified'
+      end
+
+      scriptSource('class' => 'hudson.plugins.groovy.StringScriptSource') do
+        command params[:script]
+      end if params.key? :script
+
+      scriptSource('class' => 'hudson.plugins.groovy.FileScriptSource') do
+        scriptFile params[:file]
+      end if params.key? :file
+
+      bindings params[:bindings]
+      classpath params[:classpath]
+    end
+  end
+end
+
+builder do
   name :checkmarx_scan
   plugin_id 'checkmarx'
   description 'Jenkins plugin for checkmarx security audit'

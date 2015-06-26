@@ -39,7 +39,8 @@ BUILDERS = {
   multi_job: ['0'],
   remote_job: ['0'],
   shell_command: ['0'],
-  checkmarx_scan: ['0']
+  checkmarx_scan: ['0'],
+  system_groovy: ['0']
 }
 TRIGGERS = {
   git_push: ['0'],
@@ -50,6 +51,7 @@ TRIGGERS = {
 JOB_ATTRIBUTES = {
   concurrent_build: ['0'],
   description: ['0'],
+  jdk: ['0'],
   disabled: ['0'],
   discard_old: ['0'],
   hipchat: ['0'],
