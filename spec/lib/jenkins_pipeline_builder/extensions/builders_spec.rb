@@ -139,12 +139,18 @@ describe 'builders' do
   end
 
   context 'system_groovy' do
+    error = ''
     before :each do
+      error = ''
       allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
         list_installed: { 'groovy' => '1.24' })
 
-      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
-
+      begin
+        JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+      rescue RuntimeError => boom
+        puts "Caught error #{boom}"
+        error = boom.to_s
+      end
       builder = @n_xml.root.children.first
       expect(builder.name).to match 'hudson.plugins.groovy.SystemGroovy'
     end
@@ -182,6 +188,22 @@ describe 'builders' do
       it 'generates a configuration' do
         node = @n_xml.xpath '//hudson.plugins.groovy.SystemGroovy/classpath'
         expect(node.children.first.content).to eq '/tmp/myJar.jar'
+      end
+    end
+
+    context 'both script and file specified' do
+      let(:params) { { builders: { system_groovy: { file: 'myScript.groovy', script: 'print "Hello world"' } } } }
+
+      it 'fails' do
+        expect(error).to eq 'Configuration invalid. Both \'script\' and \'file\' keys can not be specified'
+      end
+    end
+
+    context 'neither script and file specified' do
+      let(:params) { { builders: { system_groovy: {} } } }
+
+      it 'fails' do
+        expect(error).to eq 'Configuration invalid. At least one of \'script\' and \'file\' keys must be specified'
       end
     end
   end
