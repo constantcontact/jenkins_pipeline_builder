@@ -221,11 +221,10 @@ module JenkinsPipelineBuilder
     end
 
     def publish_project(project_name)
-      return {} if project_name.nil?
       errors = {}
       found = false
       job_collection.projects.each do |project|
-        next unless project[:name] == project_name
+        next if project[:name] != project_name && !project_name.nil?
         found = true
         errors = create_jobs_and_views(project)
       end

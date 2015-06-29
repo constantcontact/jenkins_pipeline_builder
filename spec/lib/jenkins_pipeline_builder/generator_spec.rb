@@ -68,6 +68,12 @@ describe JenkinsPipelineBuilder::Generator do
       File.expand_path("../fixtures/generator_tests/#{fixture}", __FILE__)
     end
 
+    it 'works with no project specified' do
+      expect(@generator).to receive(:create_jobs_and_views).and_return({})
+      errors = bootstrap(fixture_path('sample_pipeline'), nil)
+      expect(errors).to be_empty
+    end
+
     it 'raises an error when a specified project does not exist' do
       expect { bootstrap(fixture_path('sample_pipeline'), 'Nopers') }.to raise_error
     end
