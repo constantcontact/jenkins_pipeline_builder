@@ -31,13 +31,20 @@ describe 'publishers' do
         list_installed: { 'sonar' => '20.0' })
     end
 
-    it 'generates a configuration' do
+    it 'generates a default configuration' do
       params = { publishers: { sonar_result: {} } }
 
       JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
 
       sonar_publisher = @n_xml.root.children.first
       expect(sonar_publisher.name).to match 'hudson.plugins.sonar.SonarPublisher'
+
+      sonar_nodes = @n_xml.root.children.first.children
+      jdk_value = sonar_nodes.select { |node| node.name == 'jdk' }
+      expect(jdk_value.first.content).to match '(Inherit From Job)'
+
+      additional_properties_value = sonar_nodes.select { |node| node.name == 'jobAdditionalProperties' }
+      expect(additional_properties_value.first.content).to match ''
     end
 
     it 'populates branch' do
@@ -70,24 +77,24 @@ describe 'publishers' do
       expect(root_pom.first.content).to match 'project_war/pom.xml'
     end
 
-    it 'populates the jdk by with default' do
-      params = { publishers: { sonar_result: {} } }
-
-      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
-
-      sonar_nodes = @n_xml.root.children.first.children
-      root_pom = sonar_nodes.select { |node| node.name == 'jdk' }
-      expect(root_pom.first.content).to match '(Inherit From Job)'
-    end
-
     it 'populates the jdk by' do
       params = { publishers: { sonar_result: { jdk: 'java8' } } }
 
       JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
 
       sonar_nodes = @n_xml.root.children.first.children
-      root_pom = sonar_nodes.select { |node| node.name == 'jdk' }
-      expect(root_pom.first.content).to match 'java8'
+      jdk_value = sonar_nodes.select { |node| node.name == 'jdk' }
+      expect(jdk_value.first.content).to match 'java8'
+    end
+
+    it 'populates the additional properties' do
+      params = { publishers: { sonar_result: { additional_properties: '-Dsonar.version=$APP_VERSION' } } }
+
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+
+      sonar_nodes = @n_xml.root.children.first.children
+      additional_properties_value = sonar_nodes.select { |node| node.name == 'jobAdditionalProperties' }
+      expect(additional_properties_value.first.content).to match '-Dsonar.version=$APP_VERSION'
     end
   end
 
