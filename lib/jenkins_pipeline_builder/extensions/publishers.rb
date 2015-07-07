@@ -309,7 +309,7 @@ publisher do
       branch params[:branch] || ''
       language
       mavenOpts
-      jobAdditionalProperties
+      jobAdditionalProperties params[:additional_properties] || ''
       mavenInstallationName params[:maven_installation_name] || ''
       rootPom params[:root_pom] || ''
       settings class: 'jenkins.mvn.DefaultSettingsProvider'
