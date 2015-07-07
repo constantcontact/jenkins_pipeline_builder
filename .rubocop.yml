@@ -18,6 +18,9 @@ Metrics/LineLength:
     - 'spec/lib/jenkins_pipeline_builder/pull_request_generator_spec.rb'
     - 'lib/jenkins_pipeline_builder/extensions/**/*'
 
+Metrics/CyclomaticComplexity:
+  Max: 10
+
 Style/Documentation:
   Enabled: false
 
