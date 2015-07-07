@@ -11,6 +11,8 @@ class ParametersHelper < ExtensionHelper
       'hudson.model.PasswordParameterDefinition'
     when 'choice'
       'hudson.model.ChoiceParameterDefinition'
+    when 'file'
+      'hudson.model.FileParameterDefinition'
     else
       'hudson.model.StringParameterDefinition'
     end
