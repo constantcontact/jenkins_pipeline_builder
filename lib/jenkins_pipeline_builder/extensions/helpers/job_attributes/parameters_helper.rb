@@ -1,4 +1,5 @@
 class ParametersHelper < ExtensionHelper
+  # rubocop:disable CyclomaticComplexity
   def param_type(param)
     case param[:type]
     when 'string'
@@ -17,4 +18,5 @@ class ParametersHelper < ExtensionHelper
       'hudson.model.StringParameterDefinition'
     end
   end
+  # rubocop:enable CyclomaticComplexity
 end

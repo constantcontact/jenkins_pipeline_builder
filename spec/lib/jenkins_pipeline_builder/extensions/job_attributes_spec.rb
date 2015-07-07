@@ -97,6 +97,13 @@ describe 'job_attributes' do
       end
     end
 
+    context 'file parameter' do
+      let(:type) { 'file' }
+      it 'generates correct config' do
+        expect(@parameters.to_s).to include 'hudson.model.FileParameterDefinition'
+      end
+    end
+
     context 'defaults to string' do
       let(:type) { 'bad_choice' }
       it 'generates correct config' do
