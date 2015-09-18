@@ -230,6 +230,7 @@ module JenkinsPipelineBuilder
       path += "/view/#{view_name}/doDelete"
       @client.api_post_request(path)
     end
+
     # Checks if the given view exists in Jenkins
     #
     # @param [String] view_name

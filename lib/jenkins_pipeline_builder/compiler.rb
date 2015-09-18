@@ -87,7 +87,7 @@ module JenkinsPipelineBuilder
     def compile_string(item, settings)
       errors = {}
       new_value = resolve_value(item, settings)
-      errors[item] =  "Failed to resolve #{item}" if new_value.nil?
+      errors[item] = "Failed to resolve #{item}" if new_value.nil?
       return false, errors unless errors.empty?
       [true, new_value]
     end

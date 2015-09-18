@@ -23,7 +23,6 @@ describe JenkinsPipelineBuilder::PullRequest do
     {
       name: '{{name}}-00',
       type: :job,
-      name: '{{name}}-00',
       job_type: 'pull_request_generator',
       git_url: 'https://www.github.com/',
       git_repo: 'jenkins_pipeline_builder',

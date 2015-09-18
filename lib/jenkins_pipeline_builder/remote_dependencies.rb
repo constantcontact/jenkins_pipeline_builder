@@ -63,7 +63,7 @@ module JenkinsPipelineBuilder
     def highest_template_version(path)
       folders = Dir.entries(path)
       highest = folders.max
-      highest = highest  unless highest == 0
+      highest = highest unless highest == 0
       highest
     end
 

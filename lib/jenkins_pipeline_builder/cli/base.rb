@@ -27,10 +27,10 @@ module JenkinsPipelineBuilder
     class Base < Thor
       class_option :username, aliases:  '-u', desc:  'Name of Jenkins user'
       class_option :password, aliases:  '-p', desc:  'Password of Jenkins user'
-      class_option :password_base64, aliases:  '-b', desc:  'Base 64 encoded password of Jenkins user'
-      class_option :server, aliases:  '-s', desc:  'Jenkins server IP address or URL'
-      class_option :server_port, aliases:  '-o', desc:  'Jenkins port'
-      class_option :creds_file, aliases:  '-c', desc:  'Credentials file for communicating with Jenkins server'
+      class_option :password_base64, aliases: '-b', desc: 'Base 64 encoded password of Jenkins user'
+      class_option :server, aliases: '-s', desc: 'Jenkins server IP address or URL'
+      class_option :server_port, aliases:  '-o', desc: 'Jenkins port'
+      class_option :creds_file, aliases: '-c', desc: 'Credentials file for communicating with Jenkins server'
       class_option :debug, type: :boolean, aliases: '-d', desc: 'Run in debug mode (no Jenkins changes)', default: false
 
       map '-v' => :version

@@ -39,6 +39,7 @@ module JenkinsPipelineBuilder
         h[ks].each { |item| symbolize_keys_deep!(item) } if h[ks].is_a?(Array)
       end
     end
+
     def self.hash_merge!(old_hash, new_hash)
       old_hash.merge!(new_hash) do |_key, old, new|
         if old.is_a?(Hash) && new.is_a?(Hash)

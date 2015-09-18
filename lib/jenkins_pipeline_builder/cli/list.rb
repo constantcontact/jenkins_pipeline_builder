@@ -26,7 +26,7 @@ module JenkinsPipelineBuilder
       JenkinsPipelineBuilder.registry.entries.keys.each do |entry|
         desc entry, "List all #{entry}"
         define_method(entry) do
-          entries =  JenkinsPipelineBuilder.registry.registry[:job][entry]
+          entries = JenkinsPipelineBuilder.registry.registry[:job][entry]
           entries.each do |name, set|
             ext = set.extensions.first
             display_module(name, ext)
@@ -36,7 +36,7 @@ module JenkinsPipelineBuilder
 
       desc 'job_attributes', 'List all job attributes'
       def job_attributes
-        entries =  JenkinsPipelineBuilder.registry.registry[:job]
+        entries = JenkinsPipelineBuilder.registry.registry[:job]
         entries.each do |name, set|
           next unless set.is_a? ExtensionSet
           ext = set.extensions.first

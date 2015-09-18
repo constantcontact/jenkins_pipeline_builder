@@ -21,7 +21,7 @@ describe 'job_attributes' do
   end
 
   after :each do |example|
-    name = example.description.gsub ' ', '_'
+    name = example.description.tr ' ', '_'
     File.open("./out/xml/job_attribute_#{name}.xml", 'w') { |f| @n_xml.write_xml_to f }
   end
 

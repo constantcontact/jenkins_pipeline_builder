@@ -68,7 +68,7 @@ module JenkinsPipelineBuilder
     def load_file(path, remote = false)
       if path.end_with? 'json'
         hash = JSON.parse(IO.read(path))
-      else  # elsif path.end_with?("yml") || path.end_with?("yaml")
+      else # elsif path.end_with?("yml") || path.end_with?("yaml")
         hash = YAML.load_file(path)
       end
       logger.info "Loading file #{path}"

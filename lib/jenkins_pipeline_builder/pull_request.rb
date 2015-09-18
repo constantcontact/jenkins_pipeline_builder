@@ -24,7 +24,7 @@ module JenkinsPipelineBuilder
     attr_reader :project    # The root project YAML as a hash
     attr_reader :number     # The pull request number
     attr_reader :jobs       # The jobs in the pull request as an array of hashes
-    attr_reader :pull_generator  # The generator job YAML as a hash
+    attr_reader :pull_generator # The generator job YAML as a hash
 
     def initialize(project, number, jobs, pull_generator)
       @project = Marshal.load(Marshal.dump(project))

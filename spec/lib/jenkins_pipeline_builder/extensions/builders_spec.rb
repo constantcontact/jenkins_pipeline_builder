@@ -21,7 +21,7 @@ describe 'builders' do
   end
 
   after :each do |example|
-    name = example.description.gsub ' ', '_'
+    name = example.description.tr ' ', '_'
     require 'fileutils'
     FileUtils.mkdir_p 'out/xml'
     File.open("./out/xml/builder_#{name}.xml", 'w') { |f| @n_xml.write_xml_to f }

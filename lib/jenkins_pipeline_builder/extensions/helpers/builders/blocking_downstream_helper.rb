@@ -5,7 +5,7 @@ class BlockingDownstreamHelper < ExtensionHelper
     @colors = {
       'SUCCESS' => { ordinal:  0, color:  'BLUE' },
       'FAILURE' => { ordinal:  2, color:  'RED' },
-      'UNSTABLE' => { ordinal:  1, color:  'YELLOW' }
+      'UNSTABLE' => { ordinal: 1, color: 'YELLOW' }
     }
   end
 
