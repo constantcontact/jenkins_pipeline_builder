@@ -56,10 +56,9 @@ module JenkinsPipelineBuilder
     end
 
     def execute(value, n_xml)
-      errors = []
-      check_parameters value
+      errors = check_parameters value
       errors.each do |error|
-        logger.error error
+        JenkinsPipelineBuilder.logger.error error
       end
       return false if errors.any?
 
@@ -71,12 +70,14 @@ module JenkinsPipelineBuilder
     end
 
     def check_parameters(value)
-      return if parameters && parameters.empty?
-      return unless value.is_a? Hash
+      return [] if parameters && parameters.empty?
+      return [] unless value.is_a? Hash
+      errors = []
       value.each_key do |key|
         next if parameters && parameters.include?(key)
-        errors << "Extension #{extension.name} does not support parameter #{key}"
+        errors << "Extension #{name} does not support parameter #{key}"
       end
+      errors
     end
 
     def errors

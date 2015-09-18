@@ -30,6 +30,18 @@ describe JenkinsPipelineBuilder::Extension do
   end
 
   context 'methods' do
+    context 'check_parameters' do
+      it 'accepts a valid param' do
+        extension.parameters [:foo]
+        expect(extension.check_parameters(foo: :bar)).to eq []
+      end
+
+      it 'fails with an invalid param' do
+        extension.parameters [:foo]
+        extension.name 'name'
+        expect(extension.check_parameters(bar: :baz)).to eq ['Extension name does not support parameter bar']
+      end
+    end
     context 'name' do
       it 'sets the name if a parameter is provided' do
         extension.name('foo')
