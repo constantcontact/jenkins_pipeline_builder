@@ -1,11 +1,12 @@
 - defaults:
     name: global
+    application_name: 'testapp'
     description: 'Test pipeline for generator_spec.rb'
-    git_url: 'https://github.com'
-    git_org: 'bencentra'
-    git_repo: 'generator_tests'
+    github_site: 'https://github.com'
+    git_org: 'testorg'
+    git_repo_name: 'generator_tests'
 
-- project: 
+- project:
     name: PullRequest
     jobs:
       - '{{name}}-10-SampleJob'

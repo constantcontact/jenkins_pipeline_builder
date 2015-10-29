@@ -19,149 +19,52 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-
 module JenkinsPipelineBuilder
   class PullRequestGenerator
     class NotFound < StandardError; end
+    attr_accessor :open_prs, :application_name
 
-    attr_reader :purge, :create, :jobs, :project, :generator, :pull_generator, :errors, :pull_requests
-
-    def initialize(project, generator)
-      @project = project
-      @generator = generator
-      @purge = []
-      @create = []
-      @errors = {}
-
-      @pull_generator = find
-      payload = compile_generator
-      return unless payload
-      @jobs = filter_jobs
-
-      # old init
-      @pull_requests = check_for_pull payload
-      find_old_pull_requests
-      generate_pull_requests
-
-      collection.merge! @jobs
-      @errors.merge! create_jobs
-
-      purge_jobs
+    def initialize(application_name: nil, git_url: nil, git_org: nil, git_repo: nil)
+      @application_name = application_name
+      @open_prs = open_pull_requests git_url: git_url, git_org: git_org, git_repo: git_repo
     end
 
-    def valid?
-      errors.empty?
+    def convert!(job_collection, pr)
+      job_collection.defaults[:value][:application_name] = "#{application_name}-PR#{pr}"
+      override = overrides pr
+      job_collection.jobs.each { |j| j[:value].merge! override }
+    end
+
+    def delete_closed_prs
+      jobs_to_delete = JenkinsPipelineBuilder.client.job.list "#{application_name}-PR.*"
+      open_prs.each { |n| jobs_to_delete.reject! { |j| j.start_with? "#{application_name}-PR#{n}" } }
+      jobs_to_delete.each { |j| JenkinsPipelineBuilder.client.job.delete j }
     end
 
     private
 
-    def generate_pull_requests
-      @pull_requests.each do |number|
-        req = JenkinsPipelineBuilder::PullRequest.new(project, number, jobs, @pull_generator)
-        @jobs.merge! req.jobs
-        project_new = req.project
-
-        # Overwrite the jobs from the generator to the project
-        project_new[:value][:jobs] = req.jobs.keys
-        @create << project_new
-      end
+    def overrides(pr)
+      git_version = JenkinsPipelineBuilder.registry.registry[:job][:scm_params].installed_version
+      override = {
+        scm_branch: "origin/pr/#{pr}/head",
+        scm_params: {
+          refspec: "refs/pull/#{pr}/head:refs/remotes/origin/pr/#{pr}/head"
+        }
+      }
+      override[:scm_params][:changelog_to_branch] = {
+        remote: 'origin', branch: "pr/#{pr}/head"
+      } if git_version >= Gem::Version.new(2.0)
+      override
     end
 
-    def purge_jobs
-      purge.each do |purge_job|
-        jobs = JenkinsPipelineBuilder.client.job.list "#{purge_job}.*"
-        jobs.each do |job|
-          JenkinsPipelineBuilder.client.job.delete job
-        end
-      end
-    end
-
-    def create_jobs
-      errors = {}
-      create.each do |pull_project|
-        success, compiled_project = generator.resolve_project(pull_project)
-        compiled_project[:value][:jobs].each do |i|
-          job = i[:result]
-          job = Job.new job
-          success, payload = job.create_or_update
-          errors[job.name] = payload unless success
-        end
-      end
-      errors
-    end
-
-    def collection
-      generator.job_collection.collection
-    end
-
-    def filter_jobs
-      jobs = {}
-      pull_jobs = pull_generator[:value][:jobs] || []
-      pull_jobs.each do |job|
-        if job.is_a? String
-          jobs[job.to_s] = collection[job.to_s]
-        else
-          jobs[job.keys.first.to_s] = collection[job.keys.first.to_s]
-        end
-      end
-      fail 'No jobs found for pull request' if jobs.empty?
-      jobs
-    end
-
-    def compile_generator
-      defaults = generator.job_collection.defaults
-      settings = defaults.nil? ? {} : defaults[:value] || {}
-      compiler = Compiler.new generator
-      settings = compiler.get_settings_bag(project, settings)
-      success, payload = generator.resolve_job_by_name(pull_generator[:name], settings)
-      return payload if success
-
-      @errors[@pull_generator[:name]] = payload
-      false
-    end
-
-    def find
-      project_jobs = project[:value][:jobs] || []
-      pull_job = nil
-      project_jobs.each do |job|
-        job = job.keys.first if job.is_a? Hash
-        job = collection[job.to_s]
-
-        pull_job = job if job[:value][:job_type] == 'pull_request_generator'
-      end
-      fail NotFound, 'No jobs of type pull_request_generator found' unless pull_job
-      pull_job
-    end
-
-    # Check for Github Pull Requests
-    #
-    # args[:git_url] URL to the github main page ex. https://www.github.com/
-    # args[:git_repo] Name of repo only, not url  ex. jenkins_pipeline_builder
-    # args[:git_org] The Orig user ex. constantcontact
-    # @return = array of pull request numbers
-    def check_for_pull(args)
-      fail 'Please specify all arguments' unless args[:git_url] && args[:git_org] && args[:git_repo]
+    def open_pull_requests(git_url: nil, git_org: nil, git_repo: nil)
+      (git_url && git_org && git_repo) || fail('Please set github_site, git_org and git_repo_name in your project.')
       # Build the Git URL
-      git_url = "#{args[:git_url]}api/v3/repos/#{args[:git_org]}/#{args[:git_repo]}/pulls"
-
+      url = "#{git_url}/api/v3/repos/#{git_org}/#{git_repo}/pulls"
       # Download the JSON Data from the API
-      resp = Net::HTTP.get_response(URI.parse(git_url))
+      resp = Net::HTTP.get_response(URI.parse(url))
       pulls = JSON.parse(resp.body)
       pulls.map { |p| p['number'] }
-    end
-
-    def find_old_pull_requests
-      reqs = pull_requests.clone.map { |req| "#{project[:name]}-PR#{req}" }
-      # Read File
-      # FIXME: Shouldn't this be opening just with read permissions?
-      old_requests = File.new('pull_requests.csv', 'a+').read.split(',')
-
-      # Pop off current pull requests
-      old_requests.delete_if { |req| reqs.include?("#{req}") }
-      @purge = old_requests
-
-      # Write File
-      File.open('pull_requests.csv', 'w+') { |file| file.write reqs.join(',') }
     end
   end
 end

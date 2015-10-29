@@ -1,99 +1,75 @@
 require File.expand_path('../spec_helper', __FILE__)
-require 'webmock/rspec'
+require 'json'
 
 describe JenkinsPipelineBuilder::PullRequestGenerator do
-  let(:pull_request_generator) { JenkinsPipelineBuilder::PullRequestGenerator }
-  let(:project) do
-    {
-      name: 'pull_req_test',
-      type: :project,
-      value: {
-        name: 'pull_req_test',
-        jobs: [
-          {
-            name: '{{name}}-00',
-            type: :job,
-            job_type: 'pull_request_generator',
-            git_url: 'https://www.github.com/',
-            git_repo: 'jenkins_pipeline_builder',
-            git_org: 'constantcontact',
-            jobs: [
-              '{{name}}-10',
-              '{{name}}-11'
-            ],
-            builders: [{ shell_command: 'generate -v || gem install jenkins_pipeline_builder\ngenerate pipeline -c config/{{login_config}} pull_request pipeline/ {{name}}\n' }]
-          },
-          '{{name}}-10',
-          '{{name}}-11']
-      }
-    }
+  let(:application_name) { 'testapp' }
+  let(:git_url) { 'https://github.com' }
+  let(:git_org) { 'git_org' }
+  let(:git_repo) { 'git_repo' }
+  let(:prs) { (1..10).map { |n| "#{application_name}-PR#{n}" } }
+  let(:closed_prs) { (1..6).map { |n| "#{application_name}-PR#{n}" } }
+  let(:open_prs_json) { (7..10).map { |n| { number: n } }.to_json }
+  let(:url) { "#{git_url}/api/v3/repos/#{git_org}/#{git_repo}/pulls" }
+  let(:job_collection) do
+    double('job_collection',
+           defaults: { value: { application_name: application_name } },
+           jobs: [{ value: { scm_branch: 'master' } }])
   end
-  let(:jobs) do
-    {
-      '{{name}}-10' => {
-        name: '{{name}}-10',
-        type: :'job-template',
-        value: {
-          name: '{{name}}-10',
-          description: '{{description}}',
-          publishers: [{ downstream: { project: '{{job@{{name}}-11}}' } }]
-        }
-      },
-      '{{name}}-11' => {
-        name: '{{name}}-11',
-        type: :'job-template',
-        value: {
-          name: '{{name}}-11',
-          description: '{{description}}' }
-      }
-    }
+  subject do
+    JenkinsPipelineBuilder::PullRequestGenerator.new(
+      application_name: application_name,
+      git_url: git_url,
+      git_org: git_org,
+      git_repo: git_repo)
   end
-  let(:create_jobs) do
-    [
-      {
-        name: 'pull_req_test-PR5',
-        type: :project,
-        value: {
-          name: 'pull_req_test-PR5',
-          jobs: ['{{name}}-10',
-                 '{{name}}-11'],
-          pull_request_number: '5' }
-      },
-      {
-        name: 'pull_req_test-PR6',
-        type: :project,
-        value: {
-          name: 'pull_req_test-PR6',
-          jobs: ['{{name}}-10',
-                 '{{name}}-11'],
-          pull_request_number: '6'
-        }
-      }
-    ]
+
+  context '#delete_closed_prs' do
+    it 'deletes closed prs' do
+      stub_request(:get, "#{git_url}/api/v3/repos/#{git_org}/#{git_repo}/pulls")
+        .with(headers: { 'Accept' => '*/*',
+                         'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+                         'Host' => 'github.com',
+                         'User-Agent' => 'Ruby' })
+        .to_return(status: 200, body: open_prs_json, headers: {})
+      job = double('job')
+      expect(job).to receive(:list).with("#{application_name}-PR.*").and_return prs
+      client = double('client', job: job)
+      allow(JenkinsPipelineBuilder).to receive(:client).and_return client
+      closed_prs.each { |pr| expect(job).to receive(:delete).with(pr) }
+      subject.delete_closed_prs
+    end
   end
-  let(:generator) { JenkinsPipelineBuilder::Generator.new }
-  before do
-    # Request to get current pull requests from github
-    stub_request(:any, 'https://www.github.com/api/v3/repos/constantcontact/jenkins_pipeline_builder/pulls').to_return(body: '[{"number": 5,"state": "open","title": "Update README again" },{"number": 6,"state": "open",  "title": "Update README again2"}]')
-    stub_request(:any, 'http://username:password@127.0.0.1:8080/api/json').to_return(body: '{"assignedLabels":[{}],"mode":"NORMAL","nodeDescription":"the master Jenkins node","nodeName":"","numExecutors":2,"description":null,"jobs":[{"name":"PurgeTest-PR1","url":"http://localhost:8080/job/PurgeTest-PR1/","color":"notbuilt" },{"name":"PurgeTest-PR3","url":"http://localhost:8080/job/PurgeTest-PR3/","color":"notbuilt" },{"name":"PurgeTest-PR4","url":"http://localhost:8080/job/PurgeTest-PR4/","color":"notbuilt"}],"overallLoad":{},"primaryView":{"name":"All","url":"http://localhost:8080/" },"quietingDown":false,"slaveAgentPort":0,"unlabeledLoad":{},"useCrumbs":false,"useSecurity":true,"views":[{"name":"All","url":"http://localhost:8080/"}]}')
-  end
-  describe '#initialize' do
-    after(:all) do
-      FileUtils.rm_r 'pull_requests.csv'
+
+  context '#convert!' do
+    it 'converts the job application name' do
+      stub_request(:get, "#{git_url}/api/v3/repos/#{git_org}/#{git_repo}/pulls")
+        .with(headers: { 'Accept' => '*/*',
+                         'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+                         'Host' => 'github.com',
+                         'User-Agent' => 'Ruby' })
+        .to_return(status: 200, body: open_prs_json, headers: {})
+      collection = job_collection.clone
+      subject.convert! collection, 8
+      expect(collection.defaults[:value][:application_name]).to eq "#{application_name}-PR8"
     end
 
-    it 'can work without a csv' do
-      pending 'rework this'
-      pull = pull_request_generator.new(project, generator)
-      generator.job_collection.collection = jobs
-      expect(pull.purge.count).to eq(0)
-      expect(pull.create).to eq(create_jobs)
-    end
-    it 'can work with a csv' do
-      pending 'rework this'
-      pull = pull_request_generator.new(project, generator)
-      expect(pull.purge.count).to eq(0)
-      expect(pull.create).to eq(create_jobs)
+    it 'overrides the git params' do
+      stub_request(:get, "#{git_url}/api/v3/repos/#{git_org}/#{git_repo}/pulls")
+        .with(headers: { 'Accept' => '*/*',
+                         'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+                         'Host' => 'github.com',
+                         'User-Agent' => 'Ruby' })
+        .to_return(status: 200, body: open_prs_json, headers: {})
+      pr = 8
+      collection = job_collection.clone
+      subject.convert! collection, pr
+      expect(collection.jobs.first[:value]).to eq(
+        scm_branch: "origin/pr/#{pr}/head",
+        scm_params: {
+          refspec: "refs/pull/#{pr}/head:refs/remotes/origin/pr/#{pr}/head",
+          changelog_to_branch: { remote: 'origin', branch: "pr/#{pr}/head" }
+        }
+      )
     end
   end
 end

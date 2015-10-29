@@ -1,6 +1,6 @@
 #
 # Copyright (c) 2014 Constant Contact
-#
+j
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
@@ -48,29 +48,25 @@ module JenkinsPipelineBuilder
 
     def bootstrap(path, project_name = nil)
       logger.info "Bootstrapping pipeline from path #{path}"
-      job_collection.load_from_path(path)
-      job_collection.remote_dependencies.cleanup
-
-      if job_collection.projects.any?
-        errors = publish_project(project_name)
-      else
-        errors = publish_jobs(job_collection.standalone_jobs)
-      end
-      print_compile_errors errors
-      errors
+      load_job_collection path
+      publish(project_name || job_collection.projects.first[:name])
     end
 
     def pull_request(path, project_name)
       logger.info "Pull Request Generator Running from path #{path}"
-      job_collection.load_from_path(path)
-      job_collection.remote_dependencies.cleanup
-      logger.info "Project: #{job_collection.projects}"
-      errors = {}
-      job_collection.projects.each do |project|
-        next unless project[:name] == project_name || project_name.nil?
-        errors.merge! process_pull_request_project project
+      load_job_collection path
+      defaults = job_collection.defaults[:value]
+      pr_generator = PullRequestGenerator.new application_name: defaults[:application_name],
+                                              git_url: defaults[:github_site],
+                                              git_org: defaults[:git_org],
+                                              git_repo: defaults[:git_repo_name]
+      pr_generator.delete_closed_prs unless JenkinsPipelineBuilder.debug
+      errors = []
+      pr_generator.open_prs.each do |pr|
+        pr_generator.convert! job_collection, pr
+        error = publish(project_name)
+        errors << error unless error.empty?
       end
-      print_compile_errors errors
       errors.empty?
     end
 
@@ -112,6 +108,21 @@ module JenkinsPipelineBuilder
 
     private
 
+    def load_job_collection(path)
+      job_collection.load_from_path(path)
+      job_collection.remote_dependencies.cleanup
+    end
+
+    def publish(project_name)
+      if job_collection.projects.any?
+        errors = publish_project(project_name)
+      else
+        errors = publish_jobs(job_collection.standalone_jobs)
+      end
+      print_compile_errors errors
+      errors
+    end
+
     def process_project(project)
       project_body = project[:value]
       jobs = prepare_jobs(project_body[:jobs]) if project_body[:jobs]
@@ -137,15 +148,6 @@ module JenkinsPipelineBuilder
           puts "  #{error.inspect}"
         end
       end
-    end
-
-    def process_pull_request_project(project)
-      logger.info "Using Project #{project}"
-
-      pull_request_generator = JenkinsPipelineBuilder::PullRequestGenerator.new project, self
-
-      return {} if pull_request_generator.valid?
-      { pull_request_generator.pull_generator[:name] => pull_request_generator.errors }
     end
 
     def prepare_jobs(jobs)
@@ -221,15 +223,8 @@ module JenkinsPipelineBuilder
     end
 
     def publish_project(project_name)
-      errors = {}
-      found = false
-      job_collection.projects.each do |project|
-        next if project[:name] != project_name && !project_name.nil?
-        found = true
-        errors = create_jobs_and_views(project)
-      end
-      fail "Project #{project_name} not found!" unless found
-      errors
+      project = job_collection.projects.find { |p| p[:name] == project_name }
+      create_jobs_and_views(project || fail("Project #{project_name} not found!"))
     end
 
     def publish_jobs(jobs, errors = {})
