@@ -135,31 +135,32 @@ describe JenkinsPipelineBuilder::Generator do
     let(:path) { File.expand_path('../fixtures/generator_tests/pullrequest_pipeline', __FILE__) }
     it 'produces no errors while creating pipeline PullRequest' do
       job_name = 'PullRequest'
-      allow_any_instance_of(JenkinsPipelineBuilder::PullRequestGenerator).to receive(:check_for_pull).and_return([1])
-      allow_any_instance_of(JenkinsPipelineBuilder::PullRequestGenerator).to receive(:purge_jobs).and_return(true)
+      pr_generator = double('pr_generator')
+      expect(JenkinsPipelineBuilder::PullRequestGenerator).to receive(:new)
+        .with(hash_including(application_name: 'testapp',
+                             github_site: 'https://github.com',
+                             git_org: 'testorg',
+                             git_repo_name: 'generator_tests'))
+        .and_return(pr_generator)
+      expect(pr_generator).to receive(:delete_closed_prs)
+      expect(pr_generator).to receive(:convert!)
+      expect(pr_generator).to receive(:open_prs).and_return [1]
       success = @generator.pull_request(path, job_name)
       expect(success).to be_truthy
     end
 
     it 'correctly creates jobs when there are multiple pulls open' do
       job_name = 'PullRequest'
-      allow_any_instance_of(JenkinsPipelineBuilder::PullRequestGenerator).to receive(:check_for_pull).and_return([1, 2])
-      job1 = double name: 'job name'
-      job2 = double name: 'job name'
-      expect(JenkinsPipelineBuilder::Job).to receive(:new).once.with(
-        name: 'PullRequest-PR1-10-SampleJob', scm_branch: 'origin/pr/1/head', scm_params: {
-          refspec: 'refs/pull/1/head:refs/remotes/origin/pr/1/head',
-          changelog_to_branch: { remote: 'origin', branch: 'pr/1/head' }
-        }
-      ).and_return job1
-      expect(JenkinsPipelineBuilder::Job).to receive(:new).once.with(
-        name: 'PullRequest-PR2-10-SampleJob', scm_branch: 'origin/pr/2/head', scm_params: {
-          refspec: 'refs/pull/2/head:refs/remotes/origin/pr/2/head',
-          changelog_to_branch: { remote: 'origin', branch: 'pr/2/head' }
-        }
-      ).and_return job2
-      expect(job1).to receive(:create_or_update).and_return true
-      expect(job2).to receive(:create_or_update).and_return true
+      pr_generator = double('pr_generator')
+      expect(JenkinsPipelineBuilder::PullRequestGenerator).to receive(:new)
+        .with(hash_including(application_name: 'testapp',
+                             github_site: 'https://github.com',
+                             git_org: 'testorg',
+                             git_repo_name: 'generator_tests'))
+        .and_return(pr_generator)
+      expect(pr_generator).to receive(:delete_closed_prs)
+      expect(pr_generator).to receive(:convert!).twice
+      expect(pr_generator).to receive(:open_prs).and_return [1, 2]
       expect(@generator.pull_request(path, job_name)).to be_truthy
     end
     # Things to check for

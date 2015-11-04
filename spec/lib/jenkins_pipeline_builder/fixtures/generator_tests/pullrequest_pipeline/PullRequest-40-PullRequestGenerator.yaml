@@ -1,11 +1,5 @@
 - job:
     name: '{{name}}-40-PullRequestGenerator'
-    job_type: pull_request_generator
-    git_url: '{{git_url}}'
-    git_repo: '{{git_repo}}'
-    git_org: '{{git_org}}'
-    jobs: 
-      - '{{name}}-10-SampleJob'
     builders:
       - shell_command: |
           generate -v || gem install jenkins_pipeline_builder
