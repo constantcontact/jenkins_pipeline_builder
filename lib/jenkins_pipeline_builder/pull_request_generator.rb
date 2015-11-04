@@ -60,9 +60,13 @@ module JenkinsPipelineBuilder
       # Build the Git URL
       url = "#{git_url}/api/v3/repos/#{git_org}/#{git_repo}/pulls"
       # Download the JSON Data from the API
-      resp = Net::HTTP.get_response(URI.parse(url))
-      pulls = JSON.parse(resp.body)
-      pulls.map { |p| p['number'] }
+      begin
+        resp = Net::HTTP.get_response(URI.parse(url))
+        pulls = JSON.parse(resp.body)
+        pulls.map { |p| p['number'] }
+      rescue StandardError
+        raise 'Failed connecting to github!'
+      end
     end
   end
 end

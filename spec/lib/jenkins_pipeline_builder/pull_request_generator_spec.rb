@@ -25,6 +25,23 @@ describe JenkinsPipelineBuilder::PullRequestGenerator do
   end
   subject { JenkinsPipelineBuilder::PullRequestGenerator.new params }
 
+  context '#initialize' do
+    it 'fails when one of the params is not set' do
+      expect do
+        JenkinsPipelineBuilder::PullRequestGenerator.new(application_name: 'name')
+      end.to raise_error('Please set github_site, git_org and git_repo_name in your project.')
+    end
+    it 'fails when github is not reponding properly' do
+      stub_request(:get, url)
+        .with(headers: { 'Accept' => '*/*',
+                         'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+                         'Host' => 'github.com',
+                         'User-Agent' => 'Ruby' })
+        .to_raise 'error'
+      expect { subject }.to raise_error('Failed connecting to github!')
+    end
+  end
+
   context '#delete_closed_prs' do
     it 'deletes closed prs' do
       stub_request(:get, url)
@@ -39,6 +56,22 @@ describe JenkinsPipelineBuilder::PullRequestGenerator do
       expect(JenkinsPipelineBuilder).to receive(:debug).and_return false
       allow(JenkinsPipelineBuilder).to receive(:client).and_return client
       closed_prs.each { |pr| expect(job).to receive(:delete).with(pr) }
+      subject.delete_closed_prs
+    end
+
+    it 'does not fail when there are no closed prs' do
+      stub_request(:get, url)
+        .with(headers: { 'Accept' => '*/*',
+                         'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+                         'Host' => 'github.com',
+                         'User-Agent' => 'Ruby' })
+        .to_return(status: 200, body: open_prs_json, headers: {})
+      job = double('job')
+      expect(job).to receive(:list).with("#{application_name}-PR.*").and_return prs - closed_prs
+      client = double('client', job: job)
+      expect(JenkinsPipelineBuilder).to receive(:debug).and_return false
+      allow(JenkinsPipelineBuilder).to receive(:client).and_return client
+      expect(job).not_to receive(:delete)
       subject.delete_closed_prs
     end
   end
