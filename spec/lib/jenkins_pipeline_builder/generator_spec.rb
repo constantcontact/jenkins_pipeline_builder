@@ -137,11 +137,12 @@ describe JenkinsPipelineBuilder::Generator do
       job_name = 'PullRequest'
       pr_generator = double('pr_generator')
       expect(JenkinsPipelineBuilder::PullRequestGenerator).to receive(:new)
-        .with(application_name: 'testapp',
-              git_url: 'https://github.com',
-              git_org: 'testorg',
-              git_repo: 'generator_tests')
+        .with(hash_including(application_name: 'testapp',
+                             github_site: 'https://github.com',
+                             git_org: 'testorg',
+                             git_repo_name: 'generator_tests'))
         .and_return(pr_generator)
+      expect(pr_generator).to receive(:delete_closed_prs)
       expect(pr_generator).to receive(:convert!)
       expect(pr_generator).to receive(:open_prs).and_return [1]
       success = @generator.pull_request(path, job_name)
@@ -152,11 +153,12 @@ describe JenkinsPipelineBuilder::Generator do
       job_name = 'PullRequest'
       pr_generator = double('pr_generator')
       expect(JenkinsPipelineBuilder::PullRequestGenerator).to receive(:new)
-        .with(application_name: 'testapp',
-              git_url: 'https://github.com',
-              git_org: 'testorg',
-              git_repo: 'generator_tests')
+        .with(hash_including(application_name: 'testapp',
+                             github_site: 'https://github.com',
+                             git_org: 'testorg',
+                             git_repo_name: 'generator_tests'))
         .and_return(pr_generator)
+      expect(pr_generator).to receive(:delete_closed_prs)
       expect(pr_generator).to receive(:convert!).twice
       expect(pr_generator).to receive(:open_prs).and_return [1, 2]
       expect(@generator.pull_request(path, job_name)).to be_truthy

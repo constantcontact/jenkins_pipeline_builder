@@ -24,9 +24,9 @@ module JenkinsPipelineBuilder
     class NotFound < StandardError; end
     attr_accessor :open_prs, :application_name
 
-    def initialize(application_name: nil, git_url: nil, git_org: nil, git_repo: nil)
+    def initialize(application_name: nil, github_site: nil, git_org: nil, git_repo_name: nil)
       @application_name = application_name
-      @open_prs = open_pull_requests git_url: git_url, git_org: git_org, git_repo: git_repo
+      @open_prs = active_prs git_url: github_site, git_org: git_org, git_repo: git_repo_name
     end
 
     def convert!(job_collection, pr)
@@ -36,6 +36,7 @@ module JenkinsPipelineBuilder
     end
 
     def delete_closed_prs
+      return if JenkinsPipelineBuilder.debug
       jobs_to_delete = JenkinsPipelineBuilder.client.job.list "#{application_name}-PR.*"
       open_prs.each { |n| jobs_to_delete.reject! { |j| j.start_with? "#{application_name}-PR#{n}" } }
       jobs_to_delete.each { |j| JenkinsPipelineBuilder.client.job.delete j }
@@ -57,7 +58,7 @@ module JenkinsPipelineBuilder
       override
     end
 
-    def open_pull_requests(git_url: nil, git_org: nil, git_repo: nil)
+    def active_prs(git_url: nil, git_org: nil, git_repo: nil)
       (git_url && git_org && git_repo) || fail('Please set github_site, git_org and git_repo_name in your project.')
       # Build the Git URL
       url = "#{git_url}/api/v3/repos/#{git_org}/#{git_repo}/pulls"

@@ -3,29 +3,31 @@ require 'json'
 
 describe JenkinsPipelineBuilder::PullRequestGenerator do
   let(:application_name) { 'testapp' }
-  let(:git_url) { 'https://github.com' }
+  let(:github_site) { 'https://github.com' }
   let(:git_org) { 'git_org' }
-  let(:git_repo) { 'git_repo' }
+  let(:git_repo_name) { 'git_repo' }
   let(:prs) { (1..10).map { |n| "#{application_name}-PR#{n}" } }
   let(:closed_prs) { (1..6).map { |n| "#{application_name}-PR#{n}" } }
   let(:open_prs_json) { (7..10).map { |n| { number: n } }.to_json }
-  let(:url) { "#{git_url}/api/v3/repos/#{git_org}/#{git_repo}/pulls" }
+  let(:url) { "#{github_site}/api/v3/repos/#{git_org}/#{git_repo_name}/pulls" }
+  let(:params) do
+    {
+      github_site: github_site,
+      git_org: git_org,
+      git_repo_name: git_repo_name,
+      application_name: application_name
+    }
+  end
   let(:job_collection) do
     double('job_collection',
            defaults: { value: { application_name: application_name } },
            jobs: [{ value: { scm_branch: 'master' } }])
   end
-  subject do
-    JenkinsPipelineBuilder::PullRequestGenerator.new(
-      application_name: application_name,
-      git_url: git_url,
-      git_org: git_org,
-      git_repo: git_repo)
-  end
+  subject { JenkinsPipelineBuilder::PullRequestGenerator.new params }
 
   context '#delete_closed_prs' do
     it 'deletes closed prs' do
-      stub_request(:get, "#{git_url}/api/v3/repos/#{git_org}/#{git_repo}/pulls")
+      stub_request(:get, url)
         .with(headers: { 'Accept' => '*/*',
                          'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
                          'Host' => 'github.com',
@@ -34,6 +36,7 @@ describe JenkinsPipelineBuilder::PullRequestGenerator do
       job = double('job')
       expect(job).to receive(:list).with("#{application_name}-PR.*").and_return prs
       client = double('client', job: job)
+      expect(JenkinsPipelineBuilder).to receive(:debug).and_return false
       allow(JenkinsPipelineBuilder).to receive(:client).and_return client
       closed_prs.each { |pr| expect(job).to receive(:delete).with(pr) }
       subject.delete_closed_prs
@@ -42,7 +45,7 @@ describe JenkinsPipelineBuilder::PullRequestGenerator do
 
   context '#convert!' do
     it 'converts the job application name' do
-      stub_request(:get, "#{git_url}/api/v3/repos/#{git_org}/#{git_repo}/pulls")
+      stub_request(:get, url)
         .with(headers: { 'Accept' => '*/*',
                          'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
                          'Host' => 'github.com',
@@ -54,7 +57,7 @@ describe JenkinsPipelineBuilder::PullRequestGenerator do
     end
 
     it 'overrides the git params' do
-      stub_request(:get, "#{git_url}/api/v3/repos/#{git_org}/#{git_repo}/pulls")
+      stub_request(:get, url)
         .with(headers: { 'Accept' => '*/*',
                          'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
                          'Host' => 'github.com',

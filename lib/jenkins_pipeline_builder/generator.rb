@@ -55,11 +55,8 @@ module JenkinsPipelineBuilder
       logger.info "Pull Request Generator Running from path #{path}"
       load_job_collection path
       defaults = job_collection.defaults[:value]
-      pr_generator = PullRequestGenerator.new application_name: defaults[:application_name],
-                                              git_url: defaults[:github_site],
-                                              git_org: defaults[:git_org],
-                                              git_repo: defaults[:git_repo_name]
-      pr_generator.delete_closed_prs unless JenkinsPipelineBuilder.debug
+      pr_generator = PullRequestGenerator.new defaults
+      pr_generator.delete_closed_prs
       errors = []
       pr_generator.open_prs.each do |pr|
         pr_generator.convert! job_collection, pr
