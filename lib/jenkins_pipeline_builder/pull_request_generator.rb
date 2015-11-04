@@ -24,15 +24,14 @@ module JenkinsPipelineBuilder
     class NotFound < StandardError; end
     attr_accessor :open_prs, :application_name
 
-    def initialize(application_name: nil, github_site: nil, git_org: nil, git_repo_name: nil)
-      @application_name = application_name
-      @open_prs = active_prs git_url: github_site, git_org: git_org, git_repo: git_repo_name
+    def initialize(defaults = {})
+      @application_name = defaults[:application_name]
+      @open_prs = active_prs defaults[:github_site], defaults[:git_org], defaults[:git_repo_name]
     end
 
     def convert!(job_collection, pr)
       job_collection.defaults[:value][:application_name] = "#{application_name}-PR#{pr}"
-      override = overrides pr
-      job_collection.jobs.each { |j| j[:value].merge! override }
+      job_collection.jobs.each { |j| override j[:value], pr }
     end
 
     def delete_closed_prs
@@ -44,21 +43,17 @@ module JenkinsPipelineBuilder
 
     private
 
-    def overrides(pr)
+    def override(job, pr)
       git_version = JenkinsPipelineBuilder.registry.registry[:job][:scm_params].installed_version
-      override = {
-        scm_branch: "origin/pr/#{pr}/head",
-        scm_params: {
-          refspec: "refs/pull/#{pr}/head:refs/remotes/origin/pr/#{pr}/head"
-        }
-      }
-      override[:scm_params][:changelog_to_branch] = {
-        remote: 'origin', branch: "pr/#{pr}/head"
-      } if git_version >= Gem::Version.new(2.0)
-      override
+      job[:scm_branch] = "origin/pr/#{pr}/head"
+      job[:scm_params] ||= {}
+      job[:scm_params][:refspec] = "refs/pull/#{pr}/head:refs/remotes/origin/pr/#{pr}/head"
+      job[:scm_params][:changelog_to_branch] ||= {}
+      job[:scm_params][:changelog_to_branch]
+        .merge!(remote: 'origin', branch: "pr/#{pr}/head") if Gem::Version.new(2.0) < git_version
     end
 
-    def active_prs(git_url: nil, git_org: nil, git_repo: nil)
+    def active_prs(git_url, git_org, git_repo)
       (git_url && git_org && git_repo) || fail('Please set github_site, git_org and git_repo_name in your project.')
       # Build the Git URL
       url = "#{git_url}/api/v3/repos/#{git_org}/#{git_repo}/pulls"

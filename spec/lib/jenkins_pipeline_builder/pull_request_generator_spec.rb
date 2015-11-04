@@ -21,7 +21,7 @@ describe JenkinsPipelineBuilder::PullRequestGenerator do
   let(:job_collection) do
     double('job_collection',
            defaults: { value: { application_name: application_name } },
-           jobs: [{ value: { scm_branch: 'master' } }])
+           jobs: [{ value: { scm_branch: 'master', scm_params: { random: 'foo' } } }])
   end
   subject { JenkinsPipelineBuilder::PullRequestGenerator.new params }
 
@@ -70,7 +70,28 @@ describe JenkinsPipelineBuilder::PullRequestGenerator do
         scm_branch: "origin/pr/#{pr}/head",
         scm_params: {
           refspec: "refs/pull/#{pr}/head:refs/remotes/origin/pr/#{pr}/head",
-          changelog_to_branch: { remote: 'origin', branch: "pr/#{pr}/head" }
+          changelog_to_branch: { remote: 'origin', branch: "pr/#{pr}/head" },
+          random: 'foo'
+        }
+      )
+    end
+
+    it 'does not override extra params' do
+      stub_request(:get, url)
+        .with(headers: { 'Accept' => '*/*',
+                         'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+                         'Host' => 'github.com',
+                         'User-Agent' => 'Ruby' })
+        .to_return(status: 200, body: open_prs_json, headers: {})
+      pr = 8
+      collection = job_collection.clone
+      subject.convert! collection, pr
+      expect(collection.jobs.first[:value]).to eq(
+        scm_branch: "origin/pr/#{pr}/head",
+        scm_params: {
+          refspec: "refs/pull/#{pr}/head:refs/remotes/origin/pr/#{pr}/head",
+          changelog_to_branch: { remote: 'origin', branch: "pr/#{pr}/head" },
+          random: 'foo'
         }
       )
     end
