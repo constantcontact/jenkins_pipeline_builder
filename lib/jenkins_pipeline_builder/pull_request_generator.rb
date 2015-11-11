@@ -25,7 +25,7 @@ module JenkinsPipelineBuilder
     attr_accessor :open_prs, :application_name
 
     def initialize(defaults = {})
-      @application_name = defaults[:application_name]
+      @application_name = defaults[:application_name] || fail('Please set "application_name" in your project!')
       @open_prs = active_prs defaults[:github_site], defaults[:git_org], defaults[:git_repo_name]
     end
 
@@ -36,7 +36,7 @@ module JenkinsPipelineBuilder
 
     def delete_closed_prs
       return if JenkinsPipelineBuilder.debug
-      jobs_to_delete = JenkinsPipelineBuilder.client.job.list "#{application_name}-PR.*"
+      jobs_to_delete = JenkinsPipelineBuilder.client.job.list "^#{application_name}-PR.*"
       open_prs.each do |n|
         jobs_to_delete.reject! { |j| j.start_with? "#{application_name}-PR#{n}" }
       end
