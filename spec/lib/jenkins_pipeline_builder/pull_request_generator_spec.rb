@@ -56,7 +56,7 @@ describe JenkinsPipelineBuilder::PullRequestGenerator do
                          'User-Agent' => 'Ruby' })
         .to_return(status: 200, body: open_prs_json, headers: {})
       job = double('job')
-      expect(job).to receive(:list).with("^#{application_name}-PR.*").and_return prs
+      expect(job).to receive(:list).with("^#{application_name}-PR(\\d+)-(.*)$").and_return prs
       client = double('client', job: job)
       expect(JenkinsPipelineBuilder).to receive(:debug).and_return false
       allow(JenkinsPipelineBuilder).to receive(:client).and_return client
@@ -72,7 +72,7 @@ describe JenkinsPipelineBuilder::PullRequestGenerator do
                          'User-Agent' => 'Ruby' })
         .to_return(status: 200, body: open_prs_json, headers: {})
       job = double('job')
-      expect(job).to receive(:list).with("^#{application_name}-PR.*").and_return prs - closed_prs
+      expect(job).to receive(:list).with("^#{application_name}-PR(\\d+)-(.*)$").and_return prs - closed_prs
       client = double('client', job: job)
       expect(JenkinsPipelineBuilder).to receive(:debug).and_return false
       allow(JenkinsPipelineBuilder).to receive(:client).and_return client
