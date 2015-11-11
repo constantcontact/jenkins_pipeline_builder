@@ -36,7 +36,7 @@ module JenkinsPipelineBuilder
 
     def delete_closed_prs
       return if JenkinsPipelineBuilder.debug
-      jobs_to_delete = JenkinsPipelineBuilder.client.job.list "^#{application_name}-PR.*"
+      jobs_to_delete = JenkinsPipelineBuilder.client.job.list "^#{application_name}-PR(\\d+)-(.*)$"
       open_prs.each do |n|
         jobs_to_delete.reject! { |j| j.start_with? "#{application_name}-PR#{n}" }
       end
