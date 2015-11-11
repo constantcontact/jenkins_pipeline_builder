@@ -31,6 +31,11 @@ describe JenkinsPipelineBuilder::PullRequestGenerator do
         JenkinsPipelineBuilder::PullRequestGenerator.new(application_name: 'name')
       end.to raise_error('Please set github_site, git_org and git_repo_name in your project.')
     end
+    it 'fails when application_name is not set' do
+      expect do
+        JenkinsPipelineBuilder::PullRequestGenerator.new(github_site: 'foo', git_org: 'bar', git_repo_name: 'baz')
+      end.to raise_error('Please set "application_name" in your project!')
+    end
     it 'fails when github is not reponding properly' do
       stub_request(:get, url)
         .with(headers: { 'Accept' => '*/*',
@@ -51,7 +56,7 @@ describe JenkinsPipelineBuilder::PullRequestGenerator do
                          'User-Agent' => 'Ruby' })
         .to_return(status: 200, body: open_prs_json, headers: {})
       job = double('job')
-      expect(job).to receive(:list).with("#{application_name}-PR.*").and_return prs
+      expect(job).to receive(:list).with("^#{application_name}-PR.*").and_return prs
       client = double('client', job: job)
       expect(JenkinsPipelineBuilder).to receive(:debug).and_return false
       allow(JenkinsPipelineBuilder).to receive(:client).and_return client
@@ -67,7 +72,7 @@ describe JenkinsPipelineBuilder::PullRequestGenerator do
                          'User-Agent' => 'Ruby' })
         .to_return(status: 200, body: open_prs_json, headers: {})
       job = double('job')
-      expect(job).to receive(:list).with("#{application_name}-PR.*").and_return prs - closed_prs
+      expect(job).to receive(:list).with("^#{application_name}-PR.*").and_return prs - closed_prs
       client = double('client', job: job)
       expect(JenkinsPipelineBuilder).to receive(:debug).and_return false
       allow(JenkinsPipelineBuilder).to receive(:client).and_return client
