@@ -26,7 +26,6 @@ automating Job & Pipeline creation from the YAML files checked-in with your appl
   spec.add_dependency 'thor', '>= 0.18.0'
   spec.add_dependency 'activesupport'
   spec.add_dependency 'archive-tar-minitar'
-  spec.add_dependency 'pry'
 
   spec.add_development_dependency 'bundler', '~> 1.3'
   spec.add_development_dependency 'rake'
