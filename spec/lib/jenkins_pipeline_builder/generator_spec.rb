@@ -163,6 +163,24 @@ describe JenkinsPipelineBuilder::Generator do
       expect(pr_generator).to receive(:open_prs).and_return [1, 2]
       expect(@generator.pull_request(path, job_name)).to be_truthy
     end
+
+    it 'refreshes the project settings everytime' do
+      job_name = 'PullRequest'
+      pr_generator = double('pr_generator')
+      expect(JenkinsPipelineBuilder::PullRequestGenerator).to receive(:new)
+        .with(hash_including(application_name: 'testapp',
+                             github_site: 'https://github.com',
+                             git_org: 'testorg',
+                             git_repo_name: 'generator_tests'))
+        .and_return(pr_generator)
+      expect(pr_generator).to receive(:delete_closed_prs)
+      pr_generator.stub(:convert!) do |job_collection, pr|
+        job_collection.defaults[:value][:application_name] = "testapp-PR#{pr}"
+      end
+      expect(pr_generator).to receive(:open_prs).and_return [1, 2]
+      expect(@generator.pull_request(path, job_name)).to be_truthy
+      expect(@generator.job_collection.projects.first[:settings][:application_name]).to eq 'testapp-PR2'
+    end
     # Things to check for
     # Fail - no PR job type found
     # Encounters failure during build process

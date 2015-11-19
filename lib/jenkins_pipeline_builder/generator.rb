@@ -93,7 +93,7 @@ module JenkinsPipelineBuilder
       defaults = job_collection.defaults
       settings = defaults.nil? ? {} : defaults[:value] || {}
       compiler = JenkinsPipelineBuilder::Compiler.new self
-      project[:settings] = compiler.get_settings_bag(project, settings) unless project[:settings]
+      project[:settings] = compiler.get_settings_bag(project, settings)
 
       errors = process_project project
       print_project_errors errors
