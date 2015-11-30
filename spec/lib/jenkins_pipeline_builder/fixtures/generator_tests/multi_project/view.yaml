@@ -1,0 +1,5 @@
+- view:
+    name: '{{name}} View'
+    type: 'listview'
+    description: '{{description}}'
+    regex: '{{name}}.*'

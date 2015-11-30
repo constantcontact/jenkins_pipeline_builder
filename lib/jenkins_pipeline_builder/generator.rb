@@ -45,6 +45,11 @@ module JenkinsPipelineBuilder
       JenkinsPipelineBuilder::View.new(self)
     end
 
+    def projects(path)
+      load_job_collection path
+      job_collection.projects.map { |p| p[:name] }
+    end
+
     def bootstrap(path, project_name = nil)
       logger.info "Bootstrapping pipeline from path #{path}"
       load_job_collection path
