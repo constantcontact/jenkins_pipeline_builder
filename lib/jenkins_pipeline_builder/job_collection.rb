@@ -1,10 +1,13 @@
 module JenkinsPipelineBuilder
   class JobCollection
     attr_accessor :collection, :remote_dependencies
+    attr_reader :loaded
+    alias_method :loaded?, :loaded
 
     def initialize
       @collection = {}
       @remote_dependencies = RemoteDependencies.new self
+      @loaded = false
     end
 
     def clear_remote_dependencies
@@ -61,6 +64,7 @@ module JenkinsPipelineBuilder
       else
         load_file(path, remote)
       end
+      @loaded = true
     end
 
     private

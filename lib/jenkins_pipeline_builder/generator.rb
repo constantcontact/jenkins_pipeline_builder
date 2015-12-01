@@ -24,7 +24,7 @@ require 'json'
 
 module JenkinsPipelineBuilder
   class Generator
-    attr_accessor :no_files, :job_templates, :logger, :module_registry, :job_collection
+    attr_accessor :no_files, :job_templates, :module_registry, :job_collection
 
     def initialize
       @job_templates = {}
@@ -46,19 +46,19 @@ module JenkinsPipelineBuilder
     end
 
     def projects(path)
-      load_job_collection path
+      load_job_collection path unless job_collection.loaded?
       job_collection.projects.map { |p| p[:name] }
     end
 
     def bootstrap(path, project_name = nil)
       logger.info "Bootstrapping pipeline from path #{path}"
-      load_job_collection path
+      load_job_collection path unless job_collection.loaded?
       publish(project_name || job_collection.projects.first[:name])
     end
 
     def pull_request(path, project_name)
       logger.info "Pull Request Generator Running from path #{path}"
-      load_job_collection path
+      load_job_collection path unless job_collection.loaded?
       defaults = job_collection.defaults[:value]
       pr_generator = PullRequestGenerator.new defaults
       pr_generator.delete_closed_prs
