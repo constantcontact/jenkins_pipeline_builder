@@ -1,0 +1,28 @@
+- defaults:
+    name: global
+    description: 'Test pipeline for generator_spec.rb'
+
+- project:
+    name: SamplePipeline1
+    jobs:
+      - '{{name}}-10-Commit'
+      - '{{name}}-20-Acceptance'
+      - '{{name}}-30-Release'
+    views:
+      - '{{name}} View'
+- project:
+    name: SamplePipeline2
+    jobs:
+      - '{{name}}-10-Commit'
+      - '{{name}}-20-Acceptance'
+      - '{{name}}-30-Release'
+    views:
+      - '{{name}} View'
+- project:
+    name: SamplePipeline3
+    jobs:
+      - '{{name}}-10-Commit'
+      - '{{name}}-20-Acceptance'
+      - '{{name}}-30-Release'
+    views:
+      - '{{name}} View'

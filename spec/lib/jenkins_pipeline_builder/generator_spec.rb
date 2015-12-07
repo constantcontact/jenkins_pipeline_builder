@@ -231,6 +231,13 @@ describe JenkinsPipelineBuilder::Generator do
     end
   end
 
+  describe '#projects' do
+    it 'returns a list of projects' do
+      path = File.expand_path('../fixtures/generator_tests/multi_project', __FILE__)
+      expect(@generator.projects path).to eq %w(SamplePipeline1 SamplePipeline2 SamplePipeline3)
+    end
+  end
+
   describe '#file_mode' do
     before :each do
       allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
