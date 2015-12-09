@@ -389,13 +389,13 @@ builder do
     jenkins_name 'SonarQube Plugin'
     announced false
     parameters [
-                   :sonarInstallation,
-                   :taskToRun,
-                   :jdk,
-                   :pathToProjectProperties,
-                   :projectProperties,
-                   :jvmOptions
-               ]
+      :sonarInstallation,
+      :taskToRun,
+      :jdk,
+      :pathToProjectProperties,
+      :projectProperties,
+      :jvmOptions
+    ]
 
     xml do |params|
       send('hudson.plugins.sonar.SonarRunnerBuilder', 'plugin' => 'sonar@2.1') do
