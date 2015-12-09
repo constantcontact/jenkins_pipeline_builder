@@ -315,6 +315,7 @@ publisher do
       settings class: 'jenkins.mvn.DefaultSettingsProvider'
       globalSettings class: 'jenkins.mvn.DefaultGlobalSettingsProvider'
       usePrivateRepository false
+      installationName params[:installation_name]
     end
   end
 end
