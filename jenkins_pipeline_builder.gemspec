@@ -33,7 +33,7 @@ automating Job & Pipeline creation from the YAML files checked-in with your appl
   spec.add_development_dependency 'bump'
   spec.add_development_dependency 'json'
   spec.add_development_dependency 'gem-release'
-  spec.add_development_dependency 'pry'
+  spec.add_development_dependency 'byebug'
   spec.add_development_dependency 'simplecov'
   spec.add_development_dependency 'simplecov-rcov'
   spec.add_development_dependency 'kwalify'

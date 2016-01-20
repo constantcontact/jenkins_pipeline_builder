@@ -10,12 +10,10 @@ module JenkinsPipelineBuilder
 
     def publish
       success, payload = resolve_project(input)
-      if success
-        logger.info 'successfully resolved project'
-        compiled_project = payload
-      else
-        return { project_name: 'Failed to resolve' }
-      end
+      return { project_name: 'Failed to resolve' } unless success
+
+      logger.info 'successfully resolved project'
+      compiled_project = payload
 
       self.errors = publish_jobs(compiled_project[:value][:jobs]) if compiled_project[:value][:jobs]
       return unless compiled_project[:value][:views]

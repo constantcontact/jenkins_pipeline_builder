@@ -59,7 +59,7 @@ module JenkinsPipelineBuilder
 
     def local_output(xml)
       logger.info "Will create job #{job}"
-      logger.info "#{xml}" if @debug
+      logger.info xml.to_s if @debug
       FileUtils.mkdir_p(out_dir) unless File.exist?(out_dir)
       File.open("#{out_dir}/#{name}.xml", 'w') { |f| f.write xml }
       [true, nil]

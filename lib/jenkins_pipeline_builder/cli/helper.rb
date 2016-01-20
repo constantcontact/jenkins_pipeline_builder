@@ -71,11 +71,8 @@ module JenkinsPipelineBuilder
       end
 
       def self.process_creds_file(file)
-        if file.end_with? 'json'
-          return JSON.parse(IO.read(File.expand_path(file)))
-        else
-          return YAML.load_file(File.expand_path(file))
-        end
+        return JSON.parse(IO.read(File.expand_path(file))) if file.end_with? 'json'
+        YAML.load_file(File.expand_path(file))
       end
 
       def self.process_cli_creds(options)

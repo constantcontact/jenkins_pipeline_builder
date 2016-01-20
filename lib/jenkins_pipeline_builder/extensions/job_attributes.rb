@@ -32,7 +32,7 @@ job_attribute do
   end
 
   xml path: '//project' do |description|
-    description "#{description}"
+    description description.to_s
   end
 end
 
@@ -44,7 +44,7 @@ job_attribute do
   announced false
 
   xml path: '//project' do |jdk|
-    jdk "#{jdk}"
+    jdk jdk.to_s
   end
 end
 
@@ -60,7 +60,7 @@ job_attribute do
   end
 
   xml path: '//project' do |disabled|
-    disabled "#{disabled}"
+    disabled disabled.to_s
   end
 end
 
@@ -257,7 +257,7 @@ job_attribute do
     send('hudson.model.ParametersDefinitionProperty') do
       parameterDefinitions do
         params.each do |param|
-          send(params.param_type param) do
+          send(params.param_type(param)) do
             name param[:name]
             description param[:description]
             defaultValue param[:default]

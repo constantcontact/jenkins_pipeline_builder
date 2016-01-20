@@ -282,14 +282,10 @@ builder do
       else
         send('selector', 'class' => 'hudson.plugins.copyartifact.StatusBuildSelector')
       end
-      if params[:fingerprint].nil?
+      if params[:fingerprint].nil? || params[:fingerprint].to_s == 'true'
         doNotFingerprintArtifacts false
       else
-        if params[:fingerprint].to_s == 'true'
-          doNotFingerprintArtifacts false
-        else
-          doNotFingerprintArtifacts true
-        end
+        doNotFingerprintArtifacts true
       end
       flatten true if params[:flatten]
       optional true if params[:optional]

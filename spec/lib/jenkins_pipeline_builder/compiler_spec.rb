@@ -63,7 +63,7 @@ describe JenkinsPipelineBuilder::Compiler do
         builders: [{ shell_command: "echo 'Running DummyPipeline'" }]
       }
       result = compiler.compile(job, settings_bag)
-      expect(result[1]).to eq(job_compiled)
+      expect(result).to eq(job_compiled)
     end
 
     it 'compiles a job with a downstream name change' do
@@ -96,7 +96,7 @@ describe JenkinsPipelineBuilder::Compiler do
         publishers: [{ downstream: { project: 'DummyPipeline-02' } }]
       }
       result = compiler.compile(job, settings_bag)
-      expect(result[1]).to eq(job_compiled)
+      expect(result).to eq(job_compiled)
     end
 
     it 'compiles an enabled job with a string parameter' do
@@ -107,7 +107,7 @@ describe JenkinsPipelineBuilder::Compiler do
       settings_bag = { var: 'this_is_a_var', name: 'name' }
 
       result = compiler.compile(my_job, settings_bag)
-      expect(result[1]).to eq(compiled_job)
+      expect(result).to eq(compiled_job)
     end
   end
 
@@ -115,39 +115,34 @@ describe JenkinsPipelineBuilder::Compiler do
     it 'generates correct new jobs with true' do
       item = { enabled: '{{use1}}', parameters: { rootPom: 'path_to_pomasd' } }
       settings = { name: 'PushTest', description: 'DB Pipeline tooling', git_repo: 'git@github.roving.com:devops/DBPipeline.git', git_branch: 'master', excluded_user: 'buildmaster', hipchat_room: 'CD Builds', hipchat_auth_token: 'f3e98ed54605b36f56dd2c562e3775', discard_days: '30', discard_number: '100', maven_name: 'tools-maven-3.0.3', hipchat_jenkins_url: 'https://cd-jenkins.ad.prodcc.net/', use1: true }
-      success, item = compiler.handle_enable(item, settings)
-      expect(success).to be true
+      item = compiler.handle_enable(item, settings)
       expect(item).to eq(rootPom: 'path_to_pomasd')
     end
 
     it 'generates correct new jobs when the params are a string' do
       item = { enabled: '{{use1}}', parameters: 'path_to_pomasd' }
       settings = { name: 'PushTest', description: 'DB Pipeline tooling', git_repo: 'git@github.roving.com:devops/DBPipeline.git', git_branch: 'master', excluded_user: 'buildmaster', hipchat_room: 'CD Builds', hipchat_auth_token: 'f3e98ed54605b36f56dd2c562e3775', discard_days: '30', discard_number: '100', maven_name: 'tools-maven-3.0.3', hipchat_jenkins_url: 'https://cd-jenkins.ad.prodcc.net/', use1: true }
-      success, item = compiler.handle_enable(item, settings)
-      expect(success).to be true
+      item = compiler.handle_enable(item, settings)
       expect(item).to eq('path_to_pomasd')
     end
 
     it 'generates correct new jobs with false' do
       item = { enabled: '{{use1}}', parameters: { rootPom: 'path_to_pomasd' } }
       settings = { name: 'PushTest', description: 'DB Pipeline tooling', git_repo: 'git@github.roving.com:devops/DBPipeline.git', git_branch: 'master', excluded_user: 'buildmaster', hipchat_room: 'CD Builds', hipchat_auth_token: 'f3e98ed54605b36f56dd2c562e3775', discard_days: '30', discard_number: '100', maven_name: 'tools-maven-3.0.3', hipchat_jenkins_url: 'https://cd-jenkins.ad.prodcc.net/', use1: false }
-      success, item = compiler.handle_enable(item, settings)
-      expect(success).to be true
+      item = compiler.handle_enable(item, settings)
       expect(item).to eq({})
     end
 
     it 'fails when value not found' do
       item = { enabled: '{{use_fail}}', parameters: { rootPom: 'path_to_pomasd' } }
       settings = { name: 'PushTest', description: 'DB Pipeline tooling', git_repo: 'git@github.roving.com:devops/DBPipeline.git', git_branch: 'master', excluded_user: 'buildmaster', hipchat_room: 'CD Builds', hipchat_auth_token: 'f3e98ed54605b36f56dd2c562e3775', discard_days: '30', discard_number: '100', maven_name: 'tools-maven-3.0.3', hipchat_jenkins_url: 'https://cd-jenkins.ad.prodcc.net/', use1: true }
-      success, _item = compiler.handle_enable(item, settings)
-      expect(success).to be false
+      expect { compiler.handle_enable(item, settings) }.to raise_error(/Could not find defined substitution variable: use_fail/)
     end
 
     it 'removes empty builders' do
       item = { enabled: '{{use}}', parameters: { rootPom: 'one' } }
       settings = { name: 'PushTest', description: 'DB Pipeline tooling', git_repo: 'git@github.roving.com:devops/DBPipeline.git', git_branch: 'master', excluded_user: 'buildmaster', hipchat_room: 'CD Builds', hipchat_auth_token: 'f3e98ed54605b36f56dd2c562e3775', discard_days: '30', discard_number: '100', maven_name: 'tools-maven-3.0.3', hipchat_jenkins_url: 'https://cd-jenkins.ad.prodcc.net/', use: false }
-      success, result = compiler.handle_enable(item, settings)
-      expect(success).to be true
+      result = compiler.handle_enable(item, settings)
       expect(result).to eq({})
     end
   end

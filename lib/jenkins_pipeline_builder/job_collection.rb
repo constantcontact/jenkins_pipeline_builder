@@ -2,7 +2,7 @@ module JenkinsPipelineBuilder
   class JobCollection
     attr_accessor :collection, :remote_dependencies
     attr_reader :loaded
-    alias_method :loaded?, :loaded
+    alias loaded? loaded
 
     def initialize
       @collection = {}
@@ -70,15 +70,17 @@ module JenkinsPipelineBuilder
     private
 
     def load_file(path, remote = false)
-      if path.end_with? 'json'
-        hash = JSON.parse(IO.read(path))
-      else # elsif path.end_with?("yml") || path.end_with?("yaml")
-        hash = YAML.load_file(path)
-      end
+      hash = if path.end_with? 'json'
+               JSON.parse(IO.read(path))
+             else # elsif path.end_with?("yml") || path.end_with?("yaml")
+               YAML.load_file(path)
+             end
       logger.info "Loading file #{path}"
       hash.each do |section|
         load_section section, remote
       end
+    rescue StandardError => err
+      raise "There was an error while parsing a file #{err.message}"
     end
 
     def load_section(section, remote)
@@ -100,14 +102,10 @@ module JenkinsPipelineBuilder
       if collection.key?(name)
         existing_remote = collection[name.to_s][:remote]
         # skip if the existing item is local and the new item is remote
-        if remote && !existing_remote
-          return
-          # override if the existing item is remote and the new is local
-        elsif existing_remote && !remote
-          logger.info "Duplicate item with name '#{name}' was detected from the remote folder."
-        else
-          fail "Duplicate item with name '#{name}' was detected."
-        end
+        return if remote && !existing_remote
+        fail "Duplicate item with name '#{name}' was detected." unless existing_remote && !remote
+        # override if the existing item is remote and the new is local
+        logger.info "Duplicate item with name '#{name}' was detected from the remote folder."
       end
       collection[name.to_s] = { name: name.to_s, type: key, value: value, remote: remote }
     end

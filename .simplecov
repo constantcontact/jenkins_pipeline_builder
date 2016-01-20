@@ -3,10 +3,10 @@ SimpleCov.profiles.define 'spec' do
   add_group 'jenkins_pipeline_builder', '/lib/'
   add_filter 'spec'
   coverage_dir 'out/coverage'
-  formatter SimpleCov::Formatter::MultiFormatter[
+  formatter SimpleCov::Formatter::MultiFormatter.new([
                 SimpleCov::Formatter::Console,
                 SimpleCov::Formatter::RcovFormatter,
-            ]
+            ])
 end
 
 class SimpleCov::Formatter::Console

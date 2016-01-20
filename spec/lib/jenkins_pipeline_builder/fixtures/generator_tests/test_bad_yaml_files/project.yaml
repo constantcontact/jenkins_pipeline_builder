@@ -1,0 +1,8 @@
+- defaults:
+    name: global
+    description: 'Tests, all the tests'
+
+- project:
+    name: BadTestProject
+    jobs:
+      - '{{name}}-part1'
