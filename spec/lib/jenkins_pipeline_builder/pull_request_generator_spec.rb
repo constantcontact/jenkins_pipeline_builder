@@ -82,25 +82,28 @@ describe JenkinsPipelineBuilder::PullRequestGenerator do
   end
 
   context '#convert!' do
-    it 'converts the job application name' do
+    before(:each) do
       stub_request(:get, url)
         .with(headers: { 'Accept' => '*/*',
                          'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
                          'Host' => 'github.com',
                          'User-Agent' => 'Ruby' })
         .to_return(status: 200, body: open_prs_json, headers: {})
+    end
+
+    it 'converts the job application name' do
       collection = job_collection.clone
       subject.convert! collection, 8
       expect(collection.defaults[:value][:application_name]).to eq "#{application_name}-PR8"
     end
 
+    it 'provides the PR number to the job settings' do
+      collection = job_collection.clone
+      subject.convert! collection, 8
+      expect(collection.defaults[:value][:pull_request_number]).to eq '8'
+    end
+
     it 'overrides the git params' do
-      stub_request(:get, url)
-        .with(headers: { 'Accept' => '*/*',
-                         'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
-                         'Host' => 'github.com',
-                         'User-Agent' => 'Ruby' })
-        .to_return(status: 200, body: open_prs_json, headers: {})
       pr = 8
       collection = job_collection.clone
       subject.convert! collection, pr
@@ -115,12 +118,6 @@ describe JenkinsPipelineBuilder::PullRequestGenerator do
     end
 
     it 'does not override extra params' do
-      stub_request(:get, url)
-        .with(headers: { 'Accept' => '*/*',
-                         'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
-                         'Host' => 'github.com',
-                         'User-Agent' => 'Ruby' })
-        .to_return(status: 200, body: open_prs_json, headers: {})
       pr = 8
       collection = job_collection.clone
       subject.convert! collection, pr

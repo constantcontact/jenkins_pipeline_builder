@@ -31,7 +31,7 @@ module JenkinsPipelineBuilder
 
     def convert!(job_collection, pr)
       job_collection.defaults[:value][:application_name] = "#{application_name}-PR#{pr}"
-      job_collection.defaults[:value][:pull_request_number] = pr
+      job_collection.defaults[:value][:pull_request_number] = pr.to_s
       job_collection.jobs.each { |j| override j[:value], pr }
     end
 
