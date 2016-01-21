@@ -2,6 +2,8 @@ language: ruby
 rvm:
 - 2.1.4
 - 2.0.0
+before_install: 
+  - gem install bundler
 deploy:
   provider: rubygems
   api_key:
