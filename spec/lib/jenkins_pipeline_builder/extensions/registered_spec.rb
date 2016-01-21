@@ -40,7 +40,9 @@ BUILDERS = {
   remote_job: ['0'],
   shell_command: ['0'],
   checkmarx_scan: ['0'],
-  system_groovy: ['0']
+  system_groovy: ['0'],
+  sonar_standalone: ['0']
+
 }
 TRIGGERS = {
   git_push: ['0'],

@@ -37,6 +37,7 @@ require 'jenkins_pipeline_builder/generator'
 module JenkinsPipelineBuilder
   class << self
     attr_reader :client, :credentials, :debug, :file_mode
+    attr_writer :logger
     def generator
       @_generator ||= Generator.new
     end
@@ -51,23 +52,22 @@ module JenkinsPipelineBuilder
 
     def debug!
       @debug = true
-      @client.logger.level = Logger::DEBUG
+      logger.level = Logger::DEBUG
     end
 
     def no_debug!
       @debug = false
-      @client.logger.level = Logger::INFO
+      logger.level = Logger::INFO
     end
 
     def credentials=(creds)
       @credentials = creds
       @client = JenkinsApi::Client.new(credentials)
-      generator.logger = @client.logger
       @credentials
     end
 
     def logger
-      client.logger
+      @logger ||= client ? client.logger : Logger.new(STDOUT)
     end
 
     def registry
