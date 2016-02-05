@@ -86,7 +86,7 @@ module JenkinsPipelineBuilder
 
     def resolve_job_by_name(name, settings = {})
       job = job_collection.get_item(name)
-      fail "Failed to locate job by name '#{name}'" if job.nil?
+      raise "Failed to locate job by name '#{name}'" if job.nil?
       job_value = job[:value]
       logger.debug "Compiling job #{name}"
       compiler = JenkinsPipelineBuilder::Compiler.new self
@@ -220,14 +220,14 @@ module JenkinsPipelineBuilder
 
     def publish_project(project_name)
       project = job_collection.projects.find { |p| p[:name] == project_name }
-      create_jobs_and_views(project || fail("Project #{project_name} not found!"))
+      create_jobs_and_views(project || raise("Project #{project_name} not found!"))
     end
 
     def publish_jobs(jobs, errors = {})
       jobs.each do |i|
         logger.info "Processing #{i}"
         job = i[:result]
-        fail "Result is empty for #{i}" if job.nil?
+        raise "Result is empty for #{i}" if job.nil?
         job = Job.new job
         success, payload = job.create_or_update
         errors[job.name] = payload unless success

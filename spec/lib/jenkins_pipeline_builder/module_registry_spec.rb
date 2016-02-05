@@ -96,7 +96,7 @@ describe JenkinsPipelineBuilder::ModuleRegistry do
     end
 
     it 'calls the xml block when executing the item' do
-      @ext.xml -> (_) { fail XmlException, 'foo' }
+      @ext.xml -> (_) { raise XmlException, 'foo' }
 
       expect do
         JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
@@ -104,7 +104,7 @@ describe JenkinsPipelineBuilder::ModuleRegistry do
     end
 
     it 'calls the before block' do
-      @ext.before -> (_) { fail BeforeException, 'foo' }
+      @ext.before -> (_) { raise BeforeException, 'foo' }
 
       expect do
         JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
@@ -112,7 +112,7 @@ describe JenkinsPipelineBuilder::ModuleRegistry do
     end
 
     it 'calls the after block' do
-      @ext.after -> (_) { fail AfterException, 'foo' }
+      @ext.after -> (_) { raise AfterException, 'foo' }
 
       expect do
         JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
@@ -132,7 +132,7 @@ describe JenkinsPipelineBuilder::ModuleRegistry do
           plugin_id 'unorderedTest'
 
           before do
-            fail BeforeException, 'foo'
+            raise BeforeException, 'foo'
           end
 
           xml do
@@ -154,7 +154,7 @@ describe JenkinsPipelineBuilder::ModuleRegistry do
           plugin_id 'unorderedTest'
 
           after do
-            fail AfterException, 'foo'
+            raise AfterException, 'foo'
           end
 
           xml do
@@ -176,7 +176,7 @@ describe JenkinsPipelineBuilder::ModuleRegistry do
           plugin_id 'unorderedTest'
 
           xml do
-            fail XmlException, 'foo'
+            raise XmlException, 'foo'
           end
 
           after do

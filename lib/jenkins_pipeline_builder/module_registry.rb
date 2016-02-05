@@ -90,7 +90,7 @@ module JenkinsPipelineBuilder
       params.each do |key, value|
         next unless registry.is_a? Hash
         unless registry.key? key
-          fail "!!!! could not find key #{key} !!!!" if strict
+          raise "!!!! could not find key #{key} !!!!" if strict
           next
         end
         reg_value = registry[key]
@@ -115,7 +115,7 @@ module JenkinsPipelineBuilder
     def execute_extension(ext, value, n_xml)
       logger.debug "Using #{ext.type} #{ext.name} version #{ext.min_version}"
       success = ext.execute value, n_xml
-      fail 'Encountered errors compiling the xml' unless success
+      raise 'Encountered errors compiling the xml' unless success
     end
   end
 end

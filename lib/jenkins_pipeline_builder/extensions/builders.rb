@@ -303,10 +303,10 @@ builder do
   xml do |params|
     send('hudson.plugins.groovy.SystemGroovy', 'plugin' => 'groovy@1.24') do
       if params.key?(:script) && params.key?(:file)
-        fail 'Configuration invalid. Both \'script\' and \'file\' keys can not be specified'
+        raise 'Configuration invalid. Both \'script\' and \'file\' keys can not be specified'
       end
       unless params.key?(:script) || params.key?(:file)
-        fail 'Configuration invalid. At least one of \'script\' and \'file\' keys must be specified'
+        raise 'Configuration invalid. At least one of \'script\' and \'file\' keys must be specified'
       end
 
       scriptSource('class' => 'hudson.plugins.groovy.StringScriptSource') do

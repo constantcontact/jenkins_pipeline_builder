@@ -54,7 +54,7 @@ module JenkinsPipelineBuilder
       return @version if @version
       reg = JenkinsPipelineBuilder.registry
       version = reg.versions[settings[:plugin_id]]
-      fail "Plugin #{settings[:name]} is not installed (plugin_id: #{settings[:plugin_id]})" if version.nil?
+      raise "Plugin #{settings[:name]} is not installed (plugin_id: #{settings[:plugin_id]})" if version.nil?
       self.installed_version = version
       @version
     end
@@ -66,7 +66,7 @@ module JenkinsPipelineBuilder
       extension = versions[highest_allowed_version]
 
       unless extension
-        fail "Can't find version of #{name} lte #{installed_version}, available versions: #{versions.keys.map(&:to_s)}"
+        raise "Can't find version of #{name} lte #{installed_version}, available versions: #{versions.keys.map(&:to_s)}"
       end
       extension
     end
@@ -81,7 +81,7 @@ module JenkinsPipelineBuilder
       mismatch.each do |error|
         puts error
       end
-      fail 'Values did not match, cannot merge extension sets' if mismatch.any?
+      raise 'Values did not match, cannot merge extension sets' if mismatch.any?
 
       self.extensions = versions.merge(other_set.versions).values
     end
@@ -100,7 +100,7 @@ module JenkinsPipelineBuilder
         deprecation_warning(settings[:name], 'xml')
       end
       unless block
-        fail "no block found for version #{version}" unless blocks.key version
+        raise "no block found for version #{version}" unless blocks.key version
         return blocks[version][:block]
       end
       store_xml version, block, path

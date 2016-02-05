@@ -25,7 +25,7 @@ module JenkinsPipelineBuilder
     attr_accessor :open_prs, :application_name
 
     def initialize(defaults = {})
-      @application_name = defaults[:application_name] || fail('Please set "application_name" in your project!')
+      @application_name = defaults[:application_name] || raise('Please set "application_name" in your project!')
       @open_prs = active_prs defaults[:github_site], defaults[:git_org], defaults[:git_repo_name]
     end
 
@@ -57,7 +57,7 @@ module JenkinsPipelineBuilder
     end
 
     def active_prs(git_url, git_org, git_repo)
-      (git_url && git_org && git_repo) || fail('Please set github_site, git_org and git_repo_name in your project.')
+      (git_url && git_org && git_repo) || raise('Please set github_site, git_org and git_repo_name in your project.')
       # Build the Git URL
       url = "#{git_url}/api/v3/repos/#{git_org}/#{git_repo}/pulls"
       # Download the JSON Data from the API

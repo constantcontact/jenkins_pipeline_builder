@@ -29,7 +29,7 @@ module JenkinsPipelineBuilder
     end
 
     def to_xml
-      fail 'Job name is not specified' unless name
+      raise 'Job name is not specified' unless name
 
       logger.info "Creating Yaml Job #{job}"
       job[:job_type] = 'free_style' unless job[:job_type]
@@ -112,7 +112,7 @@ module JenkinsPipelineBuilder
       # I'm pretty unclear what these templates are...
       if params.key?(:template)
         template_name = params[:template]
-        fail "Job template '#{template_name}' can't be resolved." unless @job_templates.key?(template_name)
+        raise "Job template '#{template_name}' can't be resolved." unless @job_templates.key?(template_name)
         params.delete(:template)
         template = @job_templates[template_name]
         puts "Template found: #{template}"

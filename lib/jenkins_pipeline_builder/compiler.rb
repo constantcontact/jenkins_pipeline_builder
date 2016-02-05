@@ -71,7 +71,7 @@ module JenkinsPipelineBuilder
         enabled_switch = resolve_value(item[:enabled], settings)
         return {} if enabled_switch == 'false'
         if enabled_switch != 'true'
-          fail "Invalid value for #{item[:enabled]}: #{enabled_switch}"
+          raise "Invalid value for #{item[:enabled]}: #{enabled_switch}"
         end
         if item[:parameters].is_a? Hash
           item = item.merge item[:parameters]
@@ -106,18 +106,18 @@ module JenkinsPipelineBuilder
     end
 
     def compile_array_item(item, settings, array)
-      fail "Found a nil value when processing following array:\n #{array.inspect}" if item.nil?
+      raise "Found a nil value when processing following array:\n #{array.inspect}" if item.nil?
       payload = compile(item, settings)
-      fail "Failed to resolve:\n===>item #{item}\n\n===>of list: #{array.inspect}" if payload.nil?
+      raise "Failed to resolve:\n===>item #{item}\n\n===>of list: #{array.inspect}" if payload.nil?
       payload
     end
 
     def compile_item(key, value, settings)
       if value.nil?
-        fail "key: #{key} has a nil value, this is often a yaml syntax error. Skipping children and siblings"
+        raise "key: #{key} has a nil value, this is often a yaml syntax error. Skipping children and siblings"
       end
       payload = compile(value, settings)
-      fail "Failed to resolve:\n===>key: #{key}\n\n===>value: #{value} payload" if payload.nil?
+      raise "Failed to resolve:\n===>key: #{key}\n\n===>value: #{value} payload" if payload.nil?
       payload
     end
 
@@ -152,7 +152,7 @@ module JenkinsPipelineBuilder
       vars = value_s.scan(/{{([^{}@]+)}}/).flatten
       vars.select! do |var|
         var_val = settings[var]
-        fail "Could not find defined substitution variable: #{var}" if var_val.nil?
+        raise "Could not find defined substitution variable: #{var}" if var_val.nil?
         value_s.gsub!("{{#{var}}}", var_val.to_s)
         var_val.nil?
       end

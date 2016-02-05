@@ -169,7 +169,7 @@ job_attribute do
       extensions do
         if params[:changelog_to_branch]
           opts = params[:changelog_to_branch]
-          fail 'remote and branch are required for changelog_to_branch' unless opts[:remote] && opts[:branch]
+          raise 'remote and branch are required for changelog_to_branch' unless opts[:remote] && opts[:branch]
           send('hudson.plugins.git.extensions.impl.ChangelogToBranch') do
             options do
               compareRemote opts[:remote]
@@ -215,7 +215,7 @@ job_attribute do
   announced false
 
   xml path: '//properties' do |params|
-    fail 'No HipChat room specified' unless params[:room]
+    raise 'No HipChat room specified' unless params[:room]
 
     send('jenkins.plugins.hipchat.HipChatNotifier_-HipChatJobProperty') do
       room params[:room]

@@ -103,7 +103,7 @@ module JenkinsPipelineBuilder
         existing_remote = collection[name.to_s][:remote]
         # skip if the existing item is local and the new item is remote
         return if remote && !existing_remote
-        fail "Duplicate item with name '#{name}' was detected." unless existing_remote && !remote
+        raise "Duplicate item with name '#{name}' was detected." unless existing_remote && !remote
         # override if the existing item is remote and the new is local
         logger.info "Duplicate item with name '#{name}' was detected from the remote folder."
       end
