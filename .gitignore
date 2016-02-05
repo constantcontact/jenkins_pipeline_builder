@@ -4,3 +4,4 @@ Gemfile.lock
 *.gem
 .DS_Store
 .idea
+.byebug_history

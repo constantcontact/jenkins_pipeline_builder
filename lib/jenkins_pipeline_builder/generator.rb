@@ -90,7 +90,7 @@ module JenkinsPipelineBuilder
       job_value = job[:value]
       logger.debug "Compiling job #{name}"
       compiler = JenkinsPipelineBuilder::Compiler.new self
-      success, payload = compiler.compile(job_value, settings)
+      success, payload = compiler.compile_job(job_value, settings)
       [success, payload]
     end
 
@@ -115,11 +115,11 @@ module JenkinsPipelineBuilder
     end
 
     def publish(project_name)
-      if job_collection.projects.any?
-        errors = publish_project(project_name)
-      else
-        errors = publish_jobs(job_collection.standalone_jobs)
-      end
+      errors = if job_collection.projects.any?
+                 publish_project(project_name)
+               else
+                 publish_jobs(job_collection.standalone_jobs)
+               end
       print_compile_errors errors
       errors
     end
@@ -142,12 +142,9 @@ module JenkinsPipelineBuilder
     end
 
     def print_project_errors(errors)
-      errors.each do |k, v|
-        puts "Encountered errors processing: #{k}:"
-        v.each do |key, error|
-          puts "  key: #{key} had the following error:"
-          puts "  #{error.inspect}"
-        end
+      errors.each do |error|
+        puts 'Encountered errors processing:'
+        puts error.inspect
       end
     end
 
@@ -210,12 +207,10 @@ module JenkinsPipelineBuilder
 
     def create_jobs_and_views(project)
       success, payload = resolve_project(project)
-      if success
-        logger.info 'successfully resolved project'
-        compiled_project = payload
-      else
-        return { project_name: 'Failed to resolve' }
-      end
+      return { project_name: 'Failed to resolve' } unless success
+
+      logger.info 'successfully resolved project'
+      compiled_project = payload
 
       errors = publish_jobs(compiled_project[:value][:jobs]) if compiled_project[:value][:jobs]
       return errors unless compiled_project[:value][:views]

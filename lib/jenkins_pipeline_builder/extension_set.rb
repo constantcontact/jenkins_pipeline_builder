@@ -7,7 +7,7 @@ module JenkinsPipelineBuilder
       :description,
       :announced,
       :type
-    ]
+    ].freeze
     SET_METHODS.each do |method_name|
       define_method method_name do |value = nil|
         return settings[method_name] if value.nil?

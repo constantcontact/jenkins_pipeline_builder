@@ -174,7 +174,7 @@ describe JenkinsPipelineBuilder::Generator do
                              git_repo_name: 'generator_tests'))
         .and_return(pr_generator)
       expect(pr_generator).to receive(:delete_closed_prs)
-      pr_generator.stub(:convert!) do |job_collection, pr|
+      allow(pr_generator).to receive(:convert!) do |job_collection, pr|
         job_collection.defaults[:value][:application_name] = "testapp-PR#{pr}"
       end
       expect(pr_generator).to receive(:open_prs).and_return [1, 2]
@@ -210,6 +210,19 @@ describe JenkinsPipelineBuilder::Generator do
       path = File.expand_path('../fixtures/generator_tests/test_combo_files', __FILE__)
       @generator.job_collection.load_from_path path
     end
+
+    it 'errors when reading a bad yaml file' do
+      path = File.expand_path('../fixtures/generator_tests/test_bad_yaml_files', __FILE__)
+      expect { @generator.job_collection.load_from_path path }.to raise_error(
+        RuntimeError, /There was an error while parsing a file/
+      )
+    end
+    it 'errors when reading a bad json file' do
+      path = File.expand_path('../fixtures/generator_tests/test_bad_json_files', __FILE__)
+      expect { @generator.job_collection.load_from_path path }.to raise_error(
+        RuntimeError, /There was an error while parsing a file/
+      )
+    end
   end
 
   describe '#dump' do
@@ -224,7 +237,7 @@ describe JenkinsPipelineBuilder::Generator do
         end
       end
       stub_request(:get, 'http://username:password@127.0.0.1:8080/job/test_job/config.xml')
-        .to_return(status: 200, body: "#{body}", headers: {})
+        .to_return(status: 200, body: body.to_s, headers: {})
       @generator.dump(job_name)
       expect(File.exist?("#{job_name}.xml")).to be true
       File.delete("#{job_name}.xml")
@@ -234,7 +247,7 @@ describe JenkinsPipelineBuilder::Generator do
   describe '#projects' do
     it 'returns a list of projects' do
       path = File.expand_path('../fixtures/generator_tests/multi_project', __FILE__)
-      expect(@generator.projects path).to eq %w(SamplePipeline1 SamplePipeline2 SamplePipeline3)
+      expect(@generator.projects(path)).to eq %w(SamplePipeline1 SamplePipeline2 SamplePipeline3)
     end
   end
 
@@ -242,6 +255,13 @@ describe JenkinsPipelineBuilder::Generator do
     before :each do
       allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
         list_installed: { 'description' => '20.0', 'git' => '20.0' })
+    end
+    after :each do
+      file_paths = ['out/xml/TemplatePipeline-10.xml',
+                    'out/xml/TemplatePipeline-11.xml']
+      file_paths.each do |file_path|
+        File.delete(file_path) if File.exist?(file_path)
+      end
     end
     it 'generates xml and saves to disk without sending jobs to the server' do
       job_name = 'TemplatePipeline'

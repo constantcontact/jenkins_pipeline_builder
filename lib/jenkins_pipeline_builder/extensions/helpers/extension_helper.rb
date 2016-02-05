@@ -6,11 +6,11 @@ class ExtensionHelper < SimpleDelegator
     # That will allow for defaults to be pulled out of the extension and it
     # will also let better enable overriding of those values that do not have
     # an option to do so currently.
-    if params.is_a? Hash
-      @params = defaults.merge params
-    else
-      @params = params
-    end
+    @params = if params.is_a? Hash
+                defaults.merge params
+              else
+                params
+              end
     @builder = builder
     super @params
   end

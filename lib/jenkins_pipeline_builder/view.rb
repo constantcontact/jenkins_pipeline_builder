@@ -35,11 +35,11 @@ module JenkinsPipelineBuilder
     end
 
     def generate(path)
-      if path.end_with? 'json'
-        hash = JSON.parse(IO.read(path))
-      else
-        hash = YAML.load_file(path)
-      end
+      hash = if path.end_with? 'json'
+               JSON.parse(IO.read(path))
+             else
+               YAML.load_file(path)
+             end
 
       hash.each do |item|
         Utils.symbolize_keys_deep!(item)
@@ -90,16 +90,19 @@ module JenkinsPipelineBuilder
       if params[:parent_view]
         create_base_view(params[:parent_view], 'nestedView') unless exists?(params[:parent_view])
         delete(params[:name], params[:parent_view]) if exists?(params[:name], params[:parent_view])
-      else
-        delete(params[:name]) if exists?(params[:name])
+      elsif exists?(params[:name])
+        delete(params[:name])
       end
     end
 
     def post_params(params)
       payload = post_payload params
-      payload.merge!('filterQueue' => 'on') if params[:filter_queue]
-      payload.merge!('filterExecutors' => 'on') if params[:filter_executors]
-      payload.merge!('useincluderegex' => 'on', 'includeRegex' => params[:regex]) if params[:regex]
+      payload['filterQueue'] = 'on' if params[:filter_queue]
+      payload['filterExecutors'] = 'on' if params[:filter_executors]
+      if params[:regex]
+        payload['useincluderegex'] = 'on'
+        payload['includeRegex'] = params[:regex]
+      end
       payload
     end
 
@@ -113,7 +116,7 @@ module JenkinsPipelineBuilder
         'statusFilter' => '',
         'columns' => get_columns(params[:type])
       }
-      json.merge!('groupingRules' => params[:groupingRules]) if params[:groupingRules]
+      json['groupingRules'] = params[:groupingRules] if params[:groupingRules]
 
       {
         'name' => params[:name],
@@ -211,11 +214,8 @@ module JenkinsPipelineBuilder
       path = parent_view.nil? ? '' : "/view/#{parent_view}"
       response_json = @client.api_get_request(path)
       response_json['views'].each do |view|
-        if ignorecase
-          view_names << view['name'] if view['name'] =~ /#{filter}/i
-        else
-          view_names << view['name'] if view['name'] =~ /#{filter}/
-        end
+        filter_exp = ignorecase ? /#{filter}/i : /#{filter}/
+        view_names << view['name'] if view['name'] =~ filter_exp
       end
       view_names
     end

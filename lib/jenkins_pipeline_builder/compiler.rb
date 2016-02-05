@@ -44,9 +44,15 @@ module JenkinsPipelineBuilder
       my_settings_bag.merge(bag)
     end
 
+    def compile_job(item, settings = {})
+      new_item = compile(item, settings)
+      [true, new_item]
+    rescue => e
+      return [false, [e.message]]
+    end
+
     def compile(item, settings = {})
-      success, item = handle_enable(item, settings)
-      return false, item unless success
+      item = handle_enable(item, settings)
 
       case item
       when String
@@ -56,16 +62,16 @@ module JenkinsPipelineBuilder
       when Array
         return compile_array item, settings
       end
-      [true, item]
+      item
     end
 
     def handle_enable(item, settings)
-      return true, item unless item.is_a? Hash
+      return item unless item.is_a? Hash
       if enable_block_present? item
         enabled_switch = resolve_value(item[:enabled], settings)
-        return [true, {}] if enabled_switch == 'false'
+        return {} if enabled_switch == 'false'
         if enabled_switch != 'true'
-          return [false, { 'value error' => "Invalid value for #{item[:enabled]}: #{enabled_switch}" }]
+          fail "Invalid value for #{item[:enabled]}: #{enabled_switch}"
         end
         if item[:parameters].is_a? Hash
           item = item.merge item[:parameters]
@@ -75,7 +81,7 @@ module JenkinsPipelineBuilder
           item = item[:parameters]
         end
       end
-      [true, item]
+      item
     end
 
     private
@@ -85,64 +91,44 @@ module JenkinsPipelineBuilder
     end
 
     def compile_string(item, settings)
-      errors = {}
-      new_value = resolve_value(item, settings)
-      errors[item] = "Failed to resolve #{item}" if new_value.nil?
-      return false, errors unless errors.empty?
-      [true, new_value]
+      resolve_value(item, settings)
+    rescue => e
+      raise "Failed to resolve #{item} because: #{e.message}"
     end
 
     def compile_array(array, settings)
-      errors = {}
       result = []
       array.each do |value|
-        success, payload = compile_array_item value, settings, array
-        errors[value] =  payload unless success
+        payload = compile_array_item value, settings, array
         result << payload
       end
-      return false, errors unless errors.empty?
-      [true, result]
+      result
     end
 
     def compile_array_item(item, settings, array)
-      success, payload = compile(item, settings)
-      return false, "found a nil value when processing following array:\n #{array.inspect}" if item.nil?
-      return false, payload unless success
-      return false, "Failed to resolve:\n===>item #{item}\n\n===>of list: #{array.inspect}" if payload.nil?
-      [true, payload]
+      fail "Found a nil value when processing following array:\n #{array.inspect}" if item.nil?
+      payload = compile(item, settings)
+      fail "Failed to resolve:\n===>item #{item}\n\n===>of list: #{array.inspect}" if payload.nil?
+      payload
     end
 
-    def compile_item(key, value, errors, settings)
+    def compile_item(key, value, settings)
       if value.nil?
-        errors[key] = "key: #{key} has a nil value, this is often a yaml syntax error. Skipping children and siblings"
-        return false, errors[key]
+        fail "key: #{key} has a nil value, this is often a yaml syntax error. Skipping children and siblings"
       end
-      success, payload = compile(value, settings)
-      unless success
-        errors.merge!(payload)
-        return false, payload
-      end
-      if payload.nil?
-        errors[key] = "Failed to resolve:\n===>key: #{key}\n\n===>value: #{value}\n\n===>of: #{item}"
-        return false, errors[key]
-      end
-      [true, payload]
+      payload = compile(value, settings)
+      fail "Failed to resolve:\n===>key: #{key}\n\n===>value: #{value} payload" if payload.nil?
+      payload
     end
 
     def compile_hash(item, settings)
-      success, item = handle_enable(item, settings)
-      return false, item unless success
-
-      errors = {}
+      item = handle_enable(item, settings)
       result = {}
-
       item.each do |key, value|
-        success, payload = compile_item(key, value, errors, settings)
-        next unless success
+        payload = compile_item(key, value, settings)
         result[key] = payload unless payload == {}
       end
-      return false, errors unless errors.empty?
-      [true, result]
+      result
     end
 
     def resolve_value(value, settings)
@@ -155,6 +141,7 @@ module JenkinsPipelineBuilder
       end
 
       settings = settings.with_indifferent_access
+      # TODO: this is actually a shallow copy and should be fixed
       value_s = value.to_s.clone
       correct_job_names! value_s
       # Then we look for normal values to replace
@@ -165,7 +152,8 @@ module JenkinsPipelineBuilder
       vars = value_s.scan(/{{([^{}@]+)}}/).flatten
       vars.select! do |var|
         var_val = settings[var]
-        value_s.gsub!("{{#{var}}}", var_val.to_s) unless var_val.nil?
+        fail "Could not find defined substitution variable: #{var}" if var_val.nil?
+        value_s.gsub!("{{#{var}}}", var_val.to_s)
         var_val.nil?
       end
       return nil if vars.count != 0
