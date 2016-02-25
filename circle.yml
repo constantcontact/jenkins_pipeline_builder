@@ -1,0 +1,8 @@
+machine:
+  timezone:
+    America/New_York
+
+test:
+  override:
+    - bundle exec rake
+
