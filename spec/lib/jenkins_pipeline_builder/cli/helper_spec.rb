@@ -119,6 +119,8 @@ describe JenkinsPipelineBuilder::CLI::Helper do
 
       it 'loads the default ruby file' do
         expect(File).to receive(:exist?).with("#{default_creds_base}.rb").and_return true
+        expect(File).to receive(:exist?).with("#{default_creds_base}.json").and_return false
+        expect(File).to receive(:exist?).with("#{default_creds_base}.yaml").and_return false
         expect(File).to receive(:expand_path).with("#{default_creds_base}.rb").and_return "#{creds_file_base}.rb"
         described_class.setup({})
       end
@@ -126,6 +128,7 @@ describe JenkinsPipelineBuilder::CLI::Helper do
       it 'loads the default json file' do
         expect(File).to receive(:exist?).with("#{default_creds_base}.rb").and_return false
         expect(File).to receive(:exist?).with("#{default_creds_base}.json").and_return true
+        expect(File).to receive(:exist?).with("#{default_creds_base}.yaml").and_return false
         expect(File).to receive(:expand_path).with("#{default_creds_base}.json").and_return "#{creds_file_base}.json"
         expect(JSON).to receive(:parse).and_call_original
         described_class.setup({})
@@ -137,6 +140,34 @@ describe JenkinsPipelineBuilder::CLI::Helper do
         expect(File).to receive(:exist?).with("#{default_creds_base}.yaml").and_return true
         expect(File).to receive(:expand_path).with("#{default_creds_base}.yaml").and_return "#{creds_file_base}.yaml"
         expect(YAML).to receive(:load_file).and_call_original
+        described_class.setup({})
+      end
+
+      it 'warns if both ruby and yaml' do
+        used_suffix = 'rb'
+        found_suffix = 'yaml'
+        expect(File).to receive(:exist?).with("#{default_creds_base}.rb").and_return true
+        expect(File).to receive(:exist?).with("#{default_creds_base}.json").and_return false
+        expect(File).to receive(:exist?).with("#{default_creds_base}.yaml").and_return true
+        expect(JenkinsPipelineBuilder.logger).to receive(:warn)
+          .with(/'#{default_creds_base}\.#{used_suffix}' but '#{default_creds_base}\.#{found_suffix}' found\./)
+          .and_return true
+        expect(File).to receive(:expand_path)
+          .with("#{default_creds_base}.#{used_suffix}").and_return "#{creds_file_base}.#{used_suffix}"
+        described_class.setup({})
+      end
+
+      it 'warns if both ruby and json' do
+        used_suffix = 'rb'
+        found_suffix = 'json'
+        expect(File).to receive(:exist?).with("#{default_creds_base}.rb").and_return true
+        expect(File).to receive(:exist?).with("#{default_creds_base}.json").and_return true
+        expect(File).to receive(:exist?).with("#{default_creds_base}.yaml").and_return false
+        expect(JenkinsPipelineBuilder.logger).to receive(:warn)
+          .with(/'#{default_creds_base}\.#{used_suffix}' but '#{default_creds_base}\.#{found_suffix}' found\./)
+          .and_return true
+        expect(File).to receive(:expand_path)
+          .with("#{default_creds_base}.#{used_suffix}").and_return "#{creds_file_base}.#{used_suffix}"
         described_class.setup({})
       end
     end

@@ -39,6 +39,7 @@ module JenkinsPipelineBuilder
       end
 
       DEFAULT_FILE_FORMATS = %w(rb json yaml).freeze
+
       # Sets up the credentials and initializes the Jenkins Pipeline Builder
       #
       # @param [Hash] options Options obtained from the command line
@@ -99,10 +100,23 @@ module JenkinsPipelineBuilder
       private_class_method
 
       def self.find_default_file
-        found_suffix = DEFAULT_FILE_FORMATS.find do |suffix|
-          File.exist?("#{ENV['HOME']}/.jenkins_api_client/login.#{suffix}")
+        default_file_name = "#{ENV['HOME']}/.jenkins_api_client/login"
+
+        found_suffix = nil
+        DEFAULT_FILE_FORMATS.each do |suffix|
+          next unless File.exist?("#{default_file_name}.#{suffix}")
+          if !found_suffix
+            found_suffix = suffix
+          else
+            logger.warn "Multiple default files found! Using '#{default_file_name}.#{found_suffix}' but \
+'#{default_file_name}.#{suffix}' found."
+          end
         end
         "#{ENV['HOME']}/.jenkins_api_client/login.#{found_suffix}" if found_suffix
+      end
+
+      def self.logger
+        JenkinsPipelineBuilder.logger
       end
     end
   end
