@@ -38,7 +38,7 @@ module JenkinsPipelineBuilder
         attr_accessor :jenkins_api_creds
       end
 
-      DEFAULT_FILE_FORMATS = %w(rb json yaml).freeze
+      DEFAULT_FILE_FORMATS = %w(rb json yml yaml).freeze
 
       # Sets up the credentials and initializes the Jenkins Pipeline Builder
       #
