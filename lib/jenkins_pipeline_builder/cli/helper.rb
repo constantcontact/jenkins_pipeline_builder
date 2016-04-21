@@ -34,6 +34,12 @@ module JenkinsPipelineBuilder
     # This is the helper class that sets up the credentials from the command
     # line parameters given and initializes the Jenkins Pipeline Builder.
     class Helper
+      class << self
+        attr_accessor :jenkins_api_creds
+      end
+
+      DEFAULT_FILE_FORMATS = %w(rb json yaml).freeze
+
       # Sets up the credentials and initializes the Jenkins Pipeline Builder
       #
       # @param [Hash] options Options obtained from the command line
@@ -41,23 +47,24 @@ module JenkinsPipelineBuilder
       # @return [JenkinsPipelineBuilder::Generator] A new Client object
       #
       def self.setup(options)
-        creds = process_creds options
+        process_creds options
 
-        JenkinsPipelineBuilder.credentials = creds
+        JenkinsPipelineBuilder.credentials = jenkins_api_creds
         generator = JenkinsPipelineBuilder.generator
         JenkinsPipelineBuilder.debug! if options[:debug]
         generator
       end
 
       def self.process_creds(options)
-        if valid_cli_creds? options
+        default_file = find_default_file
+        if options[:debug]
+          self.jenkins_api_creds = { username: :foo, password: :bar, server_ip: :baz }
+        elsif valid_cli_creds? options
           process_cli_creds(options)
         elsif options[:creds_file]
           process_creds_file options[:creds_file]
-        elsif File.exist?("#{ENV['HOME']}/.jenkins_api_client/login.yml")
-          YAML.load_file(File.expand_path("#{ENV['HOME']}/.jenkins_api_client/login.yml", __FILE__))
-        elsif options[:debug]
-          { username: :foo, password: :bar, server_ip: :baz }
+        elsif default_file
+          process_creds_file default_file
         else
           msg = 'Credentials are not set. Please pass them as parameters or'
           msg << ' set them in the default credentials file'
@@ -71,23 +78,45 @@ module JenkinsPipelineBuilder
       end
 
       def self.process_creds_file(file)
-        return JSON.parse(IO.read(File.expand_path(file))) if file.end_with? 'json'
-        YAML.load_file(File.expand_path(file))
+        return load File.expand_path(file) if file.end_with? 'rb'
+        return self.jenkins_api_creds = JSON.parse(IO.read(File.expand_path(file))) if file.end_with? 'json'
+        self.jenkins_api_creds = YAML.load_file(File.expand_path(file))
       end
 
       def self.process_cli_creds(options)
-        creds = {}.with_indifferent_access.merge options
-        if creds[:server] =~ Resolv::AddressRegex
-          creds[:server_ip] = creds.delete :server
-        elsif creds[:server] =~ URI.regexp
-          creds[:server_url] = creds.delete :server
+        self.jenkins_api_creds = {}.with_indifferent_access.merge options
+        if jenkins_api_creds[:server] =~ Resolv::AddressRegex
+          jenkins_api_creds[:server_ip] = jenkins_api_creds.delete :server
+        elsif jenkins_api_creds[:server] =~ URI.regexp
+          jenkins_api_creds[:server_url] = jenkins_api_creds.delete :server
         else
-          msg = "server given (#{creds[:server]}) is neither a URL nor an IP."
+          msg = "server given (#{jenkins_api_creds[:server]}) is neither a URL nor an IP."
           msg << ' Please pass either a valid IP address or valid URI'
           $stderr.puts msg
           exit 1
         end
-        creds
+      end
+
+      private_class_method
+
+      def self.find_default_file
+        default_file_name = "#{ENV['HOME']}/.jenkins_api_client/login"
+
+        found_suffix = nil
+        DEFAULT_FILE_FORMATS.each do |suffix|
+          next unless File.exist?("#{default_file_name}.#{suffix}")
+          if !found_suffix
+            found_suffix = suffix
+          else
+            logger.warn "Multiple default files found! Using '#{default_file_name}.#{found_suffix}' but \
+'#{default_file_name}.#{suffix}' found."
+          end
+        end
+        "#{ENV['HOME']}/.jenkins_api_client/login.#{found_suffix}" if found_suffix
+      end
+
+      def self.logger
+        JenkinsPipelineBuilder.logger
       end
     end
   end
