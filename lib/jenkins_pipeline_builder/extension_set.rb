@@ -146,7 +146,8 @@ module JenkinsPipelineBuilder
     end
 
     def versions
-      @versions ||= extensions.each_with_object({}) do |ext, hash|
+      # Don't memoize this, it will prevent local overrides
+      extensions.each_with_object({}) do |ext, hash|
         hash[Gem::Version.new(ext.min_version)] = ext
       end
     end
