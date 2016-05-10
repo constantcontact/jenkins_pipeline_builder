@@ -52,7 +52,8 @@ describe 'builders' do
   context 'multi_job builder' do
     before :each do
       allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
-        list_installed: { 'jenkins-multijob-plugin' => '20.0' })
+        list_installed: { 'jenkins-multijob-plugin' => '20.0' }
+      )
     end
     it 'generates a configuration' do
       params = { builders: { multi_job: { phases: { foo: { jobs: [{ name: 'foo' }] } } } } }
@@ -85,7 +86,8 @@ describe 'builders' do
   context 'maven3' do
     before :each do
       allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
-        list_installed: { 'maven-plugin' => '20.0' })
+        list_installed: { 'maven-plugin' => '20.0' }
+      )
     end
 
     it 'generates a configuration' do
@@ -102,7 +104,8 @@ describe 'builders' do
   context 'blocking_downstream' do
     before :each do
       allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
-        list_installed: { 'parameterized-trigger' => '20.0' })
+        list_installed: { 'parameterized-trigger' => '20.0' }
+      )
 
       JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
 
@@ -143,7 +146,8 @@ describe 'builders' do
     before :each do
       error = ''
       allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
-        list_installed: { 'groovy' => '1.24' })
+        list_installed: { 'groovy' => '1.24' }
+      )
 
       begin
         JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)

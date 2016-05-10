@@ -35,6 +35,15 @@ describe JenkinsPipelineBuilder::ExtensionSet do
     end
   end
 
+  context '#versions' do
+    it 'does not memoize itself' do
+      set.add_extension 'builder', '0', description: :first
+      set.versions
+      set.add_extension 'builder', '0', description: :second
+      expect(set.versions[Gem::Version.new('0')].description).to eq :second
+    end
+  end
+
   context '#extension' do
     def new_ext(version = '0.0')
       ext = JenkinsPipelineBuilder::Extension.new

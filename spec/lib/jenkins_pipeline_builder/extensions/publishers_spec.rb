@@ -28,7 +28,8 @@ describe 'publishers' do
   context 'sonar publisher' do
     before :each do
       allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
-        list_installed: { 'sonar' => '20.0' })
+        list_installed: { 'sonar' => '20.0' }
+      )
     end
 
     it 'generates a default configuration' do
@@ -101,7 +102,8 @@ describe 'publishers' do
   context 'description_setter' do
     before :each do
       allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
-        list_installed: { 'description-setter' => '20.0' })
+        list_installed: { 'description-setter' => '20.0' }
+      )
     end
     it 'generates a configuration' do
       params = { publishers: { description_setter: {} } }
@@ -116,8 +118,8 @@ describe 'publishers' do
   context 'downstream' do
     before :each do
       allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
-        list_installed: { 'parameterized-trigger' => '20.0'
-    })
+        list_installed: { 'parameterized-trigger' => '20.0' }
+      )
     end
 
     it 'generates a configuration' do
@@ -137,8 +139,8 @@ describe 'publishers' do
   context 'cobertura_report' do
     before :each do
       allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
-        list_installed: { 'cobertura' => '20.0'
-    })
+        list_installed: { 'cobertura' => '20.0' }
+      )
     end
     it 'generates a configuration' do
       params = { publishers: { cobertura_report: {} } }
@@ -155,8 +157,8 @@ describe 'publishers' do
   context 'email_ext' do
     before :each do
       allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
-        list_installed: { 'email-ext' => '20.0'
-    })
+        list_installed: { 'email-ext' => '20.0' }
+      )
     end
     it 'generates a configuration' do
       params = { publishers: { email_ext: { triggers: [{ type: :first_failure }] } } }
@@ -174,7 +176,8 @@ describe 'publishers' do
     context '0.1.9' do
       before :each do
         allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
-          list_installed: { 'hipchat' => '0.1.9' })
+          list_installed: { 'hipchat' => '0.1.9' }
+        )
       end
       it 'generates a configuration' do
         params = { publishers: { hipchat: {} } }
@@ -197,8 +200,8 @@ describe 'publishers' do
     context '0' do
       before :each do
         expect(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
-          list_installed: { 'hipchat' => '0'
-        })
+          list_installed: { 'hipchat' => '0' }
+        )
         puts JenkinsPipelineBuilder.registry.versions
       end
 

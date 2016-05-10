@@ -52,7 +52,8 @@ describe 'triggers' do
   context 'upstream' do
     before :each do
       allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
-        list_installed: { 'jenkins-multijob-plugin' => '20.0' })
+        list_installed: { 'jenkins-multijob-plugin' => '20.0' }
+      )
     end
 
     it 'generates an unstable configuration' do

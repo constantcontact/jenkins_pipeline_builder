@@ -24,8 +24,7 @@ describe JenkinsPipelineBuilder::Compiler do
           name: 'DummyPipeline',
           jobs: [
             '{{name}}-00',
-            { '{{name}}-01' => { job_name: '{{name}}-02' }
-          }
+            { '{{name}}-01' => { job_name: '{{name}}-02' } }
           ]
         }
       }

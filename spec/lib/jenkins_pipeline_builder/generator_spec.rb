@@ -56,7 +56,8 @@ describe JenkinsPipelineBuilder::Generator do
   describe '#bootstrap' do
     before :each do
       allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
-        list_installed: { 'description' => '20.0', 'git' => '20.0' })
+        list_installed: { 'description' => '20.0', 'git' => '20.0' }
+      )
     end
 
     def bootstrap(fixture_path, job_name)
@@ -194,8 +195,12 @@ describe JenkinsPipelineBuilder::Generator do
     end
     let(:view_hash) do
       [{ 'view' =>
-        { 'name' => '{{name}} View', 'type' => 'listview', 'description' => '{{description}}', 'regex' => '{{name}}.*' }
-      }]
+        {
+          'name' => '{{name}} View',
+          'type' => 'listview',
+          'description' => '{{description}}',
+          'regex' => '{{name}}.*'
+        } }]
     end
 
     it 'loads a yaml collection from a path' do
@@ -254,7 +259,8 @@ describe JenkinsPipelineBuilder::Generator do
   describe '#file_mode' do
     before :each do
       allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
-        list_installed: { 'description' => '20.0', 'git' => '20.0' })
+        list_installed: { 'description' => '20.0', 'git' => '20.0' }
+      )
     end
     after :each do
       file_paths = ['out/xml/TemplatePipeline-10.xml',
