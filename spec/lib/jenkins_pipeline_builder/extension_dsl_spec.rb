@@ -31,7 +31,8 @@ describe 'extension dsl' do
     end
 
     allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
-      list_installed: { 'parameterized-trigger' => '20.0' })
+      list_installed: { 'parameterized-trigger' => '20.0' }
+    )
 
     @n_xml = Nokogiri::XML::Builder.new { |xml| xml.builders }.doc
     params = { builders: { shell_command: 'asdf' } }

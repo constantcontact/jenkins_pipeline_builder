@@ -76,7 +76,8 @@ describe JenkinsPipelineBuilder::ModuleRegistry do
 
     before :each do
       allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
-        list_installed: { 'test_name' => '20.0', 'unorderedTest' => '20.0' })
+        list_installed: { 'test_name' => '20.0', 'unorderedTest' => '20.0' }
+      )
       @n_xml = Nokogiri::XML::Document.new
 
       wrapper do
