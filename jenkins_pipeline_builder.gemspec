@@ -24,7 +24,7 @@ automating Job & Pipeline creation from the YAML files checked-in with your appl
   spec.add_dependency 'nokogiri', '~> 1.6.0'
   spec.add_dependency 'jenkins_api_client', '~> 1.0.0'
   spec.add_dependency 'thor', '>= 0.18.0'
-  spec.add_dependency 'activesupport'
+  spec.add_dependency 'activesupport', '~> 4.2.6'
   spec.add_dependency 'archive-tar-minitar'
 
   spec.add_development_dependency 'bundler', '~> 1.3'
@@ -42,5 +42,5 @@ automating Job & Pipeline creation from the YAML files checked-in with your appl
   spec.add_development_dependency 'yard'
   spec.add_development_dependency 'rspec_junit_formatter'
   spec.add_development_dependency 'webmock', '~> 1.0'
-  spec.add_development_dependency 'rubocop'
+  spec.add_development_dependency 'rubocop', '= 0.40.0'
 end
