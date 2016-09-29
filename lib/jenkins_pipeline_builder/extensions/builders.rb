@@ -381,7 +381,7 @@ builder do
   builder do
     name :sonar_standalone
     plugin_id 'sonar'
-    description 'Quickly benefit from Sonar, the open source platform for Continuous Inspection of code quality.'
+    description 'The plugin allows you to trigger SonarQube analysis from Jenkins using a Post-build action to trigger the analysis with MavenQuickly benefit from Sonar, the open source platform for Continuous Inspection of code quality.'
     jenkins_name 'SonarQube Plugin'
     announced false
     parameters [
@@ -396,10 +396,10 @@ builder do
     xml do |params|
       send('hudson.plugins.sonar.SonarRunnerBuilder', 'plugin' => 'sonar@2.1') do
         installationName params[:sonarInstallation]
+        jdk params[:jdk] || '(Inherit From Job)'
         project params[:pathToProjectProperties]
         properties params[:projectProperties]
         javaOpts params[:jvmOptions]
-        jdk params[:jdk]
         task params[:taskToRun]
       end
     end
