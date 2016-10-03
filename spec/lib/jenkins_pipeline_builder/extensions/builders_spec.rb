@@ -117,6 +117,14 @@ describe 'builders' do
       expect(@n_xml.root.css('project').first.text).to eq 'sonar-project.properties'
       expect(@n_xml.root.css('jdk').first.text).to eq '(Inherit From Job)'
     end
+
+    it 'allows the JDK default to be overriden' do
+      params = { builders: { sonar_standalone: { jdk: '9', pathToProjectProperties: 'sonar-project.properties' } } }
+
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+
+      expect(@n_xml.root.css('jdk').first.text).to eq '9'
+    end
   end
 
   context 'blocking_downstream' do
