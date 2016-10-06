@@ -95,7 +95,6 @@ module JenkinsPipelineBuilder
     def build_extension_xml(n_builders, value)
       Nokogiri::XML::Builder.with(n_builders) do |builder|
         include_helper value, builder
-        helper.extension = self
         builder.instance_exec helper, &xml
       end
     end
@@ -103,7 +102,7 @@ module JenkinsPipelineBuilder
     def include_helper(params, builder)
       klass = "#{name.to_s.camelize}Helper".safe_constantize
       klass ||= ExtensionHelper
-      self.helper = klass.new params, builder
+      self.helper = klass.new self, params, builder
     end
   end
 end
