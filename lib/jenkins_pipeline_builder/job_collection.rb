@@ -61,7 +61,7 @@ module JenkinsPipelineBuilder
 
     private
 
-    def collect_type type_name
+    def collect_type(type_name)
       collection.values.select { |item| item if item[:type] == type_name }
     end
 

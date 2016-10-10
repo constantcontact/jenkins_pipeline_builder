@@ -55,6 +55,7 @@ describe 'builders' do
         list_installed: { 'jenkins-multijob-plugin' => '20.0' }
       )
     end
+
     it 'generates a configuration' do
       params = { builders: { multi_job: { phases: { foo: { jobs: [{ name: 'foo' }] } } } } }
 

@@ -52,7 +52,8 @@ module JenkinsPipelineBuilder
         builders: '//builders',
         publishers: '//publishers',
         wrappers: '//buildWrappers',
-        triggers: '//triggers'
+        triggers: '//triggers',
+        build_steps: '//buildSteps'
       }
     end
 

@@ -90,6 +90,7 @@ require 'jenkins_pipeline_builder/extensions/job_attributes'
 require 'jenkins_pipeline_builder/extensions/wrappers'
 require 'jenkins_pipeline_builder/extensions/publishers'
 require 'jenkins_pipeline_builder/extensions/triggers'
+require 'jenkins_pipeline_builder/extensions/build_steps'
 
 require 'jenkins_pipeline_builder/cli/helper'
 require 'jenkins_pipeline_builder/cli/view'
