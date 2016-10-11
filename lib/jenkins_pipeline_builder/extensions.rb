@@ -36,6 +36,7 @@ module JenkinsPipelineBuilder
       xml: false,
       parameters: []
     }.freeze
+
     EXT_METHODS.keys.each do |method_name|
       define_method method_name do |value = nil|
         return instance_variable_get("@#{method_name}") if value.nil?

@@ -20,11 +20,7 @@ module JenkinsPipelineBuilder
       xml = payload
       return local_output(xml) if JenkinsPipelineBuilder.debug || JenkinsPipelineBuilder.file_mode
 
-      if JenkinsPipelineBuilder.client.job.exists?(name)
-        JenkinsPipelineBuilder.client.job.update(name, xml)
-      else
-        JenkinsPipelineBuilder.client.job.create(name, xml)
-      end
+      JenkinsPipelineBuilder.client.job.create_or_update(name, xml)
       [true, nil]
     end
 

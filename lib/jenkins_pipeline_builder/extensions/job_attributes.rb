@@ -367,6 +367,7 @@ job_attribute do
     end
   end
 end
+
 job_attribute do
   name :promoted_builds
   plugin_id 'promoted-builds'
