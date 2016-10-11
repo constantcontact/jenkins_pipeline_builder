@@ -58,9 +58,7 @@ describe 'builders' do
 
     it 'generates a configuration' do
       params = { builders: { multi_job: { phases: { foo: { jobs: [{ name: 'foo' }] } } } } }
-
       JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
-
       builder = @n_xml.root.children.first
       expect(builder.name).to match 'com.tikal.jenkins.plugins.multijob.MultiJobBuilder'
     end
@@ -116,7 +114,6 @@ describe 'builders' do
 
     context 'step failure threshold' do
       let(:params) { { builders: { blocking_downstream: { fail: 'FAILURE' } } } }
-
       it 'generates a configuration' do
         expect(@n_xml.root.css('buildStepFailureThreshold').first).to_not be_nil
         expect(@n_xml.root.css('buildStepFailureThreshold').first.css('color').first.text).to eq 'RED'
