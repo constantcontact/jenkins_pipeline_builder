@@ -20,6 +20,64 @@
 # THE SOFTWARE.
 #
 
+# Promotion specific job attributes
+job_attribute do
+  name :promotion_description
+  plugin_id 'builtin'
+  description 'This is the description of your promotion.'
+  jenkins_name 'Description'
+  announced false
+
+  xml path: '//hudson.plugins.promoted__builds.PromotionProcess' do |description|
+    description description.to_s
+  end
+end
+
+job_attribute do
+  name :block_when_downstream_building
+  plugin_id 'builtin'
+  description 'Prevents new builds from being executed until the downstream jobs have finished.'
+
+  xml path: '//hudson.plugins.promoted__builds.PromotionProcess' do |is_enabled|
+    blockBuildWhenDownstreamBuilding is_enabled
+  end
+end
+
+job_attribute do
+  name :block_when_upstream_building
+  plugin_id 'builtin'
+  description 'Prevents new builds from being executed until the upstream jobs have finished.'
+
+  xml path: '//hudson.plugins.promoted__builds.PromotionProcess' do |is_enabled|
+    blockBuildWhenUpstreamBuilding is_enabled
+  end
+end
+
+job_attribute do
+  name :is_visible
+  plugin_id 'builtin'
+  # TODO: Verify that this description is actually what this does
+  description 'Set a promotion process to be visible in the UI'
+
+  xml path: '//hudson.plugins.promoted__builds.PromotionProcess' do |is_enabled|
+    isVisible if is_enabled
+  end
+end
+
+job_attribute do
+  name :promotion_icon
+  plugin_id 'builtin'
+  description 'Set the star color for a promotion process'
+
+  # Should be one main color %[gold silver white blue green orange purple red]
+  # With an optional fill color "e" for empty "w" for white
+  # e.g. "gold" or "gold-w"
+  xml path: '//hudson.plugins.promoted__builds.PromotionProcess' do |icon_name|
+    icon "star-#{icon_name}"
+  end
+end
+
+# Job attributes for jobs
 job_attribute do
   name :description
   plugin_id 'builtin'
@@ -27,7 +85,7 @@ job_attribute do
   jenkins_name 'Description'
   announced false
 
-  before do
+  before do |_param|
     xpath('//project/description').remove
   end
 

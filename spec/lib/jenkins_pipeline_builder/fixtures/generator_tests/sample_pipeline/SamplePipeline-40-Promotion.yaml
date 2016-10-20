@@ -1,6 +1,6 @@
 - promotion:
     name: '{{name}} Stage Promotion'
-    description: 'Describe the promotion process in play'
+    promotion_description: 'Describe the promotion process in play'
     block_when_downstream_building: false # unless defined? false
     block_when_upstream_building: false # unless defined? false
     icon: 'Gold star' # || 'Silver star'
