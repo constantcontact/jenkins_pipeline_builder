@@ -1,3 +1,5 @@
 - job:
     name: '{{name}}-30-Release'
     description: '{{description}}'
+    promoted_builds:
+      - '{{name}} Stage Promotion'
