@@ -58,10 +58,11 @@ module JenkinsPipelineBuilder
 
     def execute(value, n_xml)
       errors = check_parameters value
-      errors.each do |error|
-        JenkinsPipelineBuilder.logger.error error
-      end
-      return false if errors.any?
+      raise ArgumentError, errors.join("\n") if errors.any?
+      raise ArgumentError, %(Extension #{name} has no valid path
+      Check ModuleRegistry#entries and the definition of the extension
+      Note: job_attributes have no implicit path and must be set in the builder
+      ).squeeze(' ') unless path
 
       n_builders = n_xml.xpath(path).first
       n_builders.instance_exec(value, &before) if before

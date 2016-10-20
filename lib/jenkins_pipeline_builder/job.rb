@@ -111,9 +111,7 @@ module JenkinsPipelineBuilder
         raise "Job template '#{template_name}' can't be resolved." unless @job_templates.key?(template_name)
         params.delete(:template)
         template = @job_templates[template_name]
-        puts "Template found: #{template}"
         params = template.deep_merge(params)
-        puts "Template merged: #{template}"
       end
 
       xml = JenkinsPipelineBuilder.client.job.build_freestyle_config(params)

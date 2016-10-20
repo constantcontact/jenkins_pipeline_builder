@@ -25,6 +25,7 @@ require 'active_support/core_ext'
 
 require 'jenkins_pipeline_builder/version'
 require 'jenkins_pipeline_builder/utils'
+require 'jenkins_pipeline_builder/custom_errors'
 require 'jenkins_pipeline_builder/compiler'
 require 'jenkins_pipeline_builder/module_registry'
 require 'jenkins_pipeline_builder/pull_request_generator'

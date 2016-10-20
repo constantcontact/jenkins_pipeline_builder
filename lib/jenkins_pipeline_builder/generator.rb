@@ -101,6 +101,7 @@ module JenkinsPipelineBuilder
       project[:settings] = compiler.get_settings_bag(project, settings)
 
       errors = process_project project
+
       print_project_errors errors
       return false, 'Encountered errors exiting' unless errors.empty?
 
@@ -143,8 +144,8 @@ module JenkinsPipelineBuilder
 
     def print_project_errors(errors)
       errors.each do |error|
-        puts 'Encountered errors processing:'
-        puts error.inspect
+        logger.error 'Encountered errors processing:'
+        logger.error error.inspect
       end
     end
 

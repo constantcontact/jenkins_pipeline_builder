@@ -219,13 +219,13 @@ describe JenkinsPipelineBuilder::Generator do
     it 'errors when reading a bad yaml file' do
       path = File.expand_path('../fixtures/generator_tests/test_bad_yaml_files', __FILE__)
       expect { @generator.job_collection.load_from_path path }.to raise_error(
-        RuntimeError, /There was an error while parsing a file/
+        CustomErrors::ParseError, /There was an error while parsing a file/
       )
     end
     it 'errors when reading a bad json file' do
       path = File.expand_path('../fixtures/generator_tests/test_bad_json_files', __FILE__)
       expect { @generator.job_collection.load_from_path path }.to raise_error(
-        RuntimeError, /There was an error while parsing a file/
+        CustomErrors::ParseError, /There was an error while parsing a file/
       )
     end
   end
