@@ -191,9 +191,15 @@ module JenkinsPipelineBuilder
       logger.info 'successfully resolved project'
       compiled_project = payload
 
-      errors = publish_jobs(compiled_project[:value][:jobs]) if compiled_project[:value][:jobs]
-      return errors unless compiled_project[:value][:views]
-      publish_class View.new(self), compiled_project[:value][:views]
+      errors = publish_jobs(compiled_project[:value][:jobs])
+
+      if compiled_project[:value][:views]
+        publish_views(compiled_project[:value][:views])
+      end
+
+      if compiled_project[:value][:promotions]
+        publish_promotions(compiled_project[:value][:promotions], compiled_project[:value][:jobs])
+      end
       errors
     end
 
@@ -202,11 +208,26 @@ module JenkinsPipelineBuilder
       create_jobs_and_views(project || raise("Project #{project_name} not found!"))
     end
 
-    # Method for creating all views or promotions in a given section
-    def publish_class(klass, section)
-      section.each do |item|
-        compiled_item = item[:result]
-        klass.create(compiled_item)
+    def publish_promotions(promotions, jobs)
+      # Converts a list of jobs that might have a list of promoted_builds to
+      # A hash of promoted_builds names => associated job names
+      promotion_job_pairs = jobs.each_with_object({}) do |j, acc|
+        j[:result][:promoted_builds].each do |promotion_name|
+          acc[promotion_name] = j[:result][:name]
+        end if j[:result][:promoted_builds]
+      end
+
+      promotions.each do |promotion|
+        compiled_promotion = promotion[:result]
+        associated_job_name = promotion_job_pairs[compiled_promotion[:name]]
+        Promotion.new(self).create(compiled_promotion, associated_job_name)
+      end
+    end
+
+    def publish_views(views)
+      views.each do |view|
+        compiled_view = view[:result]
+        View.new(self).create(compiled_view)
       end
     end
 
