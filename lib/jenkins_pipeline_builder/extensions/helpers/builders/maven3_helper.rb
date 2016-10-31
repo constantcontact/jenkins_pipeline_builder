@@ -1,6 +1,6 @@
 class Maven3Helper < ExtensionHelper
-  def initialize(params, builder)
-    super params, builder, defaults
+  def initialize(extension, params, builder)
+    super extension, params, builder, defaults
   end
 
   def defaults

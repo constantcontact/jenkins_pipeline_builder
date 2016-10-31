@@ -72,10 +72,7 @@ module JenkinsPipelineBuilder
       create_base_view(params[:name], params[:type], params[:parent_view])
       @logger.debug "Creating a #{params[:type]} view with params: #{params.inspect}"
 
-      if JenkinsPipelineBuilder.debug
-        # pp post_params(params)
-        return
-      end
+      return if JenkinsPipelineBuilder.debug
 
       view_path = params[:parent_view].nil? ? '' : "/view/#{params[:parent_view]}"
       view_path += "/view/#{params[:name]}/configSubmit"

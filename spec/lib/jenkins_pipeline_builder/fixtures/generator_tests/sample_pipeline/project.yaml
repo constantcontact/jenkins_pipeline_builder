@@ -10,3 +10,5 @@
       - '{{name}}-30-Release'
     views:
       - '{{name}} View'
+    promotions:
+      - '{{name}} Stage Promotion'

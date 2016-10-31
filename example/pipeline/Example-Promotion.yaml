@@ -1,0 +1,32 @@
+- promotion:
+    name: '01. Stage Promotion'
+    promotion_description: 'Describe the promotion process in play'
+    job_type: promotion
+    block_when_downstream_building: false # unless defined? false
+    block_when_upstream_building: false # unless defined? false
+    promotion_icon: 'silver' # defaults to gold, silver white blue green orange purple red
+    promotion_conditions: # follow parameters
+      - manual:
+          users: 'authenticated' # || ''
+      - self_promotion:
+          even_if_unstable: true # unless defined? false
+      - parameterized_self_promotion:
+          parameter_name: 'SOME_ENV_VAR'
+          parameter_value: true
+          even_if_unstable: true # unless defined? false
+      - downstream_pass:
+          jobs: '{{name}}-Commit'
+          even_if_unstable: true # unless defined? false
+      - upstream_promotion:
+          promotion_name: '01. Staging Promotion'
+    build_steps: # follow builders
+      - triggered_job:
+          name: '{{name}}-Release' # maps to <projects>
+          block_condition: # included in xml only if checked on UI
+            build_step_failure_threshold: 'FAILURE' # 'FAILURE' # %s(never FAILURE UNSTABLE SUCCESS)
+            failure_threshold: 'FAILURE' # || # %s(never FAILURE UNSTABLE SUCCESS)
+            unstable_threshold: 'UNSTABLE' # || # %s(never FAILURE UNSTABLE SUCCESS)
+          build_parameters:
+            current: true # unless defined? false
+      - keep_builds_forever:
+          value: true

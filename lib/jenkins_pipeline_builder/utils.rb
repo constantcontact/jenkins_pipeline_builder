@@ -40,6 +40,12 @@ module JenkinsPipelineBuilder
       end
     end
 
+    def self.symbolize_with_empty_hash!(array_of_maybe_str)
+      array_of_maybe_str.map! do |maybe_str|
+        maybe_str.is_a?(String) ? { maybe_str.to_sym => {} } : maybe_str
+      end
+    end
+
     def self.hash_merge!(old_hash, new_hash)
       old_hash.merge!(new_hash) do |_key, old, new|
         if old.is_a?(Hash) && new.is_a?(Hash)

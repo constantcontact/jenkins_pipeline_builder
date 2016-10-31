@@ -10,6 +10,7 @@ WRAPPERS = {
   timestamp: ['0'],
   xvfb: ['0']
 }.freeze
+
 PUBLISHERS = {
   archive_artifact: ['0'],
   brakeman: ['0'],
@@ -31,6 +32,7 @@ PUBLISHERS = {
   sonar_result: ['0'],
   xunit: ['0']
 }.freeze
+
 BUILDERS = {
   blocking_downstream: ['0'],
   copy_artifact: ['0'],
@@ -42,14 +44,15 @@ BUILDERS = {
   checkmarx_scan: ['0'],
   system_groovy: ['0'],
   sonar_standalone: ['0']
-
 }.freeze
+
 TRIGGERS = {
   git_push: ['0'],
   periodic_build: ['0'],
   scm_polling: ['0'],
   upstream: ['0']
 }.freeze
+
 JOB_ATTRIBUTES = {
   concurrent_build: ['0'],
   description: ['0'],
@@ -63,7 +66,12 @@ JOB_ATTRIBUTES = {
   priority: ['0'],
   promoted_builds: ['0'],
   scm_params: ['0', '2.0'],
-  throttle: ['0']
+  throttle: ['0'],
+  promotion_description: ['0'],
+  block_when_downstream_building: ['0'],
+  block_when_upstream_building: ['0'],
+  is_visible: ['0'],
+  promotion_icon: ['0']
 }.freeze
 
 describe 'built in extensions' do
@@ -102,7 +110,7 @@ describe 'built in extensions' do
 
   context 'job_attributes' do
     it 'has the correct number' do
-      expect(@registry[:job].size - 4).to eq JOB_ATTRIBUTES.size
+      expect(@registry[:job].size - JenkinsPipelineBuilder.registry.entries.size).to eq JOB_ATTRIBUTES.size
     end
 
     JOB_ATTRIBUTES.each do |job_attribute, versions|

@@ -18,24 +18,16 @@ module JenkinsPipelineBuilder
       JenkinsPipelineBuilder.logger
     end
 
-    def projects
-      result = []
-      collection.values.each do |item|
-        result << item if item[:type] == :project
-      end
-      result
-    end
-
     def standalone_jobs
       jobs.map { |job| { result: job } }
     end
 
+    def projects
+      collect_type :project
+    end
+
     def jobs
-      result = []
-      collection.values.each do |item|
-        result << item if item[:type] == :job
-      end
-      result
+      collect_type :job
     end
 
     def defaults
@@ -69,6 +61,10 @@ module JenkinsPipelineBuilder
 
     private
 
+    def collect_type(type_name)
+      collection.values.select { |item| item if item[:type] == type_name }
+    end
+
     def load_file(path, remote = false)
       hash = if path.end_with? 'json'
                JSON.parse(IO.read(path))
@@ -80,7 +76,7 @@ module JenkinsPipelineBuilder
         load_section section, remote
       end
     rescue StandardError => err
-      raise "There was an error while parsing a file #{err.message}"
+      raise CustomErrors::ParseError.new err.message, path
     end
 
     def load_section(section, remote)
@@ -92,6 +88,12 @@ module JenkinsPipelineBuilder
         remote_dependencies.load value
         return
       end
+
+      raise TypeError, %(Expected Hash received #{value.class}.
+        Verify that the pipeline section is made up of a single {key: Hash/Object} pair
+        See the definition for:
+        \t#{section}).squeeze(' ') unless value.is_a? Hash
+
       name = value[:name]
       process_collection! name, key, value, remote
     end

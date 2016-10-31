@@ -144,6 +144,69 @@ describe 'job_attributes' do
     end
   end
 
+  context 'block_when_downstream_building' do
+    it 'sets blockBuildWhenDownstreamBuilding' do
+      params = { block_when_downstream_building: 'true' }
+
+      builder = Nokogiri::XML::Builder.new do |xml|
+        xml.send('hudson.plugins.promoted__builds.PromotionProcess', 'plugin' => 'promoted-builds@2.27')
+      end
+      @n_xml = builder.doc
+
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+
+      expect(@n_xml.at('blockBuildWhenDownstreamBuilding')).to be_truthy
+      expect(@n_xml.at('blockBuildWhenDownstreamBuilding').content).to eq 'true'
+    end
+  end
+
+  context 'block_when_upstream_building' do
+    it 'sets blockBuildWhenUpstreamBuilding' do
+      params = { block_when_upstream_building: 'true' }
+
+      builder = Nokogiri::XML::Builder.new do |xml|
+        xml.send('hudson.plugins.promoted__builds.PromotionProcess', 'plugin' => 'promoted-builds@2.27')
+      end
+      @n_xml = builder.doc
+
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+
+      expect(@n_xml.at('blockBuildWhenUpstreamBuilding')).to be_truthy
+      expect(@n_xml.at('blockBuildWhenUpstreamBuilding').content).to eq 'true'
+    end
+  end
+
+  context 'is_visible' do
+    it 'sets isVisible' do
+      params = { is_visible: 'true' }
+
+      builder = Nokogiri::XML::Builder.new do |xml|
+        xml.send('hudson.plugins.promoted__builds.PromotionProcess', 'plugin' => 'promoted-builds@2.27')
+      end
+      @n_xml = builder.doc
+
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+
+      expect(@n_xml.at('isVisible')).to be_truthy
+    end
+  end
+
+  context 'promotion_icon' do
+    it 'sets the promotion_icon' do
+      params = { promotion_icon: 'gold-e' }
+
+      builder = Nokogiri::XML::Builder.new do |xml|
+        xml.send('hudson.plugins.promoted__builds.PromotionProcess', 'plugin' => 'promoted-builds@2.27')
+      end
+      @n_xml = builder.doc
+
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+
+      expect(@n_xml.at('icon')).to be_truthy
+      expect(@n_xml.at('icon').content).to eq 'star-gold-e'
+    end
+  end
+
   context 'scm params' do
     before :each do
       builder = Nokogiri::XML::Builder.new { |xml| xml.scm }

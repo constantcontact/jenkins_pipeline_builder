@@ -7,6 +7,8 @@
         local_branch: '{{git_branch}}'
         recursive_update: true
         wipe_workspace: true
+    promoted_builds:
+      - '01. Stage Promotion'
     builders:
         - shell_command: |
             sleep 60

@@ -19,7 +19,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-
 module JenkinsPipelineBuilder
   class ModuleRegistry
     attr_accessor :registry, :registered_modules
@@ -52,7 +51,9 @@ module JenkinsPipelineBuilder
         builders: '//builders',
         publishers: '//publishers',
         wrappers: '//buildWrappers',
-        triggers: '//triggers'
+        triggers: '//triggers',
+        build_steps: '//buildSteps',
+        promotion_conditions: '//conditions'
       }
     end
 
@@ -77,7 +78,6 @@ module JenkinsPipelineBuilder
     def get_by_path_collection(path, registry)
       item = registry[path.shift.to_sym]
       return item if path.count == 0
-
       get_by_path_collection(path, item)
     end
 
@@ -90,7 +90,7 @@ module JenkinsPipelineBuilder
       params.each do |key, value|
         next unless registry.is_a? Hash
         unless registry.key? key
-          raise "!!!! could not find key #{key} !!!!" if strict
+          raise TypeError, "!!!! could not find key #{key} !!!!" if strict
           next
         end
         reg_value = registry[key]
