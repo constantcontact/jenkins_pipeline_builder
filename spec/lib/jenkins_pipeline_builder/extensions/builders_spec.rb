@@ -209,4 +209,29 @@ describe 'builders' do
       end
     end
   end
+
+  context 'nodejs_script' do
+    let(:params) { { builders: { nodejs_script: { script: 'console.log("Hello World")', nodeJS_installation_name: 'Node_6.9.2' } } } }
+
+    before :each do
+      allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
+          list_installed: { 'nodejs' => '0.2.2' }
+      )
+      begin
+        JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+      rescue RuntimeError => err
+        puts 'Runtime Error: #{err}'
+      end
+      builder = @n_xml.root.children.first
+      expect(builder.name).to match 'jenkins.plugins.nodejs.NodeJsCommandInterpreter'
+    end
+
+    it 'generates a configuration' do
+      command = @n_xml.xpath '//jenkins.plugins.nodejs.NodeJsCommandInterpreter/command'
+      installVersion = @n_xml.xpath '//jenkins.plugins.nodejs.NodeJsCommandInterpreter/nodeJSInstallationName'
+      expect(command.children.first.content).to eq 'console.log("Hello World")'
+      expect(installVersion.children.first.content).to eq 'Node_6.9.2'
+    end
+
+  end
 end

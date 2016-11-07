@@ -43,7 +43,8 @@ BUILDERS = {
   shell_command: ['0'],
   checkmarx_scan: ['0'],
   system_groovy: ['0'],
-  sonar_standalone: ['0']
+  sonar_standalone: ['0'],
+  nodejs_script: ['0']
 }.freeze
 
 TRIGGERS = {
