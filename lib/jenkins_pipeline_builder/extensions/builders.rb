@@ -405,3 +405,51 @@ builder do
     end
   end
 end
+
+builder do
+  name :conditional_multijob_step
+  plugin_id 'conditional-buildstep'
+  description 'description'
+  jenkins_name 'Conditional Build Step'
+  announced false
+
+  xml do |params|
+    send('org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder', 'plugin' => 'conditional-buildstep@1.3.3') do
+      condition('class' => 'org.jenkins_ci.plugins.run_condition.contributed.ShellCondition', 'plugin' => 'run-condition@1.0') do
+        command params[:conditional_shell]
+      end
+      params[:phases].each do |name, content|
+        buildStep('class' => 'com.tikal.jenkins.plugins.multijob.MultiJobBuilder', 'plugin' => 'jenkins-multijob-plugin@1.13') do
+          phaseName name
+          phaseJobs do
+            content[:jobs].each do |job|
+              send('com.tikal.jenkins.plugins.multijob.PhaseJobsConfig') do
+                jobName job[:name]
+                currParams job[:current_params] || false
+                exposedSCM job[:exposed_scm] || false
+                if job[:config]
+                  configs do
+                    if job[:config].key? :predefined_build_parameters
+                      send('hudson.plugins.parameterizedtrigger.PredefinedBuildParameters') do
+                        properties job[:config][:predefined_build_parameters]
+                      end
+                    end
+                    if job[:config].key? :properties_file
+                      send('hudson.plugins.parameterizedtrigger.FileBuildParameters') do
+                        propertiesFile job[:config][:properties_file][:file]
+                        failTriggerOnMissing job[:config][:properties_file][:skip_if_missing] || 'false'
+                      end
+                    end
+                  end
+                end
+                killPhaseOnJobResultCondition job[:kill_phase_on] || 'FAILURE'
+              end
+            end
+          end
+          continuationCondition content[:continue_condition] || 'SUCCESSFUL'
+        end
+      end
+      runner('class' => 'org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail', 'plugin' => 'run-condition@1.0')
+    end
+  end
+end
