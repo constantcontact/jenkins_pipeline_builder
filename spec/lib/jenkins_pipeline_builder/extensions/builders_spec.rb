@@ -236,4 +236,80 @@ describe 'builders' do
       end
     end
   end
+
+  context 'conditional_multijob_step' do
+    let(:default_params) do
+      {
+        builders: {
+          conditional_multijob_step: {
+            conditional_shell: 'echo',
+            phases: {
+              myphase1: {
+                jobs: [
+                  {
+                    name: 'myjob1',
+                    config: {
+                      predefined_build_parameters: 'X=Y\nR=Z'
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    end
+    let(:base_x_path) do
+      '//org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder'
+    end
+    let(:build_step_x_path) do
+      "#{base_x_path}/buildStep"
+    end
+    let(:phase_jobs_x_path) do
+      "#{build_step_x_path}/phaseJobs/com.tikal.jenkins.plugins.multijob.PhaseJobsConfig"
+    end
+
+    before :each do
+      allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
+        list_installed: { 'conditional-buildstep' => '1.3.3' }
+      )
+    end
+
+    it 'generates a configuration' do
+      params = default_params
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+      builder = @n_xml.root.children.first
+      expect(builder.name).to match 'org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder'
+      command = @n_xml.xpath base_x_path
+      expect(command.first.content).to match 'echo'
+    end
+
+    it 'creates a phase' do
+      params = default_params
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+      phase_name = @n_xml.xpath "#{build_step_x_path}/phaseName"
+      expect(phase_name.first.content).to match 'myphase1'
+      phase_continue = @n_xml.xpath "#{build_step_x_path}/continuationCondition"
+      expect(phase_continue.first.content).to match 'SUCCESSFUL'
+    end
+
+    it 'creates a job' do
+      params = default_params
+
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+      job_name = @n_xml.xpath "#{phase_jobs_x_path}/jobName"
+      expect(job_name.first.content).to match 'myjob1'
+      curr_params = @n_xml.xpath "#{phase_jobs_x_path}/currParams"
+      expect(curr_params.first.content).to match 'false'
+      exposed_scm = @n_xml.xpath "#{phase_jobs_x_path}/exposedSCM"
+      expect(exposed_scm.first.content).to match 'false'
+      predefined_params = @n_xml.xpath "#{phase_jobs_x_path}/"\
+        'configs/hudson.plugins.parameterizedtrigger.PredefinedBuildParameters'
+      expect(predefined_params.first.content).to match 'X=Y\nR=Z'
+      kill_phase_cond = @n_xml.xpath "#{phase_jobs_x_path}/killPhaseOnJobResultCondition"
+      expect(kill_phase_cond.first.content).to match 'FAILURE'
+    end
+
+    # TODO: More tests
+  end
 end
