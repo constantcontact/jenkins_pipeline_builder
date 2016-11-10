@@ -34,7 +34,9 @@ module JenkinsPipelineBuilder
       desc 'bootstrap Path', 'Generates pipeline from folder or a file'
       def bootstrap(path, project_name = nil)
         failed = Helper.setup(parent_options).bootstrap(path, project_name)
-        raise 'Encountered error during run' unless failed.empty?
+        exit(0) if failed.empty? # weird ordering, but rubocop decrees
+        JenkinsPipelineBuilder.logger.error 'Encountered error during run'
+        exit(1)
       end
 
       desc 'pull_request Path', 'Generates jenkins jobs based on a git pull request.'

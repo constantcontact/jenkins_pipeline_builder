@@ -145,7 +145,7 @@ module JenkinsPipelineBuilder
 
     def print_compile_errors(errors)
       errors.each do |k, v|
-        logger.error "Encountered errors compiling: #{k}:"
+        logger.error "Encountered errors compiling '#{k}':"
         logger.error v
       end
     end
@@ -186,7 +186,7 @@ module JenkinsPipelineBuilder
 
     def create_jobs_and_views(project)
       success, payload = resolve_project(project)
-      return { project_name: 'Failed to resolve' } unless success
+      return { project[:name].to_s => 'Failed to resolve' } unless success
 
       logger.info 'successfully resolved project'
       compiled_project = payload
