@@ -324,6 +324,21 @@ builder do
 end
 
 builder do
+  name :nodejs_script
+  plugin_id 'nodejs'
+  description 'Lets you run nodejs scripts as a build step.'
+  jenkins_name 'Node_js script'
+  announced false
+
+  xml do |params|
+    send('jenkins.plugins.nodejs.NodeJsCommandInterpreter', 'plugin' => 'nodejs@0.2.1') do
+      command params[:script]
+      nodeJSInstallationName params[:nodeJS_installation_name]
+    end
+  end
+end
+
+builder do
   name :checkmarx_scan
   plugin_id 'checkmarx'
   description 'Jenkins plugin for checkmarx security audit'
