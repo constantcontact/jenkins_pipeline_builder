@@ -549,3 +549,19 @@ publisher do
     end
   end
 end
+
+# https://github.com/hawknewton/jenkins-github-pull-request-notifier
+publisher do
+  name :pull_request_notifier
+  plugin_id 'github-pull-request-notifier'
+  description 'Push build results to a github issue/pull request'
+  jenkins_name 'Github Pull Request Notifier'
+  announced false
+
+  xml do |params|
+    send('jenkins.plugins.github__pull__request__notifier.GithubPullRequestNotifier') do
+      pullRequestNumber params[:pull_request_number]
+      groupRepo params[:group_repo]
+    end
+  end
+end

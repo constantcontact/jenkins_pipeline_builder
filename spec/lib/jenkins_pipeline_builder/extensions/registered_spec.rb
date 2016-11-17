@@ -29,6 +29,7 @@ PUBLISHERS = {
   performance_plugin: ['0'],
   post_build_script: ['0'],
   publish_tap_results: ['0'],
+  pull_request_notifier: ['0'],
   sonar_result: ['0'],
   xunit: ['0']
 }.freeze

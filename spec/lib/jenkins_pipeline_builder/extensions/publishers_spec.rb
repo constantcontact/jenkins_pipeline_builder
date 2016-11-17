@@ -221,6 +221,27 @@ describe 'publishers' do
     end
   end
 
+  context 'pull_request_notifier' do
+    before :each do
+      allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
+        list_installed: { 'github-pull-request-notifier' => '0.0.3' }
+      )
+    end
+    it 'generates a configuration' do
+      params = { publishers: { pull_request_notifier: { pull_request_number: '5', group_repo: 'test/me' } } }
+
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+
+      publisher = @n_xml.root.children.first
+      expect(publisher.name).to match 'jenkins.plugins.github__pull__request__notifier.GithubPullRequestNotifier'
+
+      expect(publisher.children[0].name).to eq 'pullRequestNumber'
+      expect(publisher.children[0].content).to eq '5'
+      expect(publisher.children[1].name).to eq 'groupRepo'
+      expect(publisher.children[1].content).to eq 'test/me'
+    end
+  end
+
   context 'git' do
     it 'generates a configuration'
   end
