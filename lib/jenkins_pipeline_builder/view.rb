@@ -131,7 +131,8 @@ module JenkinsPipelineBuilder
         'nestedView' => 'hudson.plugins.nested_view.NestedView',
         'categorizedView' => 'org.jenkinsci.plugins.categorizedview.CategorizedJobsView',
         'dashboardView' => 'hudson.plugins.view.dashboard.Dashboard',
-        'multijobView' => 'com.tikal.jenkins.plugins.multijob.views.MultiJobView'
+        'multijobView' => 'com.tikal.jenkins.plugins.multijob.views.MultiJobView',
+        'buildmonitorView' => 'com.smartcodeltd.jenkinsci.plugins.buildmonitor.BuildMonitorView'
       }
       raise "Type #{type} is not supported by Jenkins." unless types.keys.include? type
       types[type]
