@@ -565,3 +565,31 @@ publisher do
     end
   end
 end
+
+publisher do
+  name :cucumber_reports
+  plugin_id 'cucumber-reports'
+  description 'Provides Jenkins integration for publishing the cucumber reports'
+  jenkins_name 'Publish cucumber results as a report'
+  announced true
+
+  version '0' do
+    xml do
+      send('net.masterthought.jenkins.CucumberReportPublisher') do
+        jsonReportDirectory
+        pluginUrlPath
+        skippedFails false
+        undefinedFails false
+        noFlashCharts false
+      end
+    end
+  end
+
+  version '3.0.0' do
+    xml do |params|
+      send('net.masterthought.jenkins.CucumberReportPublisher') do
+        fileIncludePattern params[:file_include_pattern]
+      end
+    end
+  end
+end

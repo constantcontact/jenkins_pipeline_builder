@@ -17,6 +17,7 @@ PUBLISHERS = {
   claim_broken_build: ['0'],
   cobertura_report: ['0'],
   coverage_result: ['0'],
+  cucumber_reports: ['0', '3.0.0'],
   description_setter: ['0'],
   downstream: ['0'],
   email_ext: ['0'],
