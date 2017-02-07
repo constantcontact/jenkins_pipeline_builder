@@ -242,6 +242,52 @@ describe 'publishers' do
     end
   end
 
+  context 'cucumber_reports' do
+    context '0' do
+      before :each do
+        allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
+          list_installed: { 'cucumber-reports' => '0' }
+        )
+      end
+      it 'generates a configuration' do
+        params = { publishers: { cucumber_reports: {} } }
+        cucumber_reports = JenkinsPipelineBuilder.registry.registry[:job][:publishers][:cucumber_reports]
+        expect(cucumber_reports.extension.min_version).to eq '0'
+
+        JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+
+        publisher = @n_xml.root.children.first
+        expect(publisher.name).to match 'net.masterthought.jenkins.CucumberReportPublisher'
+        children = publisher.children.map(&:name)
+        expect(children).to include 'jsonReportDirectory'
+        expect(children).to include 'pluginUrlPath'
+        expect(children).to include 'skippedFails'
+        expect(children).to include 'undefinedFails'
+        expect(children).to include 'noFlashCharts'
+      end
+    end
+
+    context '3.0.0' do
+      before :each do
+        allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
+          list_installed: { 'cucumber-reports' => '3.0.0' }
+        )
+      end
+      it 'generates a configuration' do
+        params = { publishers: { cucumber_reports: {} } }
+        cucumber_reports = JenkinsPipelineBuilder.registry.registry[:job][:publishers][:cucumber_reports]
+        expect(cucumber_reports.extension.min_version).to eq '3.0.0'
+
+        JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+
+        publisher = @n_xml.root.children.first
+        expect(publisher.name).to match 'net.masterthought.jenkins.CucumberReportPublisher'
+        children = publisher.children.map(&:name)
+        expect(children).to include 'fileIncludePattern'
+      end
+    end
+  end
+
   context 'git' do
     it 'generates a configuration'
   end
