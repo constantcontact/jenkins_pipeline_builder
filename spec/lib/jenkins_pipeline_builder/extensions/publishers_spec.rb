@@ -283,7 +283,17 @@ describe 'publishers' do
         publisher = @n_xml.root.children.first
         expect(publisher.name).to match 'net.masterthought.jenkins.CucumberReportPublisher'
         children = publisher.children.map(&:name)
+        expect(children).to include 'jsonReportDirectory'
         expect(children).to include 'fileIncludePattern'
+        expect(children).to include 'fileExcludePattern'
+        expect(children).to include 'trendsLimit'
+        expect(children).to include 'failedStepsNumber'
+        expect(children).to include 'skippedStepsNumber'
+        expect(children).to include 'pendingStepsNumber'
+        expect(children).to include 'undefinedStepsNumber'
+        expect(children).to include 'failedScenariosNumber'
+        expect(children).to include 'failedFeaturesNumber'
+        expect(children).to include 'parallelTesting'
       end
     end
   end

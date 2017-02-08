@@ -588,7 +588,17 @@ publisher do
   version '3.0.0' do
     xml do |params|
       send('net.masterthought.jenkins.CucumberReportPublisher') do
+        jsonReportDirectory
         fileIncludePattern params[:file_include_pattern]
+        fileExcludePattern
+        trendsLimit 0
+        failedStepsNumber 0
+        skippedStepsNumber 0
+        pendingStepsNumber 0
+        undefinedStepsNumber 0
+        failedScenariosNumber 0
+        failedFeaturesNumber 0
+        parallelTesting false
       end
     end
   end
