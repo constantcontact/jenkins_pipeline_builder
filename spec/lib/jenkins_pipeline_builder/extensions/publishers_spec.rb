@@ -228,7 +228,15 @@ describe 'publishers' do
       )
     end
     it 'generates a configuration' do
-      params = { publishers: { pull_request_notifier: { pull_request_number: '5', group_repo: 'test/me' } } }
+      params = {
+        publishers: {
+          pull_request_notifier: {
+            pull_request_number: '5',
+            group_repo: 'test/me',
+            comment_on_pr: 'true'
+          }
+        }
+      }
 
       JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
 
@@ -239,6 +247,24 @@ describe 'publishers' do
       expect(publisher.children[0].content).to eq '5'
       expect(publisher.children[1].name).to eq 'groupRepo'
       expect(publisher.children[1].content).to eq 'test/me'
+      expect(publisher.children[2].name).to eq 'commentOnPr'
+      expect(publisher.children[2].content).to eq 'true'
+    end
+    it 'it does not comment on pull requests by default' do
+      params = {
+        publishers: {
+          pull_request_notifier: {
+            pull_request_number: '5', group_repo: 'test/me'
+          }
+        }
+      }
+
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+
+      publisher = @n_xml.root.children.first
+
+      expect(publisher.children[2].name).to eq 'commentOnPr'
+      expect(publisher.children[2].content).to eq 'false'
     end
   end
 
