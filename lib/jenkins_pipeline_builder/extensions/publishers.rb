@@ -562,6 +562,7 @@ publisher do
     send('jenkins.plugins.github__pull__request__notifier.GithubPullRequestNotifier') do
       pullRequestNumber params[:pull_request_number]
       groupRepo params[:group_repo]
+      commentOnPr params[:comment_on_pr] || false
     end
   end
 end
