@@ -418,6 +418,7 @@ job_attribute do
         propertiesFilePath params[:file] if params[:file]
         propertiesContent params[:content] if params[:content]
         loadFilesFromMaster false
+        scriptContent params[:script_content] if params[:script_content]
       end
       on true
       keepJenkinsSystemVariables true
