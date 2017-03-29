@@ -365,4 +365,18 @@ describe 'job_attributes' do
       end
     end
   end
+
+  context 'inject_env_vars_pre_scm' do
+    before :each do
+      JenkinsPipelineBuilder.registry.registry[:job][:inject_env_vars_pre_scm].installed_version = '1.93.1'
+    end
+
+    it 'generates correct config' do
+      env_vars =  { inject_env_vars_pre_scm: { script_content: 'echo foo' } }
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', env_vars, @n_xml)
+      properties = @n_xml.root.children.first
+      expect(properties.name).to match 'EnvInjectJobProperty'
+      expect(properties.css('scriptContent').first.content).to eq 'echo foo'
+    end
+  end
 end

@@ -27,7 +27,7 @@ automating Job & Pipeline creation from the YAML files checked-in with your appl
   spec.add_dependency 'activesupport', '~> 4.2.6'
   spec.add_dependency 'minitar'
 
-  spec.add_development_dependency 'bundler', '~> 1.3'
+  spec.add_development_dependency 'bundler', '~> 1.14.6'
   spec.add_development_dependency 'rake'
   spec.add_development_dependency 'rspec', '~> 3.0'
   spec.add_development_dependency 'bump'
