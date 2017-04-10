@@ -8,7 +8,8 @@ WRAPPERS = {
   nodejs: ['0'],
   rvm: ['0', '0.5'],
   timestamp: ['0'],
-  xvfb: ['0']
+  xvfb: ['0'],
+  prebuild_cleanup: ['0']
 }.freeze
 
 PUBLISHERS = {

@@ -243,3 +243,15 @@ wrapper do
     end
   end
 end
+
+wrapper do
+  name :prebuild_cleanup
+  plugin_id 'ws-cleanup'
+  description 'Deletes workspace before build starts.'
+  jenkins_name 'Delete workspace before build starts'
+  announced false
+
+  xml do |_|
+    send('hudson.plugins.ws__cleanup.PreBuildCleanup', 'plugin' => 'ws-cleanup')
+  end
+end
