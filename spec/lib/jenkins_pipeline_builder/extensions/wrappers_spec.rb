@@ -116,4 +116,17 @@ describe 'wrappers' do
       expect(node.first.content).to match 'Node-0.10.24'
     end
   end
+
+  context 'prebuild_cleanup' do
+    before :each do
+      JenkinsPipelineBuilder.registry.registry[:job][:wrappers][:prebuild_cleanup].installed_version = '0.0'
+    end
+
+    it 'generates correct xml' do
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', { wrappers: { prebuild_cleanup: true } }, @n_xml)
+
+      node = @n_xml.root.xpath('//buildWrappers/hudson.plugins.ws__cleanup.PreBuildCleanup')
+      expect(node.first).to_not be_nil
+    end
+  end
 end
