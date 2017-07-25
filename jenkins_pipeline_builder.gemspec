@@ -23,11 +23,11 @@ automating Job & Pipeline creation from the YAML files checked-in with your appl
 
   spec.add_dependency 'nokogiri', '~> 1.6.0'
   spec.add_dependency 'jenkins_api_client', '~> 1.0.0'
+  spec.add_dependency 'mixlib_shellout', '= 2.2.6' # maintaining backwards compatibility with ruby 2.1.5
   spec.add_dependency 'thor', '>= 0.18.0'
   spec.add_dependency 'activesupport', '~> 4.2.6'
   spec.add_dependency 'minitar'
 
-  spec.add_development_dependency 'bundler', '~> 1.14.6'
   spec.add_development_dependency 'rake'
   spec.add_development_dependency 'rspec', '~> 3.0'
   spec.add_development_dependency 'bump'
