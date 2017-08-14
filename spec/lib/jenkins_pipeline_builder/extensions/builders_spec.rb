@@ -344,4 +344,55 @@ describe 'builders' do
 
     # TODO: More tests
   end
+
+  context 'groovy' do
+    error = ''
+    before :each do
+      error = ''
+      allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
+        list_installed: { 'groovy' => '1.24' }
+      )
+
+      begin
+        JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+      rescue RuntimeError => boom
+        puts "Caught error #{boom}"
+        error = boom.to_s
+      end
+      builder = @n_xml.root.children.first
+      expect(builder.name).to match 'hudson.plugins.groovy.SystemGroovy'
+    end
+
+    context 'script given as string' do
+      let(:params) { { builders: { groovy: { script_source: 'print "Hello world"' } } } }
+      it 'generates a configuration' do
+        node = @n_xml.xpath '//hudson.plugins.groovy.SystemGroovy/scriptSource/command'
+        expect(node.children.first.content).to eq 'print "Hello world"'
+      end
+    end
+
+    context 'script given as file' do
+      let(:params) { { builders: { groovy: { script_file: 'myScript.groovy' } } } }
+      it 'generates a configuration' do
+        node = @n_xml.xpath '//hudson.plugins.groovy.SystemGroovy/scriptSource/scriptFile'
+        expect(node.children.first.content).to eq 'myScript.groovy'
+      end
+    end
+
+    context 'bindings' do
+      let(:params) { { builders: { groovy: { file: 'myScript.groovy' } } } }
+      it 'generates a configuration' do
+        node = @n_xml.xpath '//hudson.plugins.groovy.SystemGroovy/bindings'
+        expect(node.to_xml).to eq '<bindings/>'
+      end
+    end
+
+    context 'classpath' do
+      let(:params) { { builders: { groovy: { file: 'myScript.groovy' } } } }
+      it 'generates a configuration' do
+        node = @n_xml.xpath '//hudson.plugins.groovy.SystemGroovy/classpath'
+        expect(node.to_xml).to eq '<classpath/>'
+      end
+    end
+  end
 end

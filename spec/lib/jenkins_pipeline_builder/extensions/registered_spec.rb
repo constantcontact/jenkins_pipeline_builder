@@ -48,7 +48,8 @@ BUILDERS = {
   system_groovy: ['0'],
   sonar_standalone: ['0'],
   conditional_multijob_step: ['0'],
-  nodejs_script: ['0']
+  nodejs_script: ['0'],
+  groovy: ['0']
 }.freeze
 
 TRIGGERS = {
