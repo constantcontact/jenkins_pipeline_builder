@@ -468,3 +468,27 @@ builder do
     end
   end
 end
+
+builder do
+  name :groovy
+  plugin_id 'groovy'
+  description 'This plugin executes Groovy script as a build step.'
+  jenkins_name 'This plugin executes Groovy script as a build step.'
+  announced false
+
+  xml do |params|
+    send('hudson.plugins.groovy.SystemGroovy') do
+      if params[:script_file].to_s.empty?
+        send('scriptSource', 'class' => 'hudson.plugins.groovy.StringScriptSource') do
+          command params[:script_source]
+        end
+      else
+        send('scriptSource', 'class' => 'hudson.plugins.groovy.FileScriptSource') do
+          scriptFile params[:script_file]
+        end
+      end
+      bindings
+      classpath
+    end
+  end
+end
