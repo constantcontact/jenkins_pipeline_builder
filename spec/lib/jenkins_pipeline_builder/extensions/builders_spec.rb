@@ -346,9 +346,7 @@ describe 'builders' do
   end
 
   context 'groovy' do
-    error = ''
     before :each do
-      error = ''
       allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
         list_installed: { 'groovy' => '1.24' }
       )
