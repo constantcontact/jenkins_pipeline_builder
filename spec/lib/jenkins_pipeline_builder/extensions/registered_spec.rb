@@ -67,6 +67,7 @@ JOB_ATTRIBUTES = {
   hipchat: ['0'],
   inject_env_vars_pre_scm: ['0'],
   parameters: ['0'],
+  shared_workspace: ['0'],
   prepare_environment: ['0'],
   priority: ['0'],
   promoted_builds: ['0'],

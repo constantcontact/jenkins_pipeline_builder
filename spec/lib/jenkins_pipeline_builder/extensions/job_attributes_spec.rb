@@ -112,6 +112,20 @@ describe 'job_attributes' do
     end
   end
 
+  context 'name parameter' do
+    before :each do
+      params = { shared_workspace: { name: :foo } }
+      JenkinsPipelineBuilder.registry.registry[:job][:shared_workspace].installed_version = '0'
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+      @parameters = @n_xml.root.children.first
+      expect(@parameters.name).to match 'org.jenkinsci.plugins.sharedworkspace.SharedWorkspace'
+    end
+
+    it 'generates correct config' do
+      expect(@parameters.to_s).to include 'name'
+    end
+  end
+
   context 'disabled' do
     it 'sets disabled' do
       params = { disabled: true }

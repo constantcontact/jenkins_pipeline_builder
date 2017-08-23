@@ -442,3 +442,18 @@ job_attribute do
     end
   end
 end
+
+job_attribute do
+  name :shared_workspace
+  plugin_id 'shared-workspace'
+  description 'description'
+  jenkins_name 'Shared Workspace'
+
+  xml path: '//properties' do |params|
+    if params[:name]
+      send('org.jenkinsci.plugins.sharedworkspace.SharedWorkspace', 'plugin' => 'shared-workspace@1.0.2') do
+        name params[:name]
+      end
+    end
+  end
+end
