@@ -41,7 +41,7 @@ BUILDERS = {
   copy_artifact: ['0'],
   inject_vars_file: ['0'],
   maven3: ['0'],
-  multi_job: ['0'],
+  multi_job: ['0', '1.27'],
   remote_job: ['0'],
   shell_command: ['0'],
   checkmarx_scan: ['0'],
