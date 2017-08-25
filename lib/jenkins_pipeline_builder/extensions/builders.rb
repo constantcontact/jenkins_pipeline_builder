@@ -26,36 +26,83 @@ builder do
   jenkins_name 'MultiJob Phase'
   announced false
 
-  xml do |params|
-    params[:phases].each do |name, content|
-      send('com.tikal.jenkins.plugins.multijob.MultiJobBuilder') do
-        phaseName name
-        phaseJobs do
-          content[:jobs].each do |job|
-            send('com.tikal.jenkins.plugins.multijob.PhaseJobsConfig') do
-              jobName job[:name]
-              currParams job[:current_params] || false
-              exposedSCM job[:exposed_scm] || false
-              if job[:config]
-                configs do
-                  if job[:config].key? :predefined_build_parameters
-                    send('hudson.plugins.parameterizedtrigger.PredefinedBuildParameters') do
-                      properties job[:config][:predefined_build_parameters]
+  version '0' do
+    xml do |params|
+      params[:phases].each do |name, content|
+        send('com.tikal.jenkins.plugins.multijob.MultiJobBuilder') do
+          phaseName name
+          phaseJobs do
+            content[:jobs].each do |job|
+              send('com.tikal.jenkins.plugins.multijob.PhaseJobsConfig') do
+                jobName job[:name]
+                currParams job[:current_params] || false
+                exposedSCM job[:exposed_scm] || false
+                if job[:config]
+                  configs do
+                    if job[:config].key? :predefined_build_parameters
+                      send('hudson.plugins.parameterizedtrigger.PredefinedBuildParameters') do
+                        properties job[:config][:predefined_build_parameters]
+                      end
                     end
-                  end
-                  if job[:config].key? :properties_file
-                    send('hudson.plugins.parameterizedtrigger.FileBuildParameters') do
-                      propertiesFile job[:config][:properties_file][:file]
-                      failTriggerOnMissing job[:config][:properties_file][:skip_if_missing] || 'false'
+                    if job[:config].key? :properties_file
+                      send('hudson.plugins.parameterizedtrigger.FileBuildParameters') do
+                        propertiesFile job[:config][:properties_file][:file]
+                        failTriggerOnMissing job[:config][:properties_file][:skip_if_missing] || 'false'
+                      end
                     end
                   end
                 end
+                killPhaseOnJobResultCondition job[:kill_phase_on] || 'FAILURE'
               end
-              killPhaseOnJobResultCondition job[:kill_phase_on] || 'FAILURE'
             end
           end
+          continuationCondition content[:continue_condition] || 'SUCCESSFUL'
         end
-        continuationCondition content[:continue_condition] || 'SUCCESSFUL'
+      end
+    end
+  end
+
+  version '1.27' do
+    xml do |params|
+      params[:phases].each do |name, content|
+        send('com.tikal.jenkins.plugins.multijob.MultiJobBuilder') do
+          phaseName name
+          phaseJobs do
+            content[:jobs].each do |job|
+              send('com.tikal.jenkins.plugins.multijob.PhaseJobsConfig') do
+                jobName job[:name]
+                currParams job[:current_params] || false
+                exposedSCM job[:exposed_scm] || false
+                disableJob job[:disable_job] || false
+                maxRetries job[:max_retries] || 0
+                enableRetryStrategy job[:enable_retry_strategy] || false
+                enableCondition job[:enable_condition] || false
+                abortAllJob job[:abort_all_job] || false
+                condition job[:condition] || ""
+                if job[:config]
+                  configs do
+                    if job[:config].key? :predefined_build_parameters
+                      send('hudson.plugins.parameterizedtrigger.PredefinedBuildParameters') do
+                        properties job[:config][:predefined_build_parameters]
+                      end
+                    end
+                    if job[:config].key? :properties_file
+                      send('hudson.plugins.parameterizedtrigger.FileBuildParameters') do
+                        propertiesFile job[:config][:properties_file][:file]
+                        failTriggerOnMissing job[:config][:properties_file][:skip_if_missing] || 'false'
+                      end
+                    end
+                  end
+                end
+                killPhaseOnJobResultCondition job[:kill_phase_on] || 'FAILURE'
+                buildOnlyIfSCMChanges job[:build_only_if_scm_changes] || false
+                applyConditionOnlyIfNoSCMChanges job[:apply_condition_only_if]
+              end
+            end
+          end
+          continuationCondition content[:continue_condition] || 'SUCCESSFUL'
+          executionType content[:execution_type] || 'PARALLEL'
+        end
       end
     end
   end
