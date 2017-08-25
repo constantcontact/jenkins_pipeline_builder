@@ -74,8 +74,11 @@ builder do
                 currParams job[:current_params] || false
                 exposedSCM job[:exposed_scm] || false
                 disableJob job[:disable_job] || false
-                maxRetries job[:max_retries] || 0
-                enableRetryStrategy job[:enable_retry_strategy] || false
+                if maxRetries job[:max_retries]
+                  maxRetries job[:max_retries]
+                  enableRetryStrategy job[:enable_retry_strategy] || false
+                end
+                enableCondition job[:enable_condition] || false
                 abortAllJob job[:abort_all_job] || false
 
                 if job[:condition].to_s.strip.empty? || !job[:condition]
