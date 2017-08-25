@@ -50,34 +50,32 @@ describe 'builders' do
   end
 
   context 'multi_job builder' do
+    params = {}
+
     before :each do
+      params = { builders: { multi_job: { phases: { foo: { jobs:
+        [{
+          name: 'foo'
+        }] } } } } }
       allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
         list_installed: { 'jenkins-multijob-plugin' => '20.0' }
       )
     end
 
     it 'generates a configuration' do
-      params = { builders: { multi_job: { phases: { testphase: { jobs:
-        [{
-          name: 'foo'
-        }] } } } } }
       JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
       builder = @n_xml.root.children.first
       expect(builder.name).to match 'com.tikal.jenkins.plugins.multijob.MultiJobBuilder'
     end
 
     it 'generates a jobName' do
-      params = { builders: { multi_job: { phases: { testphase: { jobs:
-        [{
-          name: 'foo'
-        }] } } } } }
       JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
       node = @n_xml.xpath '//jobName'
       expect(node.text).to eq 'foo'
     end
 
-    it 'generates a buildOnlyIfSCMChanges flag' do
-      params = { builders: { multi_job: { phases: { testphase: { jobs:
+    it 'generates buildOnlyIfSCMChanges flag and sets to parameter' do
+      params = { builders: { multi_job: { phases: { foo: { jobs:
         [{
           name: 'foo',
           build_only_if_scm_changes: true
@@ -87,16 +85,14 @@ describe 'builders' do
       expect(node.text).to eq 'true'
     end
 
-    it 'does not generate a buildOnlyIfSCMChanges flag' do
-      params = { builders: { multi_job: { phases: { testphase: { jobs:
-        [{ name: 'foo' }] } } } } }
+    it 'generates buildOnlyIfSCMChanges flag and sets to default' do
       JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
       node = @n_xml.xpath '//buildOnlyIfSCMChanges'
       expect(node.text).to eq 'false'
     end
 
-    it 'generates a disableJob flag' do
-      params = { builders: { multi_job: { phases: { testphase: { jobs:
+    it 'generates disableJob flag and sets to parameter' do
+      params = { builders: { multi_job: { phases: { foo: { jobs:
         [{
           name: 'foo',
           disable_job: true
@@ -106,18 +102,14 @@ describe 'builders' do
       expect(node.text).to eq 'true'
     end
 
-    it 'does not generate a disableJob flag' do
-      params = { builders: { multi_job: { phases: { testphase: { jobs:
-        [{
-          name: 'foo'
-        }] } } } } }
+    it 'generates disableJob flag and sets to default' do
       JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
       node = @n_xml.xpath '//disableJob'
       expect(node.text).to eq 'false'
     end
 
-    it 'generates maxRetries' do
-      params = { builders: { multi_job: { phases: { testphase: { jobs:
+    it 'generates maxRetries tag' do
+      params = { builders: { multi_job: { phases: { foo: { jobs:
         [{
           name: 'foo',
           max_retries: 1
@@ -127,19 +119,14 @@ describe 'builders' do
       expect(node.first.text).to eq '1'
     end
 
-    it 'does not genereate enableRetryStrategy' do
-      params = { builders: { multi_job: { phases: { testphase: { jobs:
-        [{
-          name: 'foo'
-        }] } } } } }
-
+    it 'generates enableRetryStrategy tag and sets to default' do
       JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
       node = @n_xml.xpath '//enableRetryStrategy'
       expect(node.text).to eq 'false'
     end
 
     it 'provides job specific config' do
-      params = { builders: { multi_job: { phases: { testphase: { jobs:
+      params = { builders: { multi_job: { phases: { foo: { jobs:
         [{
           name: 'foo',
           config:
@@ -204,8 +191,6 @@ describe 'builders' do
     end
 
     it 'generates abort all other jobs tag and sets to default' do
-      params = { builders: [{ multi_job: { phases: { foo: { jobs:
-        [{ name: 'foo' }] } } } }] }
       JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
       node = @n_xml.xpath '//abortAllJob'
       expect(node.children.first.content).to eq 'false'
@@ -223,8 +208,6 @@ describe 'builders' do
     end
 
     it 'generates current job parameters and sets to default' do
-      params = { builders: [{ multi_job: { phases: { foo: { jobs:
-         [{ name: 'foo' }] } } } }] }
       JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
       node = @n_xml.xpath '//currParams'
       expect(node.children.first.content).to eq 'false'
@@ -235,16 +218,12 @@ describe 'builders' do
         jobs: [{ name: 'foo' }],
         continue_condition: 'ALWAYS'
       } } } }] }
-
       JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
       node = @n_xml.xpath '//continuationCondition'
-      puts ">>>>>>>>>>>>>>>>>>>>>>>>>>>> #{node}"
       expect(node.children.first.content).to eq 'ALWAYS'
     end
 
     it 'generates continuation condition tag and sets to default' do
-      params = { builders: [{ multi_job: { phases: { foo: { jobs:
-        [{ name: 'foo' }] } } } }] }
       JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
       node = @n_xml.xpath '//continuationCondition'
       expect(node.children.first.content).to eq 'SUCCESSFUL'
@@ -261,8 +240,6 @@ describe 'builders' do
     end
 
     it 'generates execution type tag and sets to default' do
-      params = { builders: [{ multi_job: { phases: { foo: { jobs:
-        [{ name: 'foo' }] } } } }] }
       JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
       node = @n_xml.xpath '//executionType'
       expect(node.children.first.content).to eq 'PARALLEL'
