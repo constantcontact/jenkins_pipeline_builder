@@ -89,9 +89,7 @@ describe 'builders' do
 
     it 'does not generate a buildOnlyIfSCMChanges flag' do
       params = { builders: { multi_job: { phases: { testphase: { jobs:
-        [{
-          name: 'foo',
-        }] } } } } }
+        [{ name: 'foo' }] } } } } }
       JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
       node = @n_xml.xpath '//buildOnlyIfSCMChanges'
       expect(node.text).to eq 'false'
@@ -124,10 +122,9 @@ describe 'builders' do
           name: 'foo',
           max_retries: 1
         }] } } } } }
-        byebug
-        JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
-        node = @n_xml.xpath '//maxRetries'
-        expect(node.first.text).to eq '1'
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+      node = @n_xml.xpath '//maxRetries'
+      expect(node.first.text).to eq '1'
     end
 
     it 'does not genereate enableRetryStrategy' do
@@ -136,19 +133,21 @@ describe 'builders' do
           name: 'foo'
         }] } } } } }
 
-        JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
-        node = @n_xml.xpath '//enableRetryStrategy'
-        expect(node.text).to eq 'false'
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+      node = @n_xml.xpath '//enableRetryStrategy'
+      expect(node.text).to eq 'false'
     end
 
     it 'provides job specific config' do
       params = { builders: { multi_job: { phases: { testphase: { jobs:
         [{
           name: 'foo',
-          config: {
-            predefined_build_parameters: 'bar',
-            properties_file: { file: 'props', skip_if_missing: true }
-          } }] } } } } }
+          config:
+            {
+              predefined_build_parameters: 'bar',
+              properties_file: { file: 'props', skip_if_missing: true }
+            }
+        }] } } } } }
       JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
 
       node = @n_xml.xpath '//hudson.plugins.parameterizedtrigger.PredefinedBuildParameters'

@@ -78,9 +78,7 @@ builder do
                   maxRetries job[:max_retries]
                   enableRetryStrategy job[:enable_retry_strategy] || false
                 end
-                enableCondition job[:enable_condition] || false
                 abortAllJob job[:abort_all_job] || false
-
                 if job[:condition].to_s.strip.empty? || !job[:condition]
                   condition ''
                 else
