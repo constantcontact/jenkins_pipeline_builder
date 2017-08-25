@@ -80,6 +80,114 @@ describe 'builders' do
       node = @n_xml.xpath '//hudson.plugins.parameterizedtrigger.FileBuildParameters/failTriggerOnMissing'
       expect(node.children.first.content).to eq 'true'
     end
+
+    it 'generates conditional job tag' do
+      condition = '1+1==2'
+      params = { builders: [{ multi_job: { phases: { foo: { jobs:
+        [{
+          name: 'foo',
+          condition: condition,
+          apply_condition_only_if: false
+        }] } } } }] }
+
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+
+      node = @n_xml.xpath '//enableCondition'
+      expect(node.children.first.content).to eq 'true'
+
+      node = @n_xml.xpath '//condition'
+      expect(node.children.first.content).to eq condition
+
+      node = @n_xml.xpath '//applyConditionOnlyIfNoSCMChanges'
+      expect(node.children.first.content).to eq 'false'
+    end
+
+    it 'generates empty conditional job tag' do
+      params = { builders: [{ multi_job: { phases: { foo: { jobs:
+        [{
+          name: 'foo',
+          condition: ''
+        }] } } } }] }
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+      node = @n_xml.xpath '//condition'
+      expect(node.children.first).to be_nil
+    end
+
+    it 'generates abort all other jobs tag' do
+      params = { builders: [{ multi_job: { phases: { foo: { jobs:
+        [{
+          name: 'foo',
+          abort_all_job: true
+        }] } } } }] }
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+      node = @n_xml.xpath '//abortAllJob'
+      expect(node.children.first.content).to eq 'true'
+    end
+
+    it 'generates abort all other jobs tag and sets to default' do
+      params = { builders: [{ multi_job: { phases: { foo: { jobs:
+        [{ name: 'foo' }] } } } }] }
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+      node = @n_xml.xpath '//abortAllJob'
+      expect(node.children.first.content).to eq 'false'
+    end
+
+    it 'generates current job parameters with parameters' do
+      params = { builders: [{ multi_job: { phases: { foo: { jobs:
+        [{
+          name: 'foo',
+          current_params: true
+        }] } } } }] }
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+      node = @n_xml.xpath '//currParams'
+      expect(node.children.first.content).to eq 'true'
+    end
+
+    it 'generates current job parameters and sets to default' do
+      params = { builders: [{ multi_job: { phases: { foo: { jobs:
+         [{ name: 'foo' }] } } } }] }
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+      node = @n_xml.xpath '//currParams'
+      expect(node.children.first.content).to eq 'false'
+    end
+
+    it 'generates continuation condition tag with parameter' do
+      params = { builders: [{ multi_job: { phases: { foo: {
+        jobs: [{ name: 'foo' }],
+        continue_condition: 'ALWAYS'
+      } } } }] }
+
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+      node = @n_xml.xpath '//continuationCondition'
+      puts ">>>>>>>>>>>>>>>>>>>>>>>>>>>> #{node}"
+      expect(node.children.first.content).to eq 'ALWAYS'
+    end
+
+    it 'generates continuation condition tag and sets to default' do
+      params = { builders: [{ multi_job: { phases: { foo: { jobs:
+        [{ name: 'foo' }] } } } }] }
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+      node = @n_xml.xpath '//continuationCondition'
+      expect(node.children.first.content).to eq 'SUCCESSFUL'
+    end
+
+    it 'generates execution type tag with parameter' do
+      params = { builders: [{ multi_job: { phases: { foo: {
+        jobs: [{ name: 'foo' }],
+        execution_type: 'SEQUENTIALLY'
+      } } } }] }
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+      node = @n_xml.xpath '//executionType'
+      expect(node.children.first.content).to eq 'SEQUENTIALLY'
+    end
+
+    it 'generates execution type tag and sets to default' do
+      params = { builders: [{ multi_job: { phases: { foo: { jobs:
+        [{ name: 'foo' }] } } } }] }
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+      node = @n_xml.xpath '//executionType'
+      expect(node.children.first.content).to eq 'PARALLEL'
+    end
   end
 
   context 'maven3' do
