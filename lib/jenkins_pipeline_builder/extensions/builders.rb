@@ -76,9 +76,16 @@ builder do
                 disableJob job[:disable_job] || false
                 maxRetries job[:max_retries] || 0
                 enableRetryStrategy job[:enable_retry_strategy] || false
-                enableCondition job[:enable_condition] || false
                 abortAllJob job[:abort_all_job] || false
-                condition job[:condition] || ""
+
+                if job[:condition].to_s.strip.empty? || !job[:condition]
+                  condition ''
+                else
+                  enableCondition true
+                  condition job[:condition]
+                  applyConditionOnlyIfNoSCMChanges job[:apply_condition_only_if]
+                end
+
                 if job[:config]
                   configs do
                     if job[:config].key? :predefined_build_parameters
@@ -96,7 +103,6 @@ builder do
                 end
                 killPhaseOnJobResultCondition job[:kill_phase_on] || 'FAILURE'
                 buildOnlyIfSCMChanges job[:build_only_if_scm_changes] || false
-                applyConditionOnlyIfNoSCMChanges job[:apply_condition_only_if]
               end
             end
           end
