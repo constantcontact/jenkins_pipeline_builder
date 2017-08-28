@@ -116,7 +116,7 @@ describe 'builders' do
         }] } } } } }
       JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
       node = @n_xml.xpath '//maxRetries'
-      expect(node.first.text).to eq '1'
+      expect(node.text).to eq '1'
     end
 
     it 'generates enableRetryStrategy tag and sets to default' do
