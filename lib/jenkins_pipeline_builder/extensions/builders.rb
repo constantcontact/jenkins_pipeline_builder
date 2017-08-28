@@ -79,9 +79,7 @@ builder do
                   enableRetryStrategy job[:enable_retry_strategy] || false
                 end
                 abortAllJob job[:abort_all_job] || false
-                if job[:condition].to_s.strip.empty? || !job[:condition]
-                  condition ''
-                else
+                if job[:condition]
                   enableCondition true
                   condition job[:condition]
                   applyConditionOnlyIfNoSCMChanges job[:apply_condition_only_if]
