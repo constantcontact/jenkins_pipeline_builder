@@ -176,7 +176,7 @@ describe 'builders' do
         }] } } } }] }
       JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
       node = @n_xml.xpath '//condition'
-      expect(node.children.first).to be_nil
+      expect(node.children).to be_empty
     end
 
     it 'generates abort all other jobs tag' do
