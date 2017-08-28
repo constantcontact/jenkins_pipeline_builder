@@ -168,17 +168,6 @@ describe 'builders' do
       expect(node.children.first.content).to eq 'false'
     end
 
-    it 'generates empty conditional job tag' do
-      params = { builders: [{ multi_job: { phases: { foo: { jobs:
-        [{
-          name: 'foo',
-          condition: ''
-        }] } } } }] }
-      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
-      node = @n_xml.xpath '//condition'
-      expect(node.children).to be_empty
-    end
-
     it 'generates abort all other jobs tag' do
       params = { builders: [{ multi_job: { phases: { foo: { jobs:
         [{
