@@ -265,47 +265,45 @@ wrapper do
 
   xml do |wrapper|
     send('hudson.plugins.build__timeout.BuildTimeoutWrapper', 'plugin' => 'build-timeout@1.18') do
-      case
-      when wrapper[:timeout_strategy] == 'Absolute'
+      if wrapper[:timeout_strategy] == 'Absolute'
         strategy 'class' => 'hudson.plugins.build_timeout.impl.AbsoluteTimeOutStrategy' do
           timeoutMinutes wrapper[:timeout_minutes]
         end
-      when wrapper[:timeout_strategy] == 'Deadline'
+      elsif wrapper[:timeout_strategy] == 'Deadline'
         strategy 'class' => 'hudson.plugins.build_timeout.impl.DeadlineTimeOutStrategy' do
           deadlineTime wrapper[:deadline_time]
           deadlineToleranceInMinutes wrapper[:deadline_tolerance]
         end
-      when wrapper[:timeout_strategy] == 'Elastic'
+      elsif wrapper[:timeout_strategy] == 'Elastic'
         strategy 'class' => 'hudson.plugins.build_timeout.impl.ElasticTimeOutStrategy' do
           timeoutPercentage wrapper[:timeout_percentage]
           numberOfBuilds wrapper[:number_of_builds]
           failSafeTimeoutDuration wrapper[:fail_safe_timeout]
           timeoutMinutesElasticDefault wrapper[:timeout_minutes]
         end
-      when wrapper[:timeout_strategy] == 'Likely stuck'
+      elsif wrapper[:timeout_strategy] == 'Likely stuck'
         strategy 'class' => 'hudson.plugins.build_timeout.impl.LikelyStuckTimeOutStrategy'
-      when wrapper[:timeout_strategy] == 'No Activity'
+      elsif wrapper[:timeout_strategy] == 'No Activity'
         strategy 'class' => 'hudson.plugins.build_timeout.impl.NoActivityTimeOutStrategy' do
           timeoutSecondsString wrapper[:timeout_seconds]
         end
       end
-      timeoutEnvVar wrapper[:timeout_env_var] if wrapper[:timeout_env_var] != nil
-      case
-      when wrapper[:operation] == 'Abort'
+      timeoutEnvVar wrapper[:timeout_env_var] unless wrapper[:timeout_env_var].nil?
+      if wrapper[:operation] == 'Abort'
         operationList do
           send('hudson.plugins.build__timeout.operations.AbortOperation')
         end
-      when wrapper[:operation] == 'Fail'
+      elsif wrapper[:operation] == 'Fail'
         operationList do
-           send('hudson.plugins.build__timeout.operations.FailOperation')
-         end
-       when wrapper[:operation] == 'Writing'
-         operationList do
-           send('hudson.plugins.build__timeout.operations.WriteDescriptionOperation') do
-             description wrapper[:description]
-           end
-         end
-       else operationList
+          send('hudson.plugins.build__timeout.operations.FailOperation')
+        end
+      elsif wrapper[:operation] == 'Writing'
+        operationList do
+          send('hudson.plugins.build__timeout.operations.WriteDescriptionOperation') do
+            description wrapper[:description]
+          end
+        end
+      else operationList
       end
     end
   end
