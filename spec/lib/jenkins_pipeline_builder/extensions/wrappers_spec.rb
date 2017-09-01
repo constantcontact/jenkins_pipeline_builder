@@ -129,4 +129,115 @@ describe 'wrappers' do
       expect(node.first).to_not be_nil
     end
   end
+
+  context 'build_timeout' do
+    before :each do
+      JenkinsPipelineBuilder.registry.registry[:job][:wrappers][:build_timeout].installed_version = '0.0'
+    end
+
+    it 'generates the correct tags and values for the Absolute strategy' do
+      params = { wrappers: { build_timeout: {
+        timeout_strategy: 'Absolute',
+        timeout_minutes: '5'
+      } } }
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+
+      node = @n_xml.root.xpath('//buildWrappers/hudson.plugins.build__timeout.BuildTimeoutWrapper/strategy')
+      expect(node.to_s).to include('AbsoluteTimeOutStrategy')
+      expect(node.xpath('timeoutMinutes').first).to_not be_nil
+      expect(node.xpath('timeoutMinutes').first.content).to match('5')
+    end
+
+    it 'generates the correct tags and values for the Deadline strategy' do
+      params = { wrappers: { build_timeout: {
+        timeout_strategy: 'Deadline',
+        deadline_time: '12:05:12',
+        deadline_tolerance: '10'
+      } } }
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+
+      node = @n_xml.root.xpath('//buildWrappers/hudson.plugins.build__timeout.BuildTimeoutWrapper/strategy')
+      expect(node.to_s).to include('DeadlineTimeOutStrategy')
+      expect(node.xpath('deadlineTime').first).to_not be_nil
+      expect(node.xpath('deadlineToleranceInMinutes').first).to_not be_nil
+      expect(node.xpath('deadlineTime').first.content).to match('12:05:12')
+      expect(node.xpath('deadlineToleranceInMinutes').first.content).to match('10')
+    end
+
+    it 'generates the correct tags and values for the Elastic strategy' do
+      params = { wrappers: { build_timeout: {
+        timeout_strategy: 'Elastic',
+        timeout_percentage: '150',
+        number_of_builds: '5',
+        fail_safe_timeout: 'true',
+        timeout_minutes: '60'
+      } } }
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+
+      node = @n_xml.root.xpath('//buildWrappers/hudson.plugins.build__timeout.BuildTimeoutWrapper/strategy')
+      expect(node.to_s).to include('ElasticTimeOutStrategy')
+      expect(node.xpath('timeoutPercentage').first).to_not be_nil
+      expect(node.xpath('numberOfBuilds').first).to_not be_nil
+      expect(node.xpath('failSafeTimeoutDuration').first).to_not be_nil
+      expect(node.xpath('timeoutMinutesElasticDefault').first).to_not be_nil
+      expect(node.xpath('timeoutPercentage').first.content).to match('150')
+      expect(node.xpath('numberOfBuilds').first.content).to match('5')
+      expect(node.xpath('failSafeTimeoutDuration').first.content).to match('true')
+      expect(node.xpath('timeoutMinutesElasticDefault').first.content).to match('60')
+    end
+
+    it 'generates the Likely stuck strategy' do
+      params = { wrappers: { build_timeout: { timeout_strategy: 'Likely stuck' } } }
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+
+      node = @n_xml.root.xpath('//buildWrappers/hudson.plugins.build__timeout.BuildTimeoutWrapper/strategy')
+      expect(node.to_s).to include('LikelyStuckTimeOutStrategy')
+    end
+
+    it 'generates the correct tags for the No Activity strategy' do
+      params = { wrappers: { build_timeout: {
+        timeout_strategy: 'No Activity',
+        timeout_seconds: '180'
+      } } }
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+
+      node = @n_xml.root.xpath('//buildWrappers/hudson.plugins.build__timeout.BuildTimeoutWrapper/strategy')
+      expect(node.to_s).to include('NoActivityTimeOutStrategy')
+      expect(node.xpath('timeoutSecondsString').first).to_not be_nil
+      expect(node.xpath('timeoutSecondsString').first.content).to match('180')
+    end
+
+    it 'generates the correct tags and values for Time-out variable' do
+      params = { wrappers: { build_timeout: { timeout_env_var: '55' } } }
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+
+      node = @n_xml.root.xpath('//buildWrappers/hudson.plugins.build__timeout.BuildTimeoutWrapper/timeoutEnvVar')
+      expect(node.first).to_not be_nil
+    end
+
+    it 'generates the correct tag for the Abort the build action' do
+      params = { wrappers: { build_timeout: { operation: 'Abort' } } }
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+
+      node = @n_xml.root.xpath('//buildWrappers/hudson.plugins.build__timeout.BuildTimeoutWrapper/operationList')
+      expect(node.xpath('hudson.plugins.build__timeout.operations.AbortOperation').first).to_not be_nil
+    end
+
+    it 'generates the correct tag for the Fail the build action' do
+      params = { wrappers: { build_timeout: { operation: 'Fail' } } }
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+
+      node = @n_xml.root.xpath('//buildWrappers/hudson.plugins.build__timeout.BuildTimeoutWrapper/operationList')
+      expect(node.xpath('hudson.plugins.build__timeout.operations.FailOperation').first).to_not be_nil
+    end
+
+    it 'generates the correct tags for the Writing the build description actions' do
+      params = { wrappers: { build_timeout: { operation: 'Writing' } } }
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+      str = 'hudson.plugins.build__timeout.operations.WriteDescriptionOperation'
+      node = @n_xml.root.xpath('//buildWrappers/hudson.plugins.build__timeout.BuildTimeoutWrapper/operationList')
+      expect(node.xpath(str).first).to_not be_nil
+      expect(node.xpath("#{str}/description").first).to_not be_nil
+    end
+  end
 end
