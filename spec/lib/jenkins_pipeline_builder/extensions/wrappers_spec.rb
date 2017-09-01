@@ -135,14 +135,6 @@ describe 'wrappers' do
       JenkinsPipelineBuilder.registry.registry[:job][:wrappers][:build_timeout].installed_version = '0.0'
     end
 
-    it 'generates the Absolute strategy' do
-      params = { wrappers: { build_timeout: { timeout_strategy: 'Absolute' } } }
-      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
-
-      node = @n_xml.root.xpath('//buildWrappers/hudson.plugins.build__timeout.BuildTimeoutWrapper/strategy')
-      expect(node.to_s).to include('AbsoluteTimeOutStrategy')
-    end
-
     it 'generates the correct tags and values for the Absolute strategy' do
       params = { wrappers: { build_timeout: {
         timeout_strategy: 'Absolute',
@@ -151,16 +143,9 @@ describe 'wrappers' do
       JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
 
       node = @n_xml.root.xpath('//buildWrappers/hudson.plugins.build__timeout.BuildTimeoutWrapper/strategy')
+      expect(node.to_s).to include('AbsoluteTimeOutStrategy')
       expect(node.xpath('timeoutMinutes').first).to_not be_nil
       expect(node.xpath('timeoutMinutes').first.content).to match('5')
-    end
-
-    it 'generates the Deadline strategy' do
-      params = { wrappers: { build_timeout: { timeout_strategy: 'Deadline' } } }
-      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
-
-      node = @n_xml.root.xpath('//buildWrappers/hudson.plugins.build__timeout.BuildTimeoutWrapper/strategy')
-      expect(node.to_s).to include('DeadlineTimeOutStrategy')
     end
 
     it 'generates the correct tags and values for the Deadline strategy' do
@@ -172,18 +157,11 @@ describe 'wrappers' do
       JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
 
       node = @n_xml.root.xpath('//buildWrappers/hudson.plugins.build__timeout.BuildTimeoutWrapper/strategy')
+      expect(node.to_s).to include('DeadlineTimeOutStrategy')
       expect(node.xpath('deadlineTime').first).to_not be_nil
       expect(node.xpath('deadlineToleranceInMinutes').first).to_not be_nil
       expect(node.xpath('deadlineTime').first.content).to match('12:05:12')
       expect(node.xpath('deadlineToleranceInMinutes').first.content).to match('10')
-    end
-
-    it 'generates the Elastic strategy' do
-      params = { wrappers: { build_timeout: { timeout_strategy: 'Elastic' } } }
-      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
-
-      node = @n_xml.root.xpath('//buildWrappers/hudson.plugins.build__timeout.BuildTimeoutWrapper/strategy')
-      expect(node.to_s).to include('ElasticTimeOutStrategy')
     end
 
     it 'generates the correct tags and values for the Elastic strategy' do
@@ -197,6 +175,7 @@ describe 'wrappers' do
       JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
 
       node = @n_xml.root.xpath('//buildWrappers/hudson.plugins.build__timeout.BuildTimeoutWrapper/strategy')
+      expect(node.to_s).to include('ElasticTimeOutStrategy')
       expect(node.xpath('timeoutPercentage').first).to_not be_nil
       expect(node.xpath('numberOfBuilds').first).to_not be_nil
       expect(node.xpath('failSafeTimeoutDuration').first).to_not be_nil
@@ -215,14 +194,6 @@ describe 'wrappers' do
       expect(node.to_s).to include('LikelyStuckTimeOutStrategy')
     end
 
-    it 'generates the No Activity strategy' do
-      params = { wrappers: { build_timeout: { timeout_strategy: 'No Activity' } } }
-      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
-
-      node = @n_xml.root.xpath('//buildWrappers/hudson.plugins.build__timeout.BuildTimeoutWrapper/strategy')
-      expect(node.to_s).to include('NoActivityTimeOutStrategy')
-    end
-
     it 'generates the correct tags for the No Activity strategy' do
       params = { wrappers: { build_timeout: {
         timeout_strategy: 'No Activity',
@@ -231,6 +202,7 @@ describe 'wrappers' do
       JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
 
       node = @n_xml.root.xpath('//buildWrappers/hudson.plugins.build__timeout.BuildTimeoutWrapper/strategy')
+      expect(node.to_s).to include('NoActivityTimeOutStrategy')
       expect(node.xpath('timeoutSecondsString').first).to_not be_nil
       expect(node.xpath('timeoutSecondsString').first.content).to match('180')
     end
