@@ -108,6 +108,21 @@ publisher do
       end
     end
   end
+
+  version '2.0.0' do
+    xml do |params|
+      send('jenkins.plugins.hipchat.HipChatNotifier') do
+        room params[:room] || ''
+        startNotification params[:start_notify] || false
+        notifySuccess params[:success_notify] || false
+        notifyFailure params[:failure_notify] || false
+        notifyBackToNormal params[:normal_notify] || false
+        notifyAborted params[:aborted_notify] || false
+        notifyNotBuilt params[:notbuilt_notify] || false
+        notifyUnstable params[:unstable_notify] || false
+      end
+    end
+  end
 end
 
 publisher do
