@@ -120,6 +120,8 @@ publisher do
         notifyAborted params[:aborted_notify] || false
         notifyNotBuilt params[:notbuilt_notify] || false
         notifyUnstable params[:unstable_notify] || false
+        startJobMessage params[:start_message] || ''
+        completeJobMessage params[:complete_message] || ''
       end
     end
   end
