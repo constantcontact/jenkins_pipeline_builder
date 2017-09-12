@@ -108,6 +108,72 @@ publisher do
       end
     end
   end
+
+  version '2.0.0' do
+    xml do |params|
+      send('jenkins.plugins.hipchat.HipChatNotifier') do
+        room params[:room] || ''
+        if startNotification params[:start_notify]
+          send('jenkins.plugins.hipchat.model.NotificationConfig') do
+            notifyEnabled params[:enabled_notify] || false
+            textFormat params[:text_format] || false
+            notificationType params[:notification_type] || 'STARTED'
+            color params[:color] || ''
+          end
+        end
+        if notifySuccess params[:success_notify]
+          send('jenkins.plugins.hipchat.model.NotificationConfig') do
+            notifyEnabled params[:enabled_notify] || false
+            textFormat params[:text_format] || false
+            notificationType params[:notification_type] || 'SUCCESS'
+            color params[:color] || ''
+          end
+        end
+        if notifyFailure params[:failure_notify]
+          send('jenkins.plugins.hipchat.model.NotificationConfig') do
+            notifyEnabled params[:enabled_notify] || false
+            textFormat params[:text_format] || false
+            notificationType params[:notification_type] || 'FAILURE'
+            color params[:color] || ''
+          end
+        end
+        if notifyBackToNormal params[:normal_notify]
+          send('jenkins.plugins.hipchat.model.NotificationConfig') do
+            notifyEnabled params[:enabled_notify] || false
+            textFormat params[:text_format] || false
+            notificationType params[:notification_type] || 'BACK_TO_NORMAL'
+            color params[:color] || ''
+          end
+        end
+        if notifyAborted params[:aborted_notify]
+          send('jenkins.plugins.hipchat.model.NotificationConfig') do
+            notifyEnabled params[:enabled_notify] || false
+            textFormat params[:text_format] || false
+            notificationType params[:notification_type] || 'ABORTED'
+            color params[:color] || ''
+          end
+        end
+        if notifyNotBuilt params[:notbuilt_notify]
+          send('jenkins.plugins.hipchat.model.NotificationConfig') do
+            notifyEnabled params[:enabled_notify] || false
+            textFormat params[:text_format] || false
+            notificationType params[:notification_type] || 'NOT_BUILT'
+            color params[:color] || ''
+          end
+        end
+        if notifyUnstable params[:unstable_notify]
+          send('jenkins.plugins.hipchat.model.NotificationConfig') do
+            notifyEnabled params[:enabled_notify] || false
+            textFormat params[:text_format] || false
+            notificationType params[:notification_type] || 'UNSTABLE'
+            color params[:color] || ''
+          end
+        end
+        startJobMessage params[:start_message] || ''
+        completeJobMessage params[:complete_message] || ''
+      end
+    end
+  end
 end
 
 publisher do
