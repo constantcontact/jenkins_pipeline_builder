@@ -326,6 +326,9 @@ describe 'job_attributes' do
         expect(
           scm_config.xpath('//scm/extensions/hudson.plugins.git.extensions.impl.WipeWorkspace').first
         ).to_not be_nil
+        expect(
+          scm_config.xpath('//scm/extensions/hudson.plugins.git.extensions.impl.PathRestriction').first
+        ).to_not be_nil
 
         expect(scm_config.css('compareRemote').first.content).to eq 'origin'
         expect(scm_config.css('compareTarget').first.content).to eq 'pr-1'
