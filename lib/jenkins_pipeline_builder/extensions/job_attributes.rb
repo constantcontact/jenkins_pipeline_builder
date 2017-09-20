@@ -255,7 +255,7 @@ job_attribute do
           end
         end
         if params[:included_regions] || params[:excluded_regions]
-          send('hudson.plugins.git.extensions.impl.PathRestrictions') do
+          send('hudson.plugins.git.extensions.impl.PathRestriction') do
             includedRegions params[:included_regions] if params[:included_regions]
             excludedRegions params[:excluded_regions] if params[:excluded_regions]
           end
