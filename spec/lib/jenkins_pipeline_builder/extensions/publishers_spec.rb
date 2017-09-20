@@ -173,6 +173,45 @@ describe 'publishers' do
   end
 
   context 'hipchat' do
+    context '2.0.0' do
+      before :each do
+        allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
+          list_installed: { 'hipchat' => '2.0.0' }
+        )
+      end
+      it 'generates a configuration' do
+        params = { publishers: { hipchat: {} } }
+        hipchat = JenkinsPipelineBuilder.registry.registry[:job][:publishers][:hipchat]
+        expect(hipchat.extension.min_version).to eq '2.0.0'
+
+        JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+
+        publisher = @n_xml.root.children.first
+        expect(publisher.name).to match 'jenkins.plugins.hipchat.HipChatNotifier'
+        children = publisher.children.map(&:name)
+        expect(children).to include 'credentialId'
+        expect(children).to include 'room'
+        expect(children).to include 'notifications'
+
+        expect(children).to include 'startJobMessage'
+        expect(children).to include 'completeJobMessage'
+      end
+
+      it 'instantiates notification parameters' do
+        params = { publishers: { hipchat: {} } }
+        JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+
+        publisher = @n_xml.root.children.first
+        expect(publisher.name).to match 'jenkins.plugins.hipchat.HipChatNotifier'
+        children = publisher.children.children.children.map(&:name)
+
+        expect(children).to include 'textFormat'
+        expect(children).to include 'notificationType'
+        expect(children).to include 'color'
+        expect(children).to include 'messageTemplate'
+      end
+    end
+
     context '0.1.9' do
       before :each do
         allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
