@@ -183,7 +183,6 @@ describe 'publishers' do
         params = { publishers: { hipchat: {} } }
         hipchat = JenkinsPipelineBuilder.registry.registry[:job][:publishers][:hipchat]
         expect(hipchat.extension.min_version).to eq '2.0.0'
-
         JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
 
         publisher = @n_xml.root.children.first
@@ -192,7 +191,6 @@ describe 'publishers' do
         expect(children).to include 'credentialId'
         expect(children).to include 'room'
         expect(children).to include 'notifications'
-
         expect(children).to include 'startJobMessage'
         expect(children).to include 'completeJobMessage'
       end
@@ -204,7 +202,6 @@ describe 'publishers' do
         publisher = @n_xml.root.children.first
         expect(publisher.name).to match 'jenkins.plugins.hipchat.HipChatNotifier'
         children = publisher.children.children.children.map(&:name)
-
         expect(children).to include 'textFormat'
         expect(children).to include 'notificationType'
         expect(children).to include 'color'
