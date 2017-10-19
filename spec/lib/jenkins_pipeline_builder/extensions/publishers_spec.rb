@@ -190,18 +190,26 @@ describe 'publishers' do
         children = publisher.children.map(&:name)
         expect(children).to include 'credentialId'
         expect(children).to include 'room'
-        expect(children).to include 'notifications'
         expect(children).to include 'startJobMessage'
         expect(children).to include 'completeJobMessage'
       end
 
       it 'instantiates notification parameters' do
-        params = { publishers: { hipchat: {} } }
+        params = { publishers: { hipchat: { notifications: {
+          start_notify: {
+            notifyEnabled: false,
+            textFormat: false,
+            notificationType: 'STARTED',
+            color: 'RED',
+            messageTemplate: ''
+          }
+        } } } }
         JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
 
         publisher = @n_xml.root.children.first
+        puts publisher
         expect(publisher.name).to match 'jenkins.plugins.hipchat.HipChatNotifier'
-        children = publisher.children.children.children.map(&:name)
+        children = publisher.children.children.map(&:name)
         expect(children).to include 'notifyEnabled'
         expect(children).to include 'textFormat'
         expect(children).to include 'notificationType'

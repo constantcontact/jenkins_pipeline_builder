@@ -19,7 +19,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-
 # Promotion specific job attributes
 job_attribute do
   name :promotion_description
@@ -271,20 +270,21 @@ job_attribute do
   description 'This plugin allows your team to setup build notifications to be sent to HipChat rooms.'
   jenkins_name 'HipChat Notifications'
   announced false
+  if min_version_id == '0.1.9'
+    xml path: '//properties' do |params|
+      raise 'No HipChat room specified' unless params[:room]
 
-  xml path: '//properties' do |params|
-    raise 'No HipChat room specified' unless params[:room]
-
-    send('jenkins.plugins.hipchat.HipChatNotifier_-HipChatJobProperty') do
-      room params[:room]
-      # :'start-notify' is legacy and evil, but I don't want anyone complaining
-      startNotification params[:start_notify] || params[:'start-notify'] || false
-      notifySuccess params[:success_notify] || true
-      notifyFailure params[:failure_notify] || true
-      notifyBackToNormal params[:normal_notify] || true
-      notifyAborted params[:aborted_notify] || true
-      notifyNotBuilt params[:notbuilt_notify] || false
-      notifyUnstable params[:unstable_notify] || true
+      send('jenkins.plugins.hipchat.HipChatNotifier_-HipChatJobProperty') do
+        room params[:room]
+        # :'start-notify' is legacy and evil, but I don't want anyone complaining
+        startNotification params[:start_notify] || params[:'start-notify'] || false
+        notifySuccess params[:success_notify] || true
+        notifyFailure params[:failure_notify] || true
+        notifyBackToNormal params[:normal_notify] || true
+        notifyAborted params[:aborted_notify] || true
+        notifyNotBuilt params[:notbuilt_notify] || false
+        notifyUnstable params[:unstable_notify] || true
+      end
     end
   end
 end

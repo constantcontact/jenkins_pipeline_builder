@@ -65,7 +65,6 @@ JOB_ATTRIBUTES = {
   jdk: ['0'],
   disabled: ['0'],
   discard_old: ['0'],
-  hipchat: ['0'],
   inject_env_vars_pre_scm: ['0'],
   parameters: ['0'],
   shared_workspace: ['0'],
