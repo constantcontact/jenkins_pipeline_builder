@@ -62,7 +62,6 @@ module JenkinsPipelineBuilder
       root = prefix.inject(@registry, :[])
       root[name] = {} unless root[name]
       # TODO: Set installed version here
-
       if root[name][set.name]
         root[name][set.name].merge set
       else

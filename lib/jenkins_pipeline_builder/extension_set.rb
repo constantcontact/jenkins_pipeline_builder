@@ -154,10 +154,6 @@ module JenkinsPipelineBuilder
       end
     end
 
-    def min_version_id
-      @min_version
-    end
-
     private
 
     def logger

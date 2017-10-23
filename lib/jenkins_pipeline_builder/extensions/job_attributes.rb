@@ -270,7 +270,8 @@ job_attribute do
   description 'This plugin allows your team to setup build notifications to be sent to HipChat rooms.'
   jenkins_name 'HipChat Notifications'
   announced false
-  if min_version_id == '0.1.9'
+
+  version '0' do
     xml path: '//properties' do |params|
       raise 'No HipChat room specified' unless params[:room]
 
@@ -285,6 +286,12 @@ job_attribute do
         notifyNotBuilt params[:notbuilt_notify] || false
         notifyUnstable params[:unstable_notify] || true
       end
+    end
+  end
+  # The xml laid  down for previous versions of the hipchat notifier require the above xml format
+  # However, version 2.0.0 specifically needs that xml to not be there.
+  version '2.0.0' do
+    xml path: '//properties' do |_params|
     end
   end
 end

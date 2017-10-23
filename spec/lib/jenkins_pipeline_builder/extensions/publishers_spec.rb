@@ -188,6 +188,7 @@ describe 'publishers' do
         publisher = @n_xml.root.children.first
         expect(publisher.name).to match 'jenkins.plugins.hipchat.HipChatNotifier'
         children = publisher.children.map(&:name)
+        expect(children).not_to include 'notifySuccess'
         expect(children).to include 'credentialId'
         expect(children).to include 'room'
         expect(children).to include 'startJobMessage'
@@ -197,24 +198,43 @@ describe 'publishers' do
       it 'instantiates notification parameters' do
         params = { publishers: { hipchat: { notifications: {
           start_notify: {
-            notifyEnabled: false,
-            textFormat: false,
-            notificationType: 'STARTED',
+            enabled_notify: true,
+            text_format: false,
+            notification_type: 'STARTED',
+            color: 'GREEN',
+            message_template: ''
+          },
+          failure_notify: {
+            enabled_notify: true,
+            text_format: true,
+            notification_type: 'FAILURE',
             color: 'RED',
-            messageTemplate: ''
+            message_template: ''
           }
         } } } }
         JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
 
         publisher = @n_xml.root.children.first
-        puts publisher
         expect(publisher.name).to match 'jenkins.plugins.hipchat.HipChatNotifier'
-        children = publisher.children.children.map(&:name)
-        expect(children).to include 'notifyEnabled'
-        expect(children).to include 'textFormat'
-        expect(children).to include 'notificationType'
-        expect(children).to include 'color'
-        expect(children).to include 'messageTemplate'
+        start_notify_config = @n_xml.root.children.children[2]
+        failure_notify_config = @n_xml.root.children.children[3]
+        start_notify_children = start_notify_config.children.map(&:name)
+        start_color = start_notify_config.children[3].children.map(&:text)
+        failure_color = failure_notify_config.children[3].children.map(&:text)
+        expect(start_notify_children).to include 'notifyEnabled'
+        expect(start_notify_children).to include 'textFormat'
+        expect(start_notify_children).to include 'notificationType'
+        expect(start_notify_children).to include 'color'
+        expect(start_notify_children).to include 'messageTemplate'
+        expect(start_color).to include 'GREEN'
+
+        failure_notify_children = failure_notify_config.children.map(&:name)
+        expect(failure_notify_children).to include 'notifyEnabled'
+        expect(failure_notify_children).to include 'textFormat'
+        expect(failure_notify_children).to include 'notificationType'
+        expect(failure_notify_children).to include 'color'
+        expect(failure_color).to include 'RED'
+        expect(failure_notify_children).to include 'messageTemplate'
       end
     end
 
@@ -225,7 +245,22 @@ describe 'publishers' do
         )
       end
       it 'generates a configuration' do
-        params = { publishers: { hipchat: {} } }
+        params = { publishers: { hipchat: { notifications: {
+          start_notify: {
+            enabled_notify: true,
+            text_format: false,
+            notification_type: 'STARTED',
+            color: 'GREEN',
+            message_template: ''
+          },
+          failure_notify: {
+            enabled_notify: true,
+            text_format: true,
+            notification_type: 'FAILURE',
+            color: 'RED',
+            message_template: ''
+          }
+        } } } }
         hipchat = JenkinsPipelineBuilder.registry.registry[:job][:publishers][:hipchat]
         expect(hipchat.extension.min_version).to eq '0.1.9'
 
