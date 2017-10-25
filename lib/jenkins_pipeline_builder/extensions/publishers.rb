@@ -114,67 +114,69 @@ publisher do
         credentialId params[:credential_id] || ''
         room params[:room] || ''
         if params[:notifications]
-          if params[:notifications][:start_notify]
-            send('jenkins.plugins.hipchat.model.NotificationConfig') do
-              notifyEnabled params[:notifications][:start_notify][:enabled_notify] || false
-              textFormat params[:notifications][:start_notify][:text_format] || false
-              notificationType params[:notifications][:start_notify][:notification_type] || 'STARTED'
-              color params[:notifications][:start_notify][:color] || ''
-              messageTemplate params[:notifications][:start_notify][:message_template] || ''
+          send('notifications') do
+            if params[:notifications][:start_notify]
+              send('jenkins.plugins.hipchat.model.NotificationConfig') do
+                notifyEnabled params[:notifications][:start_notify][:enabled_notify] || false
+                textFormat params[:notifications][:start_notify][:text_format] || false
+                notificationType params[:notifications][:start_notify][:notification_type] || 'STARTED'
+                color params[:notifications][:start_notify][:color] || ''
+                messageTemplate params[:notifications][:start_notify][:message_template] || ''
+              end
             end
-          end
-          if params[:notifications][:success_notify]
-            send('jenkins.plugins.hipchat.model.NotificationConfig') do
-              notifyEnabled params[:notifications][:success_notify][:enabled_notify] || false
-              textFormat params[:notifications][:success_notify][:text_format] || false
-              notificationType params[:notifications][:success_notify][:notification_type] || 'SUCCESS'
-              color params[:notifications][:success_notify][:color] || ''
-              messageTemplate params[:notifications][:success_notify][:message_template] || ''
+            if params[:notifications][:success_notify]
+              send('jenkins.plugins.hipchat.model.NotificationConfig') do
+                notifyEnabled params[:notifications][:success_notify][:enabled_notify] || false
+                textFormat params[:notifications][:success_notify][:text_format] || false
+                notificationType params[:notifications][:success_notify][:notification_type] || 'SUCCESS'
+                color params[:notifications][:success_notify][:color] || ''
+                messageTemplate params[:notifications][:success_notify][:message_template] || ''
+              end
             end
-          end
-          if params[:notifications][:failure_notify]
-            send('jenkins.plugins.hipchat.model.NotificationConfig') do
-              notifyEnabled params[:notifications][:failure_notify][:enabled_notify] || false
-              textFormat params[:notifications][:failure_notify][:text_format] || false
-              notificationType params[:notifications][:failure_notify][:notification_type] || 'FAILURE'
-              color params[:notifications][:failure_notify][:color] || ''
-              messageTemplate params[:notifications][:failure_notify][:message_template] || ''
+            if params[:notifications][:failure_notify]
+              send('jenkins.plugins.hipchat.model.NotificationConfig') do
+                notifyEnabled params[:notifications][:failure_notify][:enabled_notify] || false
+                textFormat params[:notifications][:failure_notify][:text_format] || false
+                notificationType params[:notifications][:failure_notify][:notification_type] || 'FAILURE'
+                color params[:notifications][:failure_notify][:color] || ''
+                messageTemplate params[:notifications][:failure_notify][:message_template] || ''
+              end
             end
-          end
-          if params[:notifications][:normal_notify]
-            send('jenkins.plugins.hipchat.model.NotificationConfig') do
-              notifyEnabled params[:notifications][:normal_notify][:enabled_notify] || false
-              textFormat params[:notifications][:normal_notify][:text_format] || false
-              notificationType params[:notifications][:normal_notify][:notification_type] || 'BACK_TO_NORMAL'
-              color params[:notifications][:normal_notify][:color] || ''
-              messageTemplate params[:notifications][:normal_notify][:message_template] || ''
+            if params[:notifications][:normal_notify]
+              send('jenkins.plugins.hipchat.model.NotificationConfig') do
+                notifyEnabled params[:notifications][:normal_notify][:enabled_notify] || false
+                textFormat params[:notifications][:normal_notify][:text_format] || false
+                notificationType params[:notifications][:normal_notify][:notification_type] || 'BACK_TO_NORMAL'
+                color params[:notifications][:normal_notify][:color] || ''
+                messageTemplate params[:notifications][:normal_notify][:message_template] || ''
+              end
             end
-          end
-          if params[:notifications][:aborted_notify]
-            send('jenkins.plugins.hipchat.model.NotificationConfig') do
-              notifyEnabled params[:notifications][:aborted_notify][:enabled_notify] || false
-              textFormat params[:notifications][:aborted_notify][:text_format] || false
-              notificationType params[:notifications][:aborted_notify][:notification_type] || 'ABORTED'
-              color params[:notifications][:aborted_notify][:color] || ''
-              messageTemplate params[:notifications][:aborted_notify][:message_template] || ''
+            if params[:notifications][:aborted_notify]
+              send('jenkins.plugins.hipchat.model.NotificationConfig') do
+                notifyEnabled params[:notifications][:aborted_notify][:enabled_notify] || false
+                textFormat params[:notifications][:aborted_notify][:text_format] || false
+                notificationType params[:notifications][:aborted_notify][:notification_type] || 'ABORTED'
+                color params[:notifications][:aborted_notify][:color] || ''
+                messageTemplate params[:notifications][:aborted_notify][:message_template] || ''
+              end
             end
-          end
-          if params[:notifications][:notbuilt_notify]
-            send('jenkins.plugins.hipchat.model.NotificationConfig') do
-              notifyEnabled params[:notifications][:notbuilt_notify][:notifications][:notbuilt_notify][:enabled_notify] || false
-              textFormat params[:notifications][:notbuilt_notify][:notifications][:notbuilt_notify][:text_format] || false
-              notificationType params[:notifications][:notbuilt_notify][:notification_type] || 'NOT_BUILT'
-              color params[:notifications][:notbuilt_notify][:color] || ''
-              messageTemplate params[:notifications][:notbuilt_notify][:message_template] || ''
+            if params[:notifications][:notbuilt_notify]
+              send('jenkins.plugins.hipchat.model.NotificationConfig') do
+                notifyEnabled params[:notifications][:notbuilt_notify][:notifications][:notbuilt_notify][:enabled_notify] || false
+                textFormat params[:notifications][:notbuilt_notify][:notifications][:notbuilt_notify][:text_format] || false
+                notificationType params[:notifications][:notbuilt_notify][:notification_type] || 'NOT_BUILT'
+                color params[:notifications][:notbuilt_notify][:color] || ''
+                messageTemplate params[:notifications][:notbuilt_notify][:message_template] || ''
+              end
             end
-          end
-          if params[:notifications][:unstable_notify]
-            send('jenkins.plugins.hipchat.model.NotificationConfig') do
-              notifyEnabled params[:notifications][:unstable_notify][:enabled_notify] || false
-              textFormat params[:notifications][:unstable_notify][:text_format] || false
-              notificationType params[:notifications][:unstable_notify][:notification_type] || 'UNSTABLE'
-              color params[:notifications][:unstable_notify][:color] || ''
-              messageTemplate params[:notifications][:unstable_notify][:message_template] || ''
+            if params[:notifications][:unstable_notify]
+              send('jenkins.plugins.hipchat.model.NotificationConfig') do
+                notifyEnabled params[:notifications][:unstable_notify][:enabled_notify] || false
+                textFormat params[:notifications][:unstable_notify][:text_format] || false
+                notificationType params[:notifications][:unstable_notify][:notification_type] || 'UNSTABLE'
+                color params[:notifications][:unstable_notify][:color] || ''
+                messageTemplate params[:notifications][:unstable_notify][:message_template] || ''
+              end
             end
           end
         end

@@ -216,8 +216,10 @@ describe 'publishers' do
 
         publisher = @n_xml.root.children.first
         expect(publisher.name).to match 'jenkins.plugins.hipchat.HipChatNotifier'
-        start_notify_config = @n_xml.root.children.children[2]
-        failure_notify_config = @n_xml.root.children.children[3]
+
+        start_notify_config = @n_xml.root.children.children[2].children[0]
+        puts start_notify_config
+        failure_notify_config = @n_xml.root.children.children[2].children[1]
         start_notify_children = start_notify_config.children.map(&:name)
         start_color = start_notify_config.children[3].children.map(&:text)
         failure_color = failure_notify_config.children[3].children.map(&:text)
