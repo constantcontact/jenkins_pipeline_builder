@@ -19,7 +19,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-
 # Promotion specific job attributes
 job_attribute do
   name :promotion_description
@@ -272,19 +271,27 @@ job_attribute do
   jenkins_name 'HipChat Notifications'
   announced false
 
-  xml path: '//properties' do |params|
-    raise 'No HipChat room specified' unless params[:room]
+  version '0' do
+    xml path: '//properties' do |params|
+      raise 'No HipChat room specified' unless params[:room]
 
-    send('jenkins.plugins.hipchat.HipChatNotifier_-HipChatJobProperty') do
-      room params[:room]
-      # :'start-notify' is legacy and evil, but I don't want anyone complaining
-      startNotification params[:start_notify] || params[:'start-notify'] || false
-      notifySuccess params[:success_notify] || true
-      notifyFailure params[:failure_notify] || true
-      notifyBackToNormal params[:normal_notify] || true
-      notifyAborted params[:aborted_notify] || true
-      notifyNotBuilt params[:notbuilt_notify] || false
-      notifyUnstable params[:unstable_notify] || true
+      send('jenkins.plugins.hipchat.HipChatNotifier_-HipChatJobProperty') do
+        room params[:room]
+        # :'start-notify' is legacy and evil, but I don't want anyone complaining
+        startNotification params[:start_notify] || params[:'start-notify'] || false
+        notifySuccess params[:success_notify] || true
+        notifyFailure params[:failure_notify] || true
+        notifyBackToNormal params[:normal_notify] || true
+        notifyAborted params[:aborted_notify] || true
+        notifyNotBuilt params[:notbuilt_notify] || false
+        notifyUnstable params[:unstable_notify] || true
+      end
+    end
+  end
+  # The xml laid  down for previous versions of the hipchat notifier require the above xml format
+  # However, version 2.0.0 specifically needs that xml to not be there.
+  version '2.0.0' do
+    xml path: '//properties' do |_params|
     end
   end
 end
