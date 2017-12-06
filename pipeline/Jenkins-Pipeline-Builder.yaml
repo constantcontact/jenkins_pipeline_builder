@@ -12,6 +12,9 @@
       - timestamp: true
       - ansicolor: true
       - rvm: "`cat .ruby-version`"
+      - pre_build_cleanup:
+          delete_directories: false
+          cleanup_parameter: 'CLEANUP'
     publishers:
       - junit_result:
           test_results: 'out/**/*.xml'
