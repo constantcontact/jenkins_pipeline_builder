@@ -411,7 +411,20 @@ describe 'publishers' do
   end
 
   context 'junit_result' do
-    it 'generates a configuration'
+    it 'generates a configuration' do
+      params = { publishers: { junit_result: {} } }
+
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+
+      publisher = @n_xml.root.children.first
+      expect(publisher.name).to match 'hudson.tasks.junit.JUnitResultArchiver'
+      children = publisher.children.map(&:name)
+
+      expect(children).to include 'testResults'
+      expect(children).to include 'keepLongStdio'
+      expect(children).to include 'healthScaleFactor'
+      expect(children).to include 'allowEmptyResults'
+    end
   end
 
   context 'coverage_result' do

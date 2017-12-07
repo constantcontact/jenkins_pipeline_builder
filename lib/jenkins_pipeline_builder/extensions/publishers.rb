@@ -230,7 +230,7 @@ publisher do
       testResults params[:test_results] || ''
       keepLongStdio false
       healthScaleFactor 1.0
-      allowEmptyResults false
+      allowEmptyResults params[:allow_empty_results] || false
     end
   end
 end
