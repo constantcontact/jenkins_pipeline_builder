@@ -229,7 +229,8 @@ publisher do
     send('hudson.tasks.junit.JUnitResultArchiver') do
       testResults params[:test_results] || ''
       keepLongStdio false
-      testDataPublishers
+      healthScaleFactor 1.0
+      allowEmptyResults params[:allow_empty_results] || false
     end
   end
 end
