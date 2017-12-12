@@ -1,12 +1,12 @@
 module JenkinsPipelineBuilder
   class ExtensionSet
-    SET_METHODS = [
-      :name,
-      :plugin_id,
-      :jenkins_name,
-      :description,
-      :announced,
-      :type
+    SET_METHODS = %i[
+      name
+      plugin_id
+      jenkins_name
+      description
+      announced
+      type
     ].freeze
 
     SET_METHODS.each do |method_name|
@@ -113,7 +113,7 @@ module JenkinsPipelineBuilder
       yield block
     end
 
-    [:after, :before].each do |method_name|
+    %i[after before].each do |method_name|
       define_method method_name do |version: '0', &block|
         if @min_version
           version = @min_version

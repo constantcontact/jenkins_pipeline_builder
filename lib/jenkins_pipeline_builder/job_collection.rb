@@ -89,10 +89,12 @@ module JenkinsPipelineBuilder
         return
       end
 
-      raise TypeError, %(Expected Hash received #{value.class}.
-        Verify that the pipeline section is made up of a single {key: Hash/Object} pair
-        See the definition for:
-        \t#{section}).squeeze(' ') unless value.is_a? Hash
+      unless value.is_a? Hash
+        raise TypeError, %(Expected Hash received #{value.class}.
+          Verify that the pipeline section is made up of a single {key: Hash/Object} pair
+          See the definition for:
+          \t#{section}).squeeze(' ')
+      end
 
       name = value[:name]
       process_collection! name, key, value, remote

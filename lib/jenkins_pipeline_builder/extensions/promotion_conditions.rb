@@ -30,10 +30,10 @@ end
 promotion_condition do
   name :parameterized_self_promotion
   plugin_id 'promoted-builds'
-  parameters [
-    :parameter_name,
-    :parameter_value,
-    :even_if_unstable
+  parameters %i[
+    parameter_name
+    parameter_value
+    even_if_unstable
   ]
 
   xml do |params|
@@ -50,9 +50,9 @@ end
 promotion_condition do
   name :downstream_pass
   plugin_id 'promoted-builds'
-  parameters [
-    :jobs,
-    :even_if_unstable
+  parameters %i[
+    jobs
+    even_if_unstable
   ]
 
   xml do |params|

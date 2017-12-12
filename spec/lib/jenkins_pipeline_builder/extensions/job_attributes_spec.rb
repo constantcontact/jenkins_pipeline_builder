@@ -87,7 +87,7 @@ describe 'job_attributes' do
 
     context 'choice parameter' do
       let(:params) do
-        { parameters: [{ type: 'choice', values: [:foo, :bar], name: :foo, description: :desc, default: :default }] }
+        { parameters: [{ type: 'choice', values: %i[foo bar], name: :foo, description: :desc, default: :default }] }
       end
 
       it 'generates correct config' do

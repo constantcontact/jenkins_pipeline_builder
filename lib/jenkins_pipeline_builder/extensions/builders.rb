@@ -117,11 +117,11 @@ builder do
   description 'Jenkins plugin for building Maven 2/3 jobs via a special project type.'
   jenkins_name 'Invoke Maven 3'
   announced false
-  parameters [
-    :mavenName,
-    :rootPom,
-    :goals,
-    :options
+  parameters %i[
+    mavenName
+    rootPom
+    goals
+    options
   ]
 
   xml do |helper|
@@ -170,13 +170,13 @@ builder do
   description 'This plugin lets you trigger new builds when your build has completed, with various ways of specifying parameters for the new build.'
   jenkins_name 'Trigger/call builds on other projects'
   announced false
-  parameters [
-    :data,
-    :project,
-    :trigger_with_no_parameters,
-    :fail,
-    :mark_fail,
-    :mark_unstable
+  parameters %i[
+    data
+    project
+    trigger_with_no_parameters
+    fail
+    mark_fail
+    mark_unstable
   ]
 
   xml do |helper|
@@ -359,13 +359,17 @@ builder do
         raise 'Configuration invalid. At least one of \'script\' and \'file\' keys must be specified'
       end
 
-      scriptSource('class' => 'hudson.plugins.groovy.StringScriptSource') do
-        command params[:script]
-      end if params.key? :script
+      if params.key? :script
+        scriptSource('class' => 'hudson.plugins.groovy.StringScriptSource') do
+          command params[:script]
+        end
+      end
 
-      scriptSource('class' => 'hudson.plugins.groovy.FileScriptSource') do
-        scriptFile params[:file]
-      end if params.key? :file
+      if params.key? :file
+        scriptSource('class' => 'hudson.plugins.groovy.FileScriptSource') do
+          scriptFile params[:file]
+        end
+      end
 
       bindings params[:bindings]
       classpath params[:classpath]
@@ -394,27 +398,27 @@ builder do
   description 'Jenkins plugin for checkmarx security audit'
   jenkins_name 'Trigger a checkmarx security audit of your build'
   announced false
-  parameters [
-    :serverUrl,
-    :useOwnServerCredentials,
-    :username,
-    :password,
-    :incremental,
-    :isThisBuildIncremental,
-    :projectName,
-    :groupId,
-    :skipSCMTriggers,
-    :waitForResultsEnabled,
-    :vulnerabilityThresholdEnabled,
-    :highThreshold,
-    :mediumThreshold,
-    :lowThreshold,
-    :preset,
-    :presetSpecified,
-    :generatePdfReport,
-    :excludeFolders,
-    :fullScansScheduled,
-    :filterPattern
+  parameters %i[
+    serverUrl
+    useOwnServerCredentials
+    username
+    password
+    incremental
+    isThisBuildIncremental
+    projectName
+    groupId
+    skipSCMTriggers
+    waitForResultsEnabled
+    vulnerabilityThresholdEnabled
+    highThreshold
+    mediumThreshold
+    lowThreshold
+    preset
+    presetSpecified
+    generatePdfReport
+    excludeFolders
+    fullScansScheduled
+    filterPattern
   ]
 
   xml do |params|
@@ -450,13 +454,13 @@ builder do
   description 'The plugin allows you to trigger SonarQube analysis from Jenkins using a Post-build action to trigger the analysis with MavenQuickly benefit from Sonar, the open source platform for Continuous Inspection of code quality.'
   jenkins_name 'SonarQube Plugin'
   announced false
-  parameters [
-    :sonarInstallation,
-    :taskToRun,
-    :jdk,
-    :pathToProjectProperties,
-    :projectProperties,
-    :jvmOptions
+  parameters %i[
+    sonarInstallation
+    taskToRun
+    jdk
+    pathToProjectProperties
+    projectProperties
+    jvmOptions
   ]
 
   xml do |params|

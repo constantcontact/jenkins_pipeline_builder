@@ -294,11 +294,9 @@ publisher do
       groovyScript params[:groovy_script]
       behavior params[:behavior] || '0'
       runFormMatrixParent 'false'
-      if params[:additional_classpaths]
-        params[:additional_classpaths].each do |path|
-          send('org.jvnet.hudson.plugins.groovypostbuild.GroovyScriptPath') do
-            path path[:path] || '/'
-          end
+      params[:additional_classpaths]&.each do |path|
+        send('org.jvnet.hudson.plugins.groovypostbuild.GroovyScriptPath') do
+          path path[:path] || '/'
         end
       end
     end
@@ -543,16 +541,14 @@ publisher do
   xml do |params|
     send('htmlpublisher.HtmlPublisher', 'plugin' => 'htmlpublisher') do
       send('reportTargets') do
-        unless params[:report_targets].nil?
-          params[:report_targets].each do |target|
-            send('htmlpublisher.HtmlPublisherTarget') do
-              reportName target[:report_title] || 'HTML Report'
-              reportDir target[:report_dir] || ''
-              reportFiles target[:index_pages] || 'index.html'
-              keepAll target[:keep_past] || false
-              allowMissing target[:allow_missing] || false
-              wrapperName 'htmlpublisher-wrapper.html'
-            end
+        params[:report_targets]&.each do |target|
+          send('htmlpublisher.HtmlPublisherTarget') do
+            reportName target[:report_title] || 'HTML Report'
+            reportDir target[:report_dir] || ''
+            reportFiles target[:index_pages] || 'index.html'
+            keepAll target[:keep_past] || false
+            allowMissing target[:allow_missing] || false
+            wrapperName 'htmlpublisher-wrapper.html'
           end
         end
       end
@@ -592,15 +588,13 @@ publisher do
   xml do |params|
     send('xunit', 'plugin' => 'xunit') do
       send('types') do
-        unless params[:types].nil?
-          params[:types].each do |type|
-            send(type[:type]) do
-              pattern type[:pattern]
-              skipNoTestFiles type[:skip_no_test_files] || false
-              failIfNotNew type[:fail_if_not_new] || true
-              deleteOutputFiles type[:delete_output_files] || true
-              stopProcessingIfError type[:stop_processing_error] || true
-            end
+        params[:types]&.each do |type|
+          send(type[:type]) do
+            pattern type[:pattern]
+            skipNoTestFiles type[:skip_no_test_files] || false
+            failIfNotNew type[:fail_if_not_new] || true
+            deleteOutputFiles type[:delete_output_files] || true
+            stopProcessingIfError type[:stop_processing_error] || true
           end
         end
       end

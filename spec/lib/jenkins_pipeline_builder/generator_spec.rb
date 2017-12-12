@@ -252,7 +252,7 @@ describe JenkinsPipelineBuilder::Generator do
   describe '#projects' do
     it 'returns a list of projects' do
       path = File.expand_path('../fixtures/generator_tests/multi_project', __FILE__)
-      expect(@generator.projects(path)).to eq %w(SamplePipeline1 SamplePipeline2 SamplePipeline3)
+      expect(@generator.projects(path)).to eq %w[SamplePipeline1 SamplePipeline2 SamplePipeline3]
     end
   end
 

@@ -39,7 +39,7 @@ module JenkinsPipelineBuilder
 
     private
 
-    [:free_style, :pull_request_generator].each do |method_name|
+    %i[free_style pull_request_generator].each do |method_name|
       define_method "update_#{method_name}" do
         @xml
       end
@@ -50,7 +50,7 @@ module JenkinsPipelineBuilder
     end
 
     def job_methods
-      %w(job_dsl multi_project build_flow free_style pull_request_generator)
+      %w[job_dsl multi_project build_flow free_style pull_request_generator]
     end
 
     def local_output(xml)

@@ -52,8 +52,10 @@ module JenkinsPipelineBuilder
       job[:scm_params] ||= {}
       job[:scm_params][:refspec] = "refs/pull/#{pr}/head:refs/remotes/origin/pr/#{pr}/head"
       job[:scm_params][:changelog_to_branch] ||= {}
-      job[:scm_params][:changelog_to_branch]
-        .merge!(remote: 'origin', branch: "pr/#{pr}/head") if Gem::Version.new(2.0) < git_version
+      if Gem::Version.new(2.0) < git_version
+        job[:scm_params][:changelog_to_branch]
+          .merge!(remote: 'origin', branch: "pr/#{pr}/head")
+      end
     end
 
     def active_prs(git_url, git_org, git_repo)

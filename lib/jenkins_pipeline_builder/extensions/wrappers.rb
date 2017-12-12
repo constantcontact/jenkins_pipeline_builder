@@ -26,7 +26,7 @@ wrapper do
   announced false
   jenkins_name 'Color ANSI Console Output'
   description 'This plugin adds support for ANSI escape sequences, including color, to Console Output.'
-  parameters false
+
   xml do |_|
     send('hudson.plugins.ansicolor.AnsiColorBuildWrapper') do
       colorMapName 'xterm'

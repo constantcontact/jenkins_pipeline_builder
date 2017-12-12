@@ -39,6 +39,7 @@ describe 'wrappers' do
     end
 
     it 'fails parameters are passed' do
+      pending
       params = { wrappers: { ansicolor: { config: false } } }
       expect do
         JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)

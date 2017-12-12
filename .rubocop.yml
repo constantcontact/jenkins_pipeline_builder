@@ -33,3 +33,6 @@ Style/VariableName:
 
 Style/SymbolProc:
   IgnoredMethods: new
+
+Style/FrozenStringLiteralComment:
+  Enabled: false
