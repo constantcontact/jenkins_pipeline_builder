@@ -684,26 +684,19 @@ publisher do
 end
 
 publisher do
-  name :github_pr_coverage_status_compare
+  name :github_pr_coverage_status_reporter
   plugin_id 'github-pr-coverage-status'
   description 'Code coverage icon for GitHub pull requests'
   jenkins_name 'GitHub Pull Request Coverage Status'
   announced false
 
-  xml do |_|
-    send('com.github.terma.jenkins.githubprcoveragestatus.CompareCoverageAction')
-  end
-end
-
-
-publisher do
-  name :github_pr_coverage_status_master
-  plugin_id 'github-pr-coverage-status'
-  description 'Code coverage icon for GitHub pull requests'
-  jenkins_name 'GitHub Pull Request Coverage Status'
-  announced false
-
-  xml do |_|
-    send('com.github.terma.jenkins.githubprcoveragestatus.MasterCoverageAction')
+  xml do |action|
+    if action == 'compare'
+      send('com.github.terma.jenkins.githubprcoveragestatus.CompareCoverageAction')
+    elsif action == 'master'
+      send('com.github.terma.jenkins.githubprcoveragestatus.MasterCoverageAction')
+    else
+      raise 'Invalid plugin configuration. github_pr_coverage_status_reporter value must be "compare" or "master"'
+    end
   end
 end
