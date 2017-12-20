@@ -25,6 +25,7 @@ PUBLISHERS = {
   email_ext: ['0'],
   email_notifications: ['0'],
   git: ['0'],
+  github_pr_coverage_status_reporter: ['0'],
   groovy_postbuild: ['0'],
   hipchat: ['0', '0.1.9', '2.0.0'],
   html_publisher: ['0'],

@@ -1,3 +1,8 @@
+AllCops:
+  TargetRubyVersion: 2.1.5
+
+inherit_from: .rubocop_todo.yml
+
 #######
 # WIP These should all go back to defaults at some point
 Metrics/AbcSize:
@@ -33,3 +38,6 @@ Style/VariableName:
 
 Style/SymbolProc:
   IgnoredMethods: new
+
+Style/FrozenStringLiteralComment:
+  Enabled: false

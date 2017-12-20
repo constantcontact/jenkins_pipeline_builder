@@ -131,7 +131,7 @@ module JenkinsPipelineBuilder
       errors = {}
       project_body = project[:value]
 
-      %i(jobs views promotions).each do |key|
+      %i[jobs views promotions].each do |key|
         next unless project_body[key]
 
         Utils.symbolize_with_empty_hash!(project_body[key])
@@ -193,9 +193,7 @@ module JenkinsPipelineBuilder
 
       errors = publish_jobs(compiled_project[:value][:jobs])
 
-      if compiled_project[:value][:views]
-        publish_views(compiled_project[:value][:views])
-      end
+      publish_views(compiled_project[:value][:views]) if compiled_project[:value][:views]
 
       if compiled_project[:value][:promotions]
         publish_promotions(compiled_project[:value][:promotions], compiled_project[:value][:jobs])
@@ -212,9 +210,10 @@ module JenkinsPipelineBuilder
       # Converts a list of jobs that might have a list of promoted_builds to
       # A hash of promoted_builds names => associated job names
       promotion_job_pairs = jobs.each_with_object({}) do |j, acc|
+        next unless j[:result][:promoted_builds]
         j[:result][:promoted_builds].each do |promotion_name|
           acc[promotion_name] = j[:result][:name]
-        end if j[:result][:promoted_builds]
+        end
       end
 
       promotions.each do |promotion|

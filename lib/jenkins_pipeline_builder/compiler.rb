@@ -47,7 +47,7 @@ module JenkinsPipelineBuilder
     def compile_job(item, settings = {})
       new_item = compile(item, settings)
       [true, new_item]
-    rescue => e
+    rescue StandardError => e
       return [false, [e.message]]
     end
 
@@ -70,9 +70,7 @@ module JenkinsPipelineBuilder
       if enable_block_present? item
         enabled_switch = resolve_value(item[:enabled], settings)
         return {} if enabled_switch == 'false'
-        if enabled_switch != 'true'
-          raise "Invalid value for #{item[:enabled]}: #{enabled_switch}"
-        end
+        raise "Invalid value for #{item[:enabled]}: #{enabled_switch}" if enabled_switch != 'true'
         if item[:parameters].is_a? Hash
           item = item.merge item[:parameters]
           item.delete :parameters
@@ -92,7 +90,7 @@ module JenkinsPipelineBuilder
 
     def compile_string(item, settings)
       resolve_value(item, settings)
-    rescue => e
+    rescue StandardError => e
       raise "Failed to resolve #{item} because: #{e.message}"
     end
 

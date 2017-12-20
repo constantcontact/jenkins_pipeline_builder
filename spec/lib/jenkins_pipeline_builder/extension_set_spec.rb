@@ -1,7 +1,7 @@
 require File.expand_path('../spec_helper', __FILE__)
 
 describe JenkinsPipelineBuilder::ExtensionSet do
-  subject(:set) { JenkinsPipelineBuilder::ExtensionSet.new('foo') {} }
+  subject(:set) { JenkinsPipelineBuilder::ExtensionSet.new('foo'){} }
 
   before :each do
     set.name 'example'

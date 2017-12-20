@@ -54,27 +54,29 @@ build_step do
               end
             end
           else
-            configs(class: 'empty-list') {}
+            configs(class: 'empty-list'){}
           end
 
           projects state[:name]
           condition 'ALWAYS'
           triggerWithNoParameters false
 
-          block do
-            buildStepFailureThreshold do
-              state.generate_for_threshold(self,
-                                           state.resolve_block_condition(:build_step_failure_threshold) || :failure)
+          if state.block_condition?
+            block do
+              buildStepFailureThreshold do
+                state.generate_for_threshold(self,
+                                             state.resolve_block_condition(:build_step_failure_threshold) || :failure)
+              end
+              unstableThreshold do
+                state.generate_for_threshold(self,
+                                             state.resolve_block_condition(:unstable_threshold) || :unstable)
+              end
+              failureThreshold do
+                state.generate_for_threshold(self,
+                                             state.resolve_block_condition(:failure_threshold) || :failure)
+              end
             end
-            unstableThreshold do
-              state.generate_for_threshold(self,
-                                           state.resolve_block_condition(:unstable_threshold) || :unstable)
-            end
-            failureThreshold do
-              state.generate_for_threshold(self,
-                                           state.resolve_block_condition(:failure_threshold) || :failure)
-            end
-          end if state.block_condition?
+          end
 
           buildAllNodesWithLabel false
         end

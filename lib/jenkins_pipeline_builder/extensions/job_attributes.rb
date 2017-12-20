@@ -130,17 +130,17 @@ job_attribute do
   announced false
 
   version '0' do
-    parameters [
-      :remote_name,
-      :refspec,
-      :local_branch,
-      :recursive_update,
-      :wipe_workspace,
-      :excluded_users,
-      :skip_tag,
-      :remote_url,
-      :excluded_regions,
-      :included_regions
+    parameters %i[
+      remote_name
+      refspec
+      local_branch
+      recursive_update
+      wipe_workspace
+      excluded_users
+      skip_tag
+      remote_url
+      excluded_regions
+      included_regions
     ]
 
     # XML preprocessing
@@ -183,19 +183,19 @@ job_attribute do
   end
 
   version '2.0' do
-    parameters [
-      :changelog_to_branch,
-      :credentials_id,
-      :excluded_regions,
-      :excluded_users,
-      :included_regions,
-      :local_branch,
-      :recursive_update,
-      :refspec,
-      :remote_name,
-      :remote_url,
-      :skip_tag,
-      :wipe_workspace
+    parameters %i[
+      changelog_to_branch
+      credentials_id
+      excluded_regions
+      excluded_users
+      included_regions
+      local_branch
+      recursive_update
+      refspec
+      remote_name
+      remote_url
+      skip_tag
+      wipe_workspace
     ]
 
     before do |params|
@@ -408,7 +408,7 @@ job_attribute do
   announced false
 
   xml path: '//concurrentBuild' do |params|
-    (params == true) ? 'true' : 'false'
+    params == true ? 'true' : 'false'
   end
 end
 

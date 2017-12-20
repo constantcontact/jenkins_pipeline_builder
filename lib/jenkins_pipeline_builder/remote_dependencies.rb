@@ -77,9 +77,7 @@ module JenkinsPipelineBuilder
       else
         path = File.join(path, template[:name]) unless template[:name] == 'default'
         # If we are looking for the newest version or no version was set
-        if use_newest_version? template, path
-          template[:version] = highest_template_version path
-        end
+        template[:version] = highest_template_version path if use_newest_version? template, path
         path = File.join(path, template[:version]) unless template[:version].nil?
         path = File.join(path, 'pipeline')
       end

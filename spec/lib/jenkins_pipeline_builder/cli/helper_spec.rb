@@ -43,7 +43,7 @@ describe JenkinsPipelineBuilder::CLI::Helper do
 
       it 'should puts an error to stdout and exit if server is invalid' do
         options[:server] = 'not_valid_at_all'
-        expect($stderr).to receive(:puts).with(/server given \(not_valid_at_all\)/)
+        expect(described_class).to receive(:warn).with(/server given \(not_valid_at_all\)/)
         expect { described_class.setup(options) }.to raise_error(SystemExit, 'exit')
       end
     end
@@ -99,7 +99,7 @@ describe JenkinsPipelineBuilder::CLI::Helper do
 
       it 'should puts and error to stdout and exit if no credentials are passed' do
         allow(File).to receive(:exist?).and_return(false)
-        expect($stderr).to receive(:puts).with(/Credentials are not set/)
+        expect(described_class).to receive(:warn).with(/Credentials are not set/)
         expect { described_class.setup({}) }.to raise_error(SystemExit, 'exit')
       end
     end
@@ -123,10 +123,10 @@ describe JenkinsPipelineBuilder::CLI::Helper do
         it "loads a default file ending in .#{suffix}" do
           file_suffixes.each do |ending|
             expect(File).to receive(:exist?).with("#{default_creds_base}.#{ending}")
-              .and_return ending == suffix
+                                            .and_return ending == suffix
           end
           expect(File).to receive(:expand_path).with("#{default_creds_base}.#{suffix}")
-            .and_return "#{creds_file_base}.#{suffix}"
+                                               .and_return "#{creds_file_base}.#{suffix}"
 
           described_class.setup({})
         end
@@ -140,7 +140,7 @@ describe JenkinsPipelineBuilder::CLI::Helper do
           # Stub the existence of the used and extraneous 'found' files
           file_suffixes.each do |suffix|
             expect(File).to receive(:exist?).with("#{default_creds_base}.#{suffix}")
-              .and_return suffix == used_suffix || suffix == found_suffix
+                                            .and_return suffix == used_suffix || suffix == found_suffix
           end
           expect(JenkinsPipelineBuilder.logger).to receive(:warn)
             .with(/'#{default_creds_base}\.#{used_suffix}' but '#{default_creds_base}\.#{found_suffix}' found\./)

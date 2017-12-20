@@ -97,7 +97,7 @@ describe JenkinsPipelineBuilder::ModuleRegistry do
     end
 
     it 'calls the xml block when executing the item' do
-      @ext.xml -> (_) { raise XmlException, 'foo' }
+      @ext.xml ->(_) { raise XmlException, 'foo' }
 
       expect do
         JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
@@ -105,7 +105,7 @@ describe JenkinsPipelineBuilder::ModuleRegistry do
     end
 
     it 'calls the before block' do
-      @ext.before -> (_) { raise BeforeException, 'foo' }
+      @ext.before ->(_) { raise BeforeException, 'foo' }
 
       expect do
         JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
@@ -113,7 +113,7 @@ describe JenkinsPipelineBuilder::ModuleRegistry do
     end
 
     it 'calls the after block' do
-      @ext.after -> (_) { raise AfterException, 'foo' }
+      @ext.after ->(_) { raise AfterException, 'foo' }
 
       expect do
         JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
