@@ -8,7 +8,7 @@ describe JenkinsPipelineBuilder::PullRequestGenerator do
   let(:git_repo_name) { 'git_repo' }
   let(:prs) { (1..10).map { |n| "#{application_name}-PR#{n}" } }
   let(:closed_prs) { (1..6).map { |n| "#{application_name}-PR#{n}" } }
-  let(:open_prs_json) { (7..10).map { |n| { number: n } }.to_json }
+  let(:open_prs_json) { (7..10).map { |n| { number: n, base: { ref: 'master' } } }.to_json }
   let(:url) { "#{github_site}/api/v3/repos/#{git_org}/#{git_repo_name}/pulls" }
   let(:params) do
     {
@@ -91,41 +91,42 @@ describe JenkinsPipelineBuilder::PullRequestGenerator do
         .to_return(status: 200, body: open_prs_json, headers: {})
     end
 
+    let(:pr_number) { 8 }
+    let(:pr) { { number: pr_number } }
+
     it 'converts the job application name' do
       collection = job_collection.clone
-      subject.convert! collection, 8
-      expect(collection.defaults[:value][:application_name]).to eq "#{application_name}-PR8"
+      subject.convert! collection, pr
+      expect(collection.defaults[:value][:application_name]).to eq "#{application_name}-PR#{pr_number}"
     end
 
     it 'provides the PR number to the job settings' do
       collection = job_collection.clone
-      subject.convert! collection, 8
-      expect(collection.defaults[:value][:pull_request_number]).to eq '8'
+      subject.convert! collection, pr
+      expect(collection.defaults[:value][:pull_request_number]).to eq pr_number.to_s
     end
 
     it 'overrides the git params' do
-      pr = 8
       collection = job_collection.clone
       subject.convert! collection, pr
       expect(collection.jobs.first[:value]).to eq(
-        scm_branch: "origin/pr/#{pr}/head",
+        scm_branch: "origin/pr/#{pr_number}/head",
         scm_params: {
-          refspec: "refs/pull/#{pr}/head:refs/remotes/origin/pr/#{pr}/head",
-          changelog_to_branch: { remote: 'origin', branch: "pr/#{pr}/head" },
+          refspec: "refs/pull/#{pr_number}/head:refs/remotes/origin/pr/#{pr_number}/head",
+          changelog_to_branch: { remote: 'origin', branch: "pr/#{pr_number}/head" },
           random: 'foo'
         }
       )
     end
 
     it 'does not override extra params' do
-      pr = 8
       collection = job_collection.clone
       subject.convert! collection, pr
       expect(collection.jobs.first[:value]).to eq(
-        scm_branch: "origin/pr/#{pr}/head",
+        scm_branch: "origin/pr/#{pr_number}/head",
         scm_params: {
-          refspec: "refs/pull/#{pr}/head:refs/remotes/origin/pr/#{pr}/head",
-          changelog_to_branch: { remote: 'origin', branch: "pr/#{pr}/head" },
+          refspec: "refs/pull/#{pr_number}/head:refs/remotes/origin/pr/#{pr_number}/head",
+          changelog_to_branch: { remote: 'origin', branch: "pr/#{pr_number}/head" },
           random: 'foo'
         }
       )

@@ -30,16 +30,16 @@ module JenkinsPipelineBuilder
     end
 
     def convert!(job_collection, pr)
-      job_collection.defaults[:value][:application_name] = "#{application_name}-PR#{pr}"
-      job_collection.defaults[:value][:pull_request_number] = pr.to_s
+      job_collection.defaults[:value][:application_name] = "#{application_name}-PR#{pr[:number]}"
+      job_collection.defaults[:value][:pull_request_number] = pr[:number].to_s
       job_collection.jobs.each { |j| override j[:value], pr }
     end
 
     def delete_closed_prs
       return if JenkinsPipelineBuilder.debug
       jobs_to_delete = JenkinsPipelineBuilder.client.job.list "^#{application_name}-PR(\\d+)-(.*)$"
-      open_prs.each do |n|
-        jobs_to_delete.reject! { |j| j.start_with? "#{application_name}-PR#{n}" }
+      open_prs.each do |pr|
+        jobs_to_delete.reject! { |j| j.start_with? "#{application_name}-PR#{pr[:number]}" }
       end
       jobs_to_delete.each { |j| JenkinsPipelineBuilder.client.job.delete j }
     end
@@ -48,13 +48,13 @@ module JenkinsPipelineBuilder
 
     def override(job, pr)
       git_version = JenkinsPipelineBuilder.registry.registry[:job][:scm_params].installed_version
-      job[:scm_branch] = "origin/pr/#{pr}/head"
+      job[:scm_branch] = "origin/pr/#{pr[:number]}/head"
       job[:scm_params] ||= {}
-      job[:scm_params][:refspec] = "refs/pull/#{pr}/head:refs/remotes/origin/pr/#{pr}/head"
+      job[:scm_params][:refspec] = "refs/pull/#{pr[:number]}/head:refs/remotes/origin/pr/#{pr[:number]}/head"
       job[:scm_params][:changelog_to_branch] ||= {}
       if Gem::Version.new(2.0) < git_version
         job[:scm_params][:changelog_to_branch]
-          .merge!(remote: 'origin', branch: "pr/#{pr}/head")
+          .merge!(remote: 'origin', branch: "pr/#{pr[:number]}/head")
       end
     end
 
@@ -66,7 +66,7 @@ module JenkinsPipelineBuilder
       begin
         resp = Net::HTTP.get_response(URI.parse(url))
         pulls = JSON.parse(resp.body)
-        pulls.map { |p| p['number'] }
+        pulls.map { |p| { number: p['number'], base: p['base']['ref'] } }
       rescue StandardError
         raise 'Failed connecting to github!'
       end
