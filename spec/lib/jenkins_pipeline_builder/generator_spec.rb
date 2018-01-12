@@ -178,8 +178,8 @@ describe JenkinsPipelineBuilder::Generator do
                              git_repo_name: 'generator_tests'))
         .and_return(pr_generator)
       expect(pr_generator).to receive(:delete_closed_prs)
-      allow(pr_generator).to receive(:convert!) do |job_collection, pr|
-        job_collection.defaults[:value][:application_name] = "testapp-PR#{pr[:number]}"
+      allow(pr_generator).to receive(:convert!) do |job_collection, pr_number|
+        job_collection.defaults[:value][:application_name] = "testapp-PR#{pr_number}"
       end
       expect(pr_generator).to receive(:open_prs).and_return open_prs
       expect(@generator.pull_request(path, job_name)).to be_truthy
@@ -200,7 +200,7 @@ describe JenkinsPipelineBuilder::Generator do
       expect(pr_generator).to receive(:open_prs).and_return open_prs
       expect(pr_generator).to receive(:delete_closed_prs)
       expect(pr_generator).to receive(:convert!)
-        .with(instance_of(JenkinsPipelineBuilder::JobCollection), pr_master)
+        .with(instance_of(JenkinsPipelineBuilder::JobCollection), pr_master[:number])
         .once
 
       expect(@generator.pull_request(path, job_name, true)).to be_truthy

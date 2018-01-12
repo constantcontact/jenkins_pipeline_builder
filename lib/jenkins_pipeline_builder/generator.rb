@@ -56,7 +56,7 @@ module JenkinsPipelineBuilder
       publish(project_name || job_collection.projects.first[:name])
     end
 
-    # rubocop:disable Metrics/AbcSize:
+    # rubocop:disable Metrics/AbcSize
     def pull_request(path, project_name, base_branch_only = false)
       logger.info "Pull Request Generator Running from path #{path}"
       load_job_collection path unless job_collection.loaded?
@@ -66,12 +66,13 @@ module JenkinsPipelineBuilder
       errors = []
       pr_generator.open_prs.each do |pr|
         next if base_branch_only && defaults[:git_branch] != pr[:base]
-        pr_generator.convert! job_collection, pr
+        pr_generator.convert! job_collection, pr[:number]
         error = publish(project_name)
         errors << error unless error.empty?
       end
       errors.empty?
     end
+    # rubocop:enable Metrics/AbcSize
 
     def file(path, project_name)
       logger.info "Generating files from path #{path}"

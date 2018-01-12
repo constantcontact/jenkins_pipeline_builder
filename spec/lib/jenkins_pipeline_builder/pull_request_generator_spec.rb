@@ -92,23 +92,22 @@ describe JenkinsPipelineBuilder::PullRequestGenerator do
     end
 
     let(:pr_number) { 8 }
-    let(:pr) { { number: pr_number } }
 
     it 'converts the job application name' do
       collection = job_collection.clone
-      subject.convert! collection, pr
+      subject.convert! collection, pr_number
       expect(collection.defaults[:value][:application_name]).to eq "#{application_name}-PR#{pr_number}"
     end
 
     it 'provides the PR number to the job settings' do
       collection = job_collection.clone
-      subject.convert! collection, pr
+      subject.convert! collection, pr_number
       expect(collection.defaults[:value][:pull_request_number]).to eq pr_number.to_s
     end
 
     it 'overrides the git params' do
       collection = job_collection.clone
-      subject.convert! collection, pr
+      subject.convert! collection, pr_number
       expect(collection.jobs.first[:value]).to eq(
         scm_branch: "origin/pr/#{pr_number}/head",
         scm_params: {
@@ -121,7 +120,7 @@ describe JenkinsPipelineBuilder::PullRequestGenerator do
 
     it 'does not override extra params' do
       collection = job_collection.clone
-      subject.convert! collection, pr
+      subject.convert! collection, pr_number
       expect(collection.jobs.first[:value]).to eq(
         scm_branch: "origin/pr/#{pr_number}/head",
         scm_params: {

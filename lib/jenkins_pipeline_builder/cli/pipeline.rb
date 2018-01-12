@@ -39,9 +39,10 @@ module JenkinsPipelineBuilder
         exit(1)
       end
 
-      desc 'pull_request Path [ProjectName] [BaseBranchOnly]', 'Generates jenkins jobs based on a git pull request.'
-      def pull_request(path, project_name = nil, base_branch_only = false)
-        Helper.setup(parent_options).pull_request(path, project_name, base_branch_only)
+      option :base_branch_only, type: :boolean
+      desc 'pull_request Path [ProjectName] [--base_branch_only]', 'Generates jenkins jobs based on a git pull request.'
+      def pull_request(path, project_name = nil)
+        Helper.setup(parent_options).pull_request(path, project_name, options[:base_branch_only])
       end
 
       desc 'file Path [ProjectName]', 'Does the same thing as bootstrap but doesn\'t actually create jobs on the server'

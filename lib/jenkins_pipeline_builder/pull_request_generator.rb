@@ -29,10 +29,10 @@ module JenkinsPipelineBuilder
       @open_prs = active_prs defaults[:github_site], defaults[:git_org], defaults[:git_repo_name]
     end
 
-    def convert!(job_collection, pr)
-      job_collection.defaults[:value][:application_name] = "#{application_name}-PR#{pr[:number]}"
-      job_collection.defaults[:value][:pull_request_number] = pr[:number].to_s
-      job_collection.jobs.each { |j| override j[:value], pr }
+    def convert!(job_collection, pr_number)
+      job_collection.defaults[:value][:application_name] = "#{application_name}-PR#{pr_number}"
+      job_collection.defaults[:value][:pull_request_number] = pr_number.to_s
+      job_collection.jobs.each { |j| override j[:value], pr_number }
     end
 
     def delete_closed_prs
@@ -46,15 +46,15 @@ module JenkinsPipelineBuilder
 
     private
 
-    def override(job, pr)
+    def override(job, pr_number)
       git_version = JenkinsPipelineBuilder.registry.registry[:job][:scm_params].installed_version
-      job[:scm_branch] = "origin/pr/#{pr[:number]}/head"
+      job[:scm_branch] = "origin/pr/#{pr_number}/head"
       job[:scm_params] ||= {}
-      job[:scm_params][:refspec] = "refs/pull/#{pr[:number]}/head:refs/remotes/origin/pr/#{pr[:number]}/head"
+      job[:scm_params][:refspec] = "refs/pull/#{pr_number}/head:refs/remotes/origin/pr/#{pr_number}/head"
       job[:scm_params][:changelog_to_branch] ||= {}
       if Gem::Version.new(2.0) < git_version
         job[:scm_params][:changelog_to_branch]
-          .merge!(remote: 'origin', branch: "pr/#{pr[:number]}/head")
+          .merge!(remote: 'origin', branch: "pr/#{pr_number}/head")
       end
     end
 
