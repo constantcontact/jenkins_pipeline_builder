@@ -190,17 +190,18 @@ describe JenkinsPipelineBuilder::Generator do
       job_name = 'PullRequest'
       pr_generator = double('pr_generator')
       expect(JenkinsPipelineBuilder::PullRequestGenerator).to receive(:new)
-                                                                .with(hash_including(application_name: 'testapp',
-                                                                  github_site: 'https://github.com',
-                                                                  git_org: 'testorg',
-                                                                  git_repo_name: 'generator_tests'))
-                                                                .and_return(pr_generator)
+        .with(hash_including(
+                application_name: 'testapp',
+                github_site: 'https://github.com',
+                git_org: 'testorg',
+                git_repo_name: 'generator_tests'
+        )).and_return(pr_generator)
 
       expect(pr_generator).to receive(:open_prs).and_return open_prs
       expect(pr_generator).to receive(:delete_closed_prs)
       expect(pr_generator).to receive(:convert!)
-                                .with(instance_of(JenkinsPipelineBuilder::JobCollection), pr_master)
-                                .once()
+        .with(instance_of(JenkinsPipelineBuilder::JobCollection), pr_master)
+        .once
 
       expect(@generator.pull_request(path, job_name, true)).to be_truthy
     end

@@ -56,6 +56,7 @@ module JenkinsPipelineBuilder
       publish(project_name || job_collection.projects.first[:name])
     end
 
+    # rubocop:disable Metrics/AbcSize:
     def pull_request(path, project_name, base_branch_only = false)
       logger.info "Pull Request Generator Running from path #{path}"
       load_job_collection path unless job_collection.loaded?

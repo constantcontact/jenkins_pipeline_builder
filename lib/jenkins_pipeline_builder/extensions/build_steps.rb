@@ -54,7 +54,7 @@ build_step do
               end
             end
           else
-            configs(class: 'empty-list'){}
+            configs(class: 'empty-list') {}
           end
 
           projects state[:name]
