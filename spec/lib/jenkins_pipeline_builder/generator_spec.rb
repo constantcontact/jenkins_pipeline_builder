@@ -133,6 +133,9 @@ describe JenkinsPipelineBuilder::Generator do
       JenkinsPipelineBuilder.registry.registry[:job][:scm_params].clear_installed_version
     end
 
+    let(:pr_master) { { number: 1, base: 'master' } }
+    let(:pr_not_master) { { number: 2, base: 'not-master' } }
+    let(:open_prs) { [pr_master, pr_not_master] }
     let(:path) { File.expand_path('../fixtures/generator_tests/pullrequest_pipeline', __FILE__) }
     it 'produces no errors while creating pipeline PullRequest' do
       job_name = 'PullRequest'
@@ -145,7 +148,7 @@ describe JenkinsPipelineBuilder::Generator do
         .and_return(pr_generator)
       expect(pr_generator).to receive(:delete_closed_prs)
       expect(pr_generator).to receive(:convert!)
-      expect(pr_generator).to receive(:open_prs).and_return [1]
+      expect(pr_generator).to receive(:open_prs).and_return [pr_master]
       success = @generator.pull_request(path, job_name)
       expect(success).to be_truthy
     end
@@ -161,7 +164,7 @@ describe JenkinsPipelineBuilder::Generator do
         .and_return(pr_generator)
       expect(pr_generator).to receive(:delete_closed_prs)
       expect(pr_generator).to receive(:convert!).twice
-      expect(pr_generator).to receive(:open_prs).and_return [1, 2]
+      expect(pr_generator).to receive(:open_prs).and_return open_prs
       expect(@generator.pull_request(path, job_name)).to be_truthy
     end
 
@@ -175,12 +178,32 @@ describe JenkinsPipelineBuilder::Generator do
                              git_repo_name: 'generator_tests'))
         .and_return(pr_generator)
       expect(pr_generator).to receive(:delete_closed_prs)
-      allow(pr_generator).to receive(:convert!) do |job_collection, pr|
-        job_collection.defaults[:value][:application_name] = "testapp-PR#{pr}"
+      allow(pr_generator).to receive(:convert!) do |job_collection, pr_number|
+        job_collection.defaults[:value][:application_name] = "testapp-PR#{pr_number}"
       end
-      expect(pr_generator).to receive(:open_prs).and_return [1, 2]
+      expect(pr_generator).to receive(:open_prs).and_return open_prs
       expect(@generator.pull_request(path, job_name)).to be_truthy
       expect(@generator.job_collection.projects.first[:settings][:application_name]).to eq 'testapp-PR2'
+    end
+
+    it 'correctly creates jobs only for the base branch' do
+      job_name = 'PullRequest'
+      pr_generator = double('pr_generator')
+      expect(JenkinsPipelineBuilder::PullRequestGenerator).to receive(:new)
+        .with(hash_including(
+                application_name: 'testapp',
+                github_site: 'https://github.com',
+                git_org: 'testorg',
+                git_repo_name: 'generator_tests'
+        )).and_return(pr_generator)
+
+      expect(pr_generator).to receive(:open_prs).and_return open_prs
+      expect(pr_generator).to receive(:delete_closed_prs)
+      expect(pr_generator).to receive(:convert!)
+        .with(instance_of(JenkinsPipelineBuilder::JobCollection), pr_master[:number])
+        .once
+
+      expect(@generator.pull_request(path, job_name, true)).to be_truthy
     end
     # Things to check for
     # Fail - no PR job type found

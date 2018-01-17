@@ -31,7 +31,7 @@ module JenkinsPipelineBuilder
         Helper.setup(parent_options).dump(job_name)
       end
 
-      desc 'bootstrap Path', 'Generates pipeline from folder or a file'
+      desc 'bootstrap Path [ProjectName]', 'Generates pipeline from folder or a file'
       def bootstrap(path, project_name = nil)
         failed = Helper.setup(parent_options).bootstrap(path, project_name)
         exit(0) if failed.empty? # weird ordering, but rubocop decrees
@@ -39,12 +39,13 @@ module JenkinsPipelineBuilder
         exit(1)
       end
 
-      desc 'pull_request Path', 'Generates jenkins jobs based on a git pull request.'
+      option :base_branch_only, type: :boolean
+      desc 'pull_request Path [ProjectName] [--base_branch_only]', 'Generates jenkins jobs based on a git pull request.'
       def pull_request(path, project_name = nil)
-        Helper.setup(parent_options).pull_request(path, project_name)
+        Helper.setup(parent_options).pull_request(path, project_name, options[:base_branch_only])
       end
 
-      desc 'file Path', 'Does the same thing as bootstrap but doesn\'t actually create jobs on the server'
+      desc 'file Path [ProjectName]', 'Does the same thing as bootstrap but doesn\'t actually create jobs on the server'
       def file(path, project_name = nil)
         Helper.setup(parent_options).file(path, project_name)
       end

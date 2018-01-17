@@ -5,6 +5,7 @@
     github_site: 'https://github.com'
     git_org: 'testorg'
     git_repo_name: 'generator_tests'
+    git_branch: 'master'
 
 - project:
     name: PullRequest
