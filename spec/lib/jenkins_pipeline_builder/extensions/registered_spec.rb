@@ -1,4 +1,4 @@
-require File.expand_path('../../spec_helper', __FILE__)
+require File.expand_path('../spec_helper', __dir__)
 WRAPPERS = {
   ansicolor: ['0'],
   artifactory: ['0'],
@@ -6,7 +6,7 @@ WRAPPERS = {
   inject_passwords: ['0'],
   maven3artifactory: ['0'],
   nodejs: ['0'],
-  rvm: ['0', '0.5'],
+  rvm: ['0', '0.5', '0.6'],
   timestamp: ['0'],
   xvfb: ['0'],
   prebuild_cleanup: ['0'],

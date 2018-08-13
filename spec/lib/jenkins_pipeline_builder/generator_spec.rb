@@ -1,4 +1,4 @@
-require File.expand_path('../spec_helper', __FILE__)
+require File.expand_path('spec_helper', __dir__)
 
 describe JenkinsPipelineBuilder::Generator do
   before :all do
@@ -136,7 +136,7 @@ describe JenkinsPipelineBuilder::Generator do
     let(:pr_master) { { number: 1, base: 'master' } }
     let(:pr_not_master) { { number: 2, base: 'not-master' } }
     let(:open_prs) { [pr_master, pr_not_master] }
-    let(:path) { File.expand_path('../fixtures/generator_tests/pullrequest_pipeline', __FILE__) }
+    let(:path) { File.expand_path('fixtures/generator_tests/pullrequest_pipeline', __dir__) }
     it 'produces no errors while creating pipeline PullRequest' do
       job_name = 'PullRequest'
       pr_generator = double('pr_generator')
@@ -195,7 +195,7 @@ describe JenkinsPipelineBuilder::Generator do
                 github_site: 'https://github.com',
                 git_org: 'testorg',
                 git_repo_name: 'generator_tests'
-        )).and_return(pr_generator)
+              )).and_return(pr_generator)
 
       expect(pr_generator).to receive(:open_prs).and_return open_prs
       expect(pr_generator).to receive(:delete_closed_prs)
@@ -227,26 +227,26 @@ describe JenkinsPipelineBuilder::Generator do
     end
 
     it 'loads a yaml collection from a path' do
-      path = File.expand_path('../fixtures/generator_tests/test_yaml_files', __FILE__)
+      path = File.expand_path('fixtures/generator_tests/test_yaml_files', __dir__)
       @generator.job_collection.load_from_path path
     end
     it 'loads a json collection from a path' do
-      path = File.expand_path('../fixtures/generator_tests/test_json_files', __FILE__)
+      path = File.expand_path('fixtures/generator_tests/test_json_files', __dir__)
       @generator.job_collection.load_from_path path
     end
     it 'loads both yaml and json files from a path' do
-      path = File.expand_path('../fixtures/generator_tests/test_combo_files', __FILE__)
+      path = File.expand_path('fixtures/generator_tests/test_combo_files', __dir__)
       @generator.job_collection.load_from_path path
     end
 
     it 'errors when reading a bad yaml file' do
-      path = File.expand_path('../fixtures/generator_tests/test_bad_yaml_files', __FILE__)
+      path = File.expand_path('fixtures/generator_tests/test_bad_yaml_files', __dir__)
       expect { @generator.job_collection.load_from_path path }.to raise_error(
         CustomErrors::ParseError, /There was an error while parsing a file/
       )
     end
     it 'errors when reading a bad json file' do
-      path = File.expand_path('../fixtures/generator_tests/test_bad_json_files', __FILE__)
+      path = File.expand_path('fixtures/generator_tests/test_bad_json_files', __dir__)
       expect { @generator.job_collection.load_from_path path }.to raise_error(
         CustomErrors::ParseError, /There was an error while parsing a file/
       )
@@ -258,7 +258,7 @@ describe JenkinsPipelineBuilder::Generator do
       allow(JenkinsPipelineBuilder).to receive(:debug).and_return true
       job_name = 'test_job'
       body = ''
-      test_path = File.expand_path('../fixtures/generator_tests', __FILE__)
+      test_path = File.expand_path('fixtures/generator_tests', __dir__)
       File.open("#{test_path}/#{job_name}.xml", 'r') do |f|
         f.each_line do |line|
           body << line
@@ -274,7 +274,7 @@ describe JenkinsPipelineBuilder::Generator do
 
   describe '#projects' do
     it 'returns a list of projects' do
-      path = File.expand_path('../fixtures/generator_tests/multi_project', __FILE__)
+      path = File.expand_path('fixtures/generator_tests/multi_project', __dir__)
       expect(@generator.projects(path)).to eq %w[SamplePipeline1 SamplePipeline2 SamplePipeline3]
     end
   end
@@ -294,7 +294,7 @@ describe JenkinsPipelineBuilder::Generator do
     end
     it 'generates xml and saves to disk without sending jobs to the server' do
       job_name = 'TemplatePipeline'
-      path = File.expand_path('../fixtures/generator_tests/template_pipeline', __FILE__)
+      path = File.expand_path('fixtures/generator_tests/template_pipeline', __dir__)
       errors = @generator.file(path, job_name)
       expect(errors).to be_empty
       expect(File.exist?("out/xml/#{job_name}-10.xml")).to be true

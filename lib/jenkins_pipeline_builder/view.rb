@@ -133,7 +133,7 @@ module JenkinsPipelineBuilder
         'dashboardView' => 'hudson.plugins.view.dashboard.Dashboard',
         'multijobView' => 'com.tikal.jenkins.plugins.multijob.views.MultiJobView'
       }
-      raise "Type #{type} is not supported by Jenkins." unless types.keys.include? type
+      raise "Type #{type} is not supported by Jenkins." unless types.key?(type)
       types[type]
     end
 

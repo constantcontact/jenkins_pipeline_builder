@@ -41,7 +41,7 @@ module JenkinsPipelineBuilder
     attr_reader :client, :credentials, :debug, :file_mode
     attr_writer :logger
     def generator
-      @_generator ||= Generator.new
+      @generator ||= Generator.new
     end
 
     def file_mode!

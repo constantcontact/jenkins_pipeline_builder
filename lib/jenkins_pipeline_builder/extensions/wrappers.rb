@@ -54,6 +54,21 @@ wrapper do
   announced false
   description 'rvm plugin'
 
+  version '0.6' do
+    xml do |wrapper|
+      send('ruby-proxy-object') do
+        send('ruby-object', 'ruby-class' => 'Jenkins::Tasks::BuildWrapperProxy', 'pluginid' => 'rvm') do
+          object('ruby-class' => 'RvmWrapper', 'pluginid' => 'rvm') do
+            impl('pluginid' => 'rvm', 'ruby-class' => 'String') do
+              text wrapper
+            end
+          end
+          pluginid(:pluginid => 'rvm', 'ruby-class' => 'String') { text 'rvm' }
+        end
+      end
+    end
+  end
+
   version '0.5' do
     xml do |wrapper|
       send('ruby-proxy-object') do

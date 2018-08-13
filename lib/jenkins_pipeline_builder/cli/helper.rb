@@ -97,8 +97,6 @@ module JenkinsPipelineBuilder
         end
       end
 
-      private_class_method
-
       def self.find_default_file
         default_file_name = "#{ENV['HOME']}/.jenkins_api_client/login"
 

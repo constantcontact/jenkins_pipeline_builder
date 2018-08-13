@@ -48,7 +48,7 @@ module JenkinsPipelineBuilder
       new_item = compile(item, settings)
       [true, new_item]
     rescue StandardError => e
-      return [false, [e.message]]
+      [false, [e.message]]
     end
 
     def compile(item, settings = {})
