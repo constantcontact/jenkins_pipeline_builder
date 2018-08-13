@@ -1,4 +1,4 @@
-require File.expand_path('../../spec_helper', __FILE__)
+require File.expand_path('../spec_helper', __dir__)
 
 describe JenkinsPipelineBuilder::CLI::Helper do
   file_suffixes = JenkinsPipelineBuilder::CLI::Helper::DEFAULT_FILE_FORMATS

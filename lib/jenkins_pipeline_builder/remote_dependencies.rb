@@ -88,8 +88,8 @@ module JenkinsPipelineBuilder
     def download_yaml(url, file, remote_opts = {})
       entries[url] = file
       logger.info "Downloading #{url} to #{file}.tar"
-      open("#{file}.tar", 'w') do |local_file|
-        open(url, remote_opts) do |remote_file|
+      File.open("#{file}.tar", 'w') do |local_file|
+        File.open(url, remote_opts) do |remote_file|
           local_file.write(Zlib::GzipReader.new(remote_file).read)
         end
       end

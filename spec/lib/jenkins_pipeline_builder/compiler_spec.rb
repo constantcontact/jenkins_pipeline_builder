@@ -1,4 +1,4 @@
-require File.expand_path('../spec_helper', __FILE__)
+require File.expand_path('spec_helper', __dir__)
 describe JenkinsPipelineBuilder::Compiler do
   before :all do
     JenkinsPipelineBuilder.credentials = {

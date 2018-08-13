@@ -1,4 +1,4 @@
-require File.expand_path('../../lib/jenkins_pipeline_builder/spec_helper', __FILE__)
+require File.expand_path('../lib/jenkins_pipeline_builder/spec_helper', __dir__)
 
 describe 'Pipeline' do
   before :all do

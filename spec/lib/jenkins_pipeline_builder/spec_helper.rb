@@ -6,7 +6,7 @@ require 'simplecov-rcov'
 require 'webmock/rspec'
 require 'equivalent-xml'
 
-require File.expand_path('../../../../lib/jenkins_pipeline_builder', __FILE__)
+require File.expand_path('../../../lib/jenkins_pipeline_builder', __dir__)
 
 RSpec::Matchers.define :have_min_version do |version|
   match do |base|
