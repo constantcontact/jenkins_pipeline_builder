@@ -147,7 +147,7 @@ wrapper do
       resolvePattern
       matrixParams wrapper[:properties]
       deployBuildInfo wrapper[:'publish-build-info']
-      specs false
+      useSpecs false
       includeEnvVars false
       envVarsPatterns do
         includePatterns
