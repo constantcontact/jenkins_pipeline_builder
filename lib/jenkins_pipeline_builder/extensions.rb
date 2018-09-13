@@ -76,12 +76,12 @@ module JenkinsPipelineBuilder
     end
 
     def check_parameters(value)
-      return [] if parameters&.empty?
+      return [] if parameters && parameters.empty?
       return [] unless value.is_a? Hash
 
       errors = []
       value.each_key do |key|
-        next if parameters&.include?(key)
+        next if parameters && parameters.include?(key)
 
         errors << "Extension #{name} does not support parameter #{key}"
       end
