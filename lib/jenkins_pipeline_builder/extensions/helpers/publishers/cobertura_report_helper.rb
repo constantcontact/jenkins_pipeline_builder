@@ -2,6 +2,7 @@ class CoberturaReportHelper < ExtensionHelper
   def thresholds
     @thresholds ||= params[:metric_targets]
     return @thresholds if @thresholds
+
     @thresholds = {
       failing: [
         { type: 'type', value: 0 },

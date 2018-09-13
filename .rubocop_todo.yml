@@ -24,12 +24,6 @@ Metrics/BlockLength:
 # Offense count: 5
 # Cop supports --auto-correct.
 # Configuration parameters: AutoCorrect.
-Performance/HashEachMethods:
-  Exclude:
-    - 'lib/jenkins_pipeline_builder/cli/list.rb'
-    - 'lib/jenkins_pipeline_builder/compiler.rb'
-    - 'lib/jenkins_pipeline_builder/extensions.rb'
-    - 'lib/jenkins_pipeline_builder/utils.rb'
 
 # Offense count: 1
 # Configuration parameters: MinBodyLength.

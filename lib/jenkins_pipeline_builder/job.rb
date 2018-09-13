@@ -17,6 +17,7 @@ module JenkinsPipelineBuilder
     def create_or_update
       success, payload = to_xml
       return success, payload unless success
+
       xml = payload
       return local_output(xml) if JenkinsPipelineBuilder.debug || JenkinsPipelineBuilder.file_mode
 
@@ -31,6 +32,7 @@ module JenkinsPipelineBuilder
       job[:job_type] = 'free_style' unless job[:job_type]
       type = job[:job_type]
       return false, "Job type: #{type} is not one of #{job_methods.join(', ')}" unless known_type? type
+
       @xml = setup_freestyle_base(job)
       payload = send("update_#{type}")
 
@@ -109,6 +111,7 @@ module JenkinsPipelineBuilder
       if params.key?(:template)
         template_name = params[:template]
         raise "Job template '#{template_name}' can't be resolved." unless @job_templates.key?(template_name)
+
         params.delete(:template)
         template = @job_templates[template_name]
         params = template.deep_merge(params)

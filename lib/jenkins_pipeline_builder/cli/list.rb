@@ -39,6 +39,7 @@ module JenkinsPipelineBuilder
         entries = JenkinsPipelineBuilder.registry.registry[:job]
         entries.each do |name, set|
           next unless set.is_a? ExtensionSet
+
           ext = set.extensions.first
           display_module(name, ext)
         end

@@ -1,4 +1,4 @@
-require File.expand_path('../../spec_helper', __FILE__)
+require File.expand_path('../spec_helper', __dir__)
 WRAPPERS = {
   ansicolor: ['0'],
   artifactory: ['0'],

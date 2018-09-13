@@ -40,6 +40,7 @@ module JenkinsPipelineBuilder
     EXT_METHODS.keys.each do |method_name|
       define_method method_name do |value = nil|
         return instance_variable_get("@#{method_name}") if value.nil?
+
         instance_variable_set("@#{method_name}", value)
       end
     end
@@ -59,6 +60,7 @@ module JenkinsPipelineBuilder
     def execute(value, n_xml)
       errors = check_parameters value
       raise ArgumentError, errors.join("\n") if errors.any?
+
       unless path
         raise ArgumentError, %(Extension #{name} has no valid path
         Check ModuleRegistry#entries and the definition of the extension
@@ -74,11 +76,13 @@ module JenkinsPipelineBuilder
     end
 
     def check_parameters(value)
-      return [] if parameters && parameters.empty?
+      return [] if parameters&.empty?
       return [] unless value.is_a? Hash
+
       errors = []
       value.each_key do |key|
-        next if parameters && parameters.include?(key)
+        next if parameters&.include?(key)
+
         errors << "Extension #{name} does not support parameter #{key}"
       end
       errors

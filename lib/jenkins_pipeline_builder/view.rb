@@ -67,6 +67,7 @@ module JenkinsPipelineBuilder
     def create(params)
       # Name is a required parameter. Raise an error if not specified
       raise ArgumentError, 'Name is required for creating view' unless params.is_a?(Hash) && params[:name]
+
       clean_up_views(params) unless JenkinsPipelineBuilder.debug
       params[:type] ||= 'listview'
       create_base_view(params[:name], params[:type], params[:parent_view])
@@ -133,7 +134,8 @@ module JenkinsPipelineBuilder
         'dashboardView' => 'hudson.plugins.view.dashboard.Dashboard',
         'multijobView' => 'com.tikal.jenkins.plugins.multijob.views.MultiJobView'
       }
-      raise "Type #{type} is not supported by Jenkins." unless types.keys.include? type
+      raise "Type #{type} is not supported by Jenkins." unless types.key?(type)
+
       types[type]
     end
 

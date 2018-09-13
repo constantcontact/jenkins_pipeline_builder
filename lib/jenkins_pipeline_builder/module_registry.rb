@@ -29,6 +29,7 @@ module JenkinsPipelineBuilder
     def versions
       # Return a hash with a default of 1000 so that we'll get the newest in debug
       return Hash.new { |_| '1000.0' } if JenkinsPipelineBuilder.debug
+
       @versions ||= JenkinsPipelineBuilder.client.plugin.list_installed
     end
 
@@ -77,6 +78,7 @@ module JenkinsPipelineBuilder
     def get_by_path_collection(path, registry)
       item = registry[path.shift.to_sym]
       return item if path.count == 0
+
       get_by_path_collection(path, item)
     end
 
@@ -88,8 +90,10 @@ module JenkinsPipelineBuilder
     def traverse_registry(registry, params, n_xml, strict = false)
       params.each do |key, value|
         next unless registry.is_a? Hash
+
         unless registry.key? key
           raise TypeError, "!!!! could not find key #{key} !!!!" if strict
+
           next
         end
         reg_value = registry[key]

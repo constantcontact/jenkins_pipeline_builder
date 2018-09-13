@@ -294,7 +294,7 @@ publisher do
       groovyScript params[:groovy_script]
       behavior params[:behavior] || '0'
       runFormMatrixParent 'false'
-      params[:additional_classpaths] && params[:additional_classpaths].each do |path|
+      params[:additional_classpaths]&.each do |path|
         send('org.jvnet.hudson.plugins.groovypostbuild.GroovyScriptPath') do
           path path[:path] || '/'
         end
@@ -541,7 +541,7 @@ publisher do
   xml do |params|
     send('htmlpublisher.HtmlPublisher', 'plugin' => 'htmlpublisher') do
       send('reportTargets') do
-        params[:report_targets] && params[:report_targets].each do |target|
+        params[:report_targets]&.each do |target|
           send('htmlpublisher.HtmlPublisherTarget') do
             reportName target[:report_title] || 'HTML Report'
             reportDir target[:report_dir] || ''
@@ -588,7 +588,7 @@ publisher do
   xml do |params|
     send('xunit', 'plugin' => 'xunit') do
       send('types') do
-        params[:types] && params[:types].each do |type|
+        params[:types]&.each do |type|
           send(type[:type]) do
             pattern type[:pattern]
             skipNoTestFiles type[:skip_no_test_files] || false

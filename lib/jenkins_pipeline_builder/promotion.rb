@@ -31,6 +31,7 @@ module JenkinsPipelineBuilder
     def create(params, job_name)
       success, payload = prom_to_xml(params)
       return success, payload unless success
+
       xml = payload
       return local_output(xml) if JenkinsPipelineBuilder.debug || JenkinsPipelineBuilder.file_mode
 
