@@ -98,6 +98,7 @@ wrapper do
         passwords = wrapper
       end
       break unless passwords
+
       passwordEntries do
         passwords.each do |password|
           EnvInjectPasswordEntry do

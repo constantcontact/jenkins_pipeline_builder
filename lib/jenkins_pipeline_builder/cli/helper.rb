@@ -80,6 +80,7 @@ module JenkinsPipelineBuilder
       def self.process_creds_file(file)
         return load File.expand_path(file) if file.end_with? 'rb'
         return self.jenkins_api_creds = JSON.parse(IO.read(File.expand_path(file))) if file.end_with? 'json'
+
         self.jenkins_api_creds = YAML.load_file(File.expand_path(file))
       end
 
@@ -97,14 +98,13 @@ module JenkinsPipelineBuilder
         end
       end
 
-      private_class_method
-
       def self.find_default_file
         default_file_name = "#{ENV['HOME']}/.jenkins_api_client/login"
 
         found_suffix = nil
         DEFAULT_FILE_FORMATS.each do |suffix|
           next unless File.exist?("#{default_file_name}.#{suffix}")
+
           if !found_suffix
             found_suffix = suffix
           else
@@ -118,6 +118,7 @@ module JenkinsPipelineBuilder
       def self.logger
         JenkinsPipelineBuilder.logger
       end
+      private_class_method :find_default_file, :logger
     end
   end
 end

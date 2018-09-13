@@ -1,5 +1,5 @@
 AllCops:
-  TargetRubyVersion: 2.1.5
+  TargetRubyVersion: 2.3.3
 
 inherit_from: .rubocop_todo.yml
 
@@ -40,4 +40,7 @@ Style/SymbolProc:
   IgnoredMethods: new
 
 Style/FrozenStringLiteralComment:
+  Enabled: false
+
+Style/SafeNavigation:
   Enabled: false

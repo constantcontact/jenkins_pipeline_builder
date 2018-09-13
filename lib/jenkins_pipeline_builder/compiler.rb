@@ -33,11 +33,14 @@ module JenkinsPipelineBuilder
       item = item_bag[:value]
       bag = {}
       return unless item.is_a?(Hash)
+
       item.keys.each do |k|
         val = item[k]
         next unless val.is_a? String
+
         new_value = resolve_value(val, settings_bag)
         return nil if new_value.nil?
+
         bag[k] = new_value
       end
       my_settings_bag = settings_bag.clone
@@ -48,7 +51,7 @@ module JenkinsPipelineBuilder
       new_item = compile(item, settings)
       [true, new_item]
     rescue StandardError => e
-      return [false, [e.message]]
+      [false, [e.message]]
     end
 
     def compile(item, settings = {})
@@ -67,10 +70,12 @@ module JenkinsPipelineBuilder
 
     def handle_enable(item, settings)
       return item unless item.is_a? Hash
+
       if enable_block_present? item
         enabled_switch = resolve_value(item[:enabled], settings)
         return {} if enabled_switch == 'false'
         raise "Invalid value for #{item[:enabled]}: #{enabled_switch}" if enabled_switch != 'true'
+
         if item[:parameters].is_a? Hash
           item = item.merge item[:parameters]
           item.delete :parameters
@@ -105,8 +110,10 @@ module JenkinsPipelineBuilder
 
     def compile_array_item(item, settings, array)
       raise "Found a nil value when processing following array:\n #{array.inspect}" if item.nil?
+
       payload = compile(item, settings)
       raise "Failed to resolve:\n===>item #{item}\n\n===>of list: #{array.inspect}" if payload.nil?
+
       payload
     end
 
@@ -114,8 +121,10 @@ module JenkinsPipelineBuilder
       if value.nil?
         raise "key: #{key} has a nil value, this is often a yaml syntax error. Skipping children and siblings"
       end
+
       payload = compile(value, settings)
       raise "Failed to resolve:\n===>key: #{key}\n\n===>value: #{value} payload" if payload.nil?
+
       payload
     end
 
@@ -135,6 +144,7 @@ module JenkinsPipelineBuilder
       pull_job = value.to_s.match(/{{pull@(.*)}}/)
       if pull_job
         return pull_job[1] unless settings[:pull_request_number]
+
         value = pull_job[1]
       end
 
@@ -151,16 +161,19 @@ module JenkinsPipelineBuilder
       vars.select! do |var|
         var_val = settings[var]
         raise "Could not find defined substitution variable: #{var}" if var_val.nil?
+
         value_s.gsub!("{{#{var}}}", var_val.to_s)
         var_val.nil?
       end
       return nil if vars.count != 0
+
       value_s
     end
 
     def correct_job_names!(value)
       vars = value.scan(/{{job@(.*)}}/).flatten
       return unless vars.count > 0
+
       vars.select! do |var|
         var_val = job_collection[var.to_s]
         value.gsub!("{{job@#{var}}}", var_val[:value][:name]) unless var_val.nil?

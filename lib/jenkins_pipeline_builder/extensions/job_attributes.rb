@@ -227,6 +227,7 @@ job_attribute do
         if params[:changelog_to_branch]
           opts = params[:changelog_to_branch]
           raise 'remote and branch are required for changelog_to_branch' unless opts[:remote] && opts[:branch]
+
           send('hudson.plugins.git.extensions.impl.ChangelogToBranch') do
             options do
               compareRemote opts[:remote]

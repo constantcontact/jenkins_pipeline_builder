@@ -1,4 +1,4 @@
-require File.expand_path('../spec_helper', __FILE__)
+require File.expand_path('spec_helper', __dir__)
 
 describe JenkinsPipelineBuilder::ExtensionSet do
   subject(:set) { JenkinsPipelineBuilder::ExtensionSet.new('foo') {} }
@@ -108,7 +108,7 @@ describe JenkinsPipelineBuilder::ExtensionSet do
     it 'works for snapshot/beta stuff' do
       ext_versions ['1.9', '2.3']
 
-      set.installed_version = '2.0-SNAPSHOT (private-06/06/2014 09:51-bgaulin)'
+      set.installed_version = '2.0-SNAPSHOT'
       # Other examples
       # set.installed_version = '2.0-beta-1'
       # set.installed_version = '2.0+build.93'

@@ -1,4 +1,4 @@
-require File.expand_path('../spec_helper', __FILE__)
+require File.expand_path('spec_helper', __dir__)
 
 describe JenkinsPipelineBuilder::View do
   before(:all) do
@@ -12,7 +12,7 @@ describe JenkinsPipelineBuilder::View do
     generator = JenkinsPipelineBuilder.generator
     @view = JenkinsPipelineBuilder::View.new(generator)
   end
-  let(:path) { File.expand_path('../fixtures/view_test/', __FILE__) }
+  let(:path) { File.expand_path('fixtures/view_test', __dir__) }
   let(:view) { { name: 'view', parent_view: 'ParentView', type: 'categorizedView', description: 'ViewTest', regex: 'ViewTest.*', groupingRules: [{ groupRegex: 'ViewTest-1.*', namingRule: '1. Commit Stage' }] } }
 
   describe '#generate' do

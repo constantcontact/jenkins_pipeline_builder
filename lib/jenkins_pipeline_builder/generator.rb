@@ -66,6 +66,7 @@ module JenkinsPipelineBuilder
       errors = []
       pr_generator.open_prs.each do |pr|
         next if base_branch_only && defaults[:git_branch] != pr[:base]
+
         pr_generator.convert! job_collection, pr[:number]
         error = publish(project_name)
         errors << error unless error.empty?
@@ -105,6 +106,7 @@ module JenkinsPipelineBuilder
     def resolve_job_by_name(name, settings = {})
       job = job_collection.get_item(name)
       raise "Failed to locate job by name '#{name}'" if job.nil?
+
       job_value = job[:value]
       logger.debug "Compiling job #{name}"
       compiler = JenkinsPipelineBuilder::Compiler.new self
@@ -214,6 +216,7 @@ module JenkinsPipelineBuilder
       # A hash of promoted_builds names => associated job names
       promotion_job_pairs = jobs.each_with_object({}) do |j, acc|
         next unless j[:result][:promoted_builds]
+
         j[:result][:promoted_builds].each do |promotion_name|
           acc[promotion_name] = j[:result][:name]
         end
@@ -238,6 +241,7 @@ module JenkinsPipelineBuilder
         logger.info "Processing #{i}"
         job = i[:result]
         raise "Result is empty for #{i}" if job.nil?
+
         job = Job.new job
         success, payload = job.create_or_update
         errors[job.name] = payload unless success

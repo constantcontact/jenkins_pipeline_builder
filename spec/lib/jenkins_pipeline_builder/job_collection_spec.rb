@@ -1,4 +1,4 @@
-require File.expand_path('../spec_helper', __FILE__)
+require File.expand_path('spec_helper', __dir__)
 
 describe JenkinsPipelineBuilder::JobCollection do
   before :all do
@@ -21,7 +21,7 @@ describe JenkinsPipelineBuilder::JobCollection do
 
   context '#load_from_path' do
     before :all do
-      path = File.expand_path('../fixtures/job_collection/', __FILE__)
+      path = File.expand_path('fixtures/job_collection', __dir__)
       described_class.new.load_from_path path
     end
 

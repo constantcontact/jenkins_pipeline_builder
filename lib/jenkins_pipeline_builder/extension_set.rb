@@ -12,6 +12,7 @@ module JenkinsPipelineBuilder
     SET_METHODS.each do |method_name|
       define_method method_name do |value = nil|
         return settings[method_name] if value.nil?
+
         settings[method_name] = value
       end
     end
@@ -35,7 +36,6 @@ module JenkinsPipelineBuilder
     end
 
     def installed_version=(version)
-      version = version.match(/\d+\.\d+(\.\d+)?/)
       @version = Gem::Version.new version
     end
 
@@ -53,9 +53,11 @@ module JenkinsPipelineBuilder
 
     def installed_version
       return @version if @version
+
       reg = JenkinsPipelineBuilder.registry
       version = reg.versions[settings[:plugin_id]]
       raise "Plugin #{settings[:name]} is not installed (plugin_id: #{settings[:plugin_id]})" if version.nil?
+
       self.installed_version = version
       @version
     end
@@ -103,6 +105,7 @@ module JenkinsPipelineBuilder
       end
       unless block
         raise "no block found for version #{version}" unless blocks.key version
+
         return blocks[version][:block]
       end
       store_xml version, block, path
@@ -122,6 +125,7 @@ module JenkinsPipelineBuilder
         end
 
         return instance_variable_get(method_name) unless block
+
         blocks[version] = {} unless blocks[version]
         blocks[version][method_name] = block
       end

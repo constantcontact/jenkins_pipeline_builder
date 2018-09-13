@@ -108,6 +108,7 @@ module JenkinsPipelineBuilder
         # skip if the existing item is local and the new item is remote
         return if remote && !existing_remote
         raise "Duplicate item with name '#{name}' was detected." unless existing_remote && !remote
+
         # override if the existing item is remote and the new is local
         logger.info "Duplicate item with name '#{name}' was detected from the remote folder."
       end
@@ -118,6 +119,7 @@ module JenkinsPipelineBuilder
       path = "#{path}/extensions"
       path = File.expand_path(path, Dir.getwd)
       return unless File.directory?(path)
+
       logger.info "Loading extensions from folder #{path}"
       logger.info Dir.glob("#{path}/*.rb").inspect
       Dir.glob("#{path}/**/*.rb").each do |file|
