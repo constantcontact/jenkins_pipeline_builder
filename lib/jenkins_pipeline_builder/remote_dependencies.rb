@@ -89,8 +89,10 @@ module JenkinsPipelineBuilder
       entries[url] = file
       logger.info "Downloading #{url} to #{file}.tar"
       File.open("#{file}.tar", 'w') do |local_file|
-        File.open(url, remote_opts) do |remote_file|
-          local_file.write(Zlib::GzipReader.new(remote_file).read)
+        if URI::DEFAULT_PARSER.regexp
+          URI.parse(url).open(remote_opts) do |remote_file|
+            local_file.write(Zlib::GzipReader.new(remote_file).read)
+          end
         end
       end
 
