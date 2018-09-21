@@ -90,33 +90,64 @@ describe JenkinsPipelineBuilder::Generator do
     end
 
     it 'produces no errors while creating pipeline TemplatePipeline' do
-      tar_path = File.join(__dir__, 'fixtures/generator_tests/template_pipeline_nested/jobs.tar.gz')
+      tar_path = File.join(__dir__, 'fixtures/generator_tests/template_pipeline/jobs.tar.gz')
       parsed_url = URI.parse('https://www.google.com')
-      opened_file = File.open(tar_path)
-      expect(parsed_url).to receive(:open).and_yield(opened_file)
+      file_contents = Zlib::GzipReader.new(File.open(tar_path)).read
+      file_object = double
+
+      allow(URI).to receive(:parse).and_return(parsed_url)
+      allow(parsed_url).to receive(:open).and_yield("A String")
+      allow(Zlib::GzipReader).to receive(:new).and_return(file_object)
+      allow(file_object).to receive(:read).and_return(file_contents)
       errors = bootstrap(fixture_path('template_pipeline'), 'TemplatePipeline')
       expect(errors).to be_empty
     end
 
     it 'produces no errors while creating pipeline TemplatePipeline_nested' do
+      tar_path = File.join(__dir__, 'fixtures/generator_tests/template_pipeline_nested/jobs.tar.gz')
+      parsed_url = URI.parse('https://www.google.com')
+      file_contents = Zlib::GzipReader.new(File.open(tar_path)).read
+      file_object = double
+
+      allow(URI).to receive(:parse).and_return(parsed_url)
+      allow(parsed_url).to receive(:open).and_yield("A String")
+      allow(Zlib::GzipReader).to receive(:new).and_return(file_object)
+      allow(file_object).to receive(:read).and_return(file_contents)
+
       errors = bootstrap(fixture_path('template_pipeline_nested'), 'TemplatePipeline_nested')
       expect(errors).to be_empty
     end
 
     it 'loads extensions in remote dependencies' do
-      errors = bootstrap(fixture_path('template_pipeline'), 'TemplatePipeline')
-      expect(errors).to be_empty
       expect(@generator.module_registry.registry[:job][:wrappers].keys).to include :test_wrapper
       @generator.module_registry.registry[:job][:wrappers].delete(:test_wrapper)
     end
 
     it 'overrides the remote dependencies with local ones' do
+      tar_path = File.join(__dir__, 'fixtures/generator_tests/template_pipeline/jobs.tar.gz')
+      parsed_url = URI.parse('https://www.google.com')
+      file_contents = Zlib::GzipReader.new(File.open(tar_path)).read
+      file_object = double
+
+      allow(URI).to receive(:parse).and_return(parsed_url)
+      allow(parsed_url).to receive(:open).and_yield("A String")
+      allow(Zlib::GzipReader).to receive(:new).and_return(file_object)
+      allow(file_object).to receive(:read).and_return(file_contents)
       errors = bootstrap(fixture_path('local_override/remote_and_local'), 'TemplatePipeline')
       expect(errors).to be_empty
       expect(@generator.job_collection.collection['{{name}}-10'][:value][:description]).to eq('Overridden stuff')
     end
 
     it 'fails to override when there are duplicate local items' do
+      tar_path = File.join(__dir__, 'fixtures/generator_tests/template_pipeline/jobs.tar.gz')
+      parsed_url = URI.parse('https://www.google.com')
+      file_contents = Zlib::GzipReader.new(File.open(tar_path)).read
+      file_object = double
+
+      allow(URI).to receive(:parse).and_return(parsed_url)
+      allow(parsed_url).to receive(:open).and_yield("A String")
+      allow(Zlib::GzipReader).to receive(:new).and_return(file_object)
+      allow(file_object).to receive(:read).and_return(file_contents)
       expect { bootstrap(fixture_path('local_override/all_local'), 'TemplatePipeline') }.to raise_error(StandardError)
     end
 
@@ -299,6 +330,15 @@ describe JenkinsPipelineBuilder::Generator do
     it 'generates xml and saves to disk without sending jobs to the server' do
       job_name = 'TemplatePipeline'
       path = File.expand_path('fixtures/generator_tests/template_pipeline', __dir__)
+      tar_path = File.join(__dir__, 'fixtures/generator_tests/template_pipeline/jobs.tar.gz')
+      parsed_url = URI.parse('https://www.google.com')
+      file_contents = Zlib::GzipReader.new(File.open(tar_path)).read
+      file_object = double
+
+      allow(URI).to receive(:parse).and_return(parsed_url)
+      allow(parsed_url).to receive(:open).and_yield("A String")
+      allow(Zlib::GzipReader).to receive(:new).and_return(file_object)
+      allow(file_object).to receive(:read).and_return(file_contents)
       errors = @generator.file(path, job_name)
       expect(errors).to be_empty
       expect(File.exist?("out/xml/#{job_name}-10.xml")).to be true
