@@ -90,6 +90,10 @@ describe JenkinsPipelineBuilder::Generator do
     end
 
     it 'produces no errors while creating pipeline TemplatePipeline' do
+      tar_path = File.join(__dir__, 'fixtures/generator_tests/template_pipeline_nested/jobs.tar.gz')
+      parsed_url = URI.parse('https://www.google.com')
+      opened_file = File.open(tar_path)
+      expect(parsed_url).to receive(:open).and_yield(opened_file)
       errors = bootstrap(fixture_path('template_pipeline'), 'TemplatePipeline')
       expect(errors).to be_empty
     end
