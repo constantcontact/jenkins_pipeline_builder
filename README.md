@@ -247,6 +247,7 @@ A number of the DSL options rely on Jenkins plugins, including:
 * ansicolor - "AnsiColor"
 * (view) type: 'categorizedView' - "categorized-view"
 * hipchat - "HipChat Plugin"
+* google_chat - "google-chat-notification-plugin"
 * inject_env_vars - "Environment Injector Plugin"
 * priority - "Priority Sorter plugin"
 * downstream - "Parameterized Trigger plugin"
