@@ -427,6 +427,33 @@ describe 'publishers' do
     end
   end
 
+  context 'google_chat' do
+    before :each do
+      allow(JenkinsPipelineBuilder.client).to receive(:plugin).and_return double(
+        list_installed: { 'google-chat-notification' => '0' }
+      )
+    end
+    it 'generates a configuration' do
+      params = { publishers: { google_chat: {} } }
+
+      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+
+      publisher = @n_xml.root.children.first
+      expect(publisher.name).to match 'io.cnaik.GoogleChatNotification'
+      children = publisher.children.map(&:name)
+      expect(children).to include 'url'
+      expect(children).to include 'message'
+      expect(children).to include 'notifyAborted'
+      expect(children).to include 'notifyFailure'
+      expect(children).to include 'notifyNotBuilt'
+      expect(children).to include 'notifySuccess'
+      expect(children).to include 'notifyUnstable'
+      expect(children).to include 'notifyBackToNormal'
+      expect(children).to include 'suppressInfoLoggers'
+      expect(children).to include 'sameThreadNotification'
+    end
+  end
+
   context 'coverage_result' do
     it 'generates a configuration'
   end

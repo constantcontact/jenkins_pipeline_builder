@@ -266,6 +266,29 @@ job_attribute do
 end
 
 job_attribute do
+  name :google_chat
+  plugin_id 'google-chat-notification'
+  description 'This plugin allows your team to setup build notifications to be sent to Google Chat rooms.'
+  jenkins_name 'Google Chat Notification'
+  announced false
+
+  xml path: '//properties' do |params|
+    send('io.cnaik.GoogleChatNotification', 'plugin' => 'google-chat-notification') do
+      url params[:url] || ''
+      notifyAborted params[:notifyAborted] || false
+      notifyFailure params[:notifyFailure] || false
+      notifyNotBuilt params[:notifyNotBuilt] || false
+      notifySuccess params[:notifySuccess] || false
+      notifyUnstable params[:notifyUnstable] || false
+      notifyBackToNormal params[:notifyBackToNormal] || false
+      suppressInfoLoggers params[:suppressInfoLoggers] || false
+      sameThreadNotification params[:sameThreadNotification] || false
+      message params[:message] || ''
+    end
+  end
+end
+
+job_attribute do
   name :hipchat
   plugin_id 'hipchat'
   description 'This plugin allows your team to setup build notifications to be sent to HipChat rooms.'
