@@ -32,8 +32,8 @@ module JenkinsPipelineBuilder
     # Code was duplicated from jeknins_api_client
     def self.symbolize_keys_deep!(to_symbolize)
       return unless to_symbolize.is_a?(Hash)
-
-      to_symbolize.keys.each do |k|
+      to_symbolize_dup = to_symbolize.dup
+      to_symbolize_dup.each_key do |k|
         ks = k.respond_to?(:to_sym) ? k.to_sym : k
         to_symbolize[ks] = to_symbolize.delete k # Preserve order even when k == ks
         symbolize_keys_deep! to_symbolize[ks] if to_symbolize[ks].is_a? Hash

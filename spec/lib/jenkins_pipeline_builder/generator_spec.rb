@@ -216,7 +216,7 @@ describe JenkinsPipelineBuilder::Generator do
                 github_site: 'https://github.com',
                 git_org: 'testorg',
                 git_repo_name: 'generator_tests'
-              )).and_return(pr_generator)
+        )).and_return(pr_generator)
 
       expect(pr_generator).to receive(:open_prs).and_return open_prs
       expect(pr_generator).to receive(:delete_closed_prs)

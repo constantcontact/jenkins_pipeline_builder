@@ -37,7 +37,7 @@ module JenkinsPipelineBuilder
       parameters: []
     }.freeze
 
-    EXT_METHODS.keys.each do |method_name|
+    EXT_METHODS.each_key do |method_name|
       define_method method_name do |value = nil|
         return instance_variable_get("@#{method_name}") if value.nil?
 
@@ -90,7 +90,7 @@ module JenkinsPipelineBuilder
 
     def errors
       errors = {}
-      EXT_METHODS.keys.each do |name|
+      EXT_METHODS.each_key do |name|
         errors[name] = 'Must be set' if send(name).nil?
       end
       errors
