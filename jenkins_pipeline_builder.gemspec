@@ -24,7 +24,7 @@ automating Job & Pipeline creation from the YAML files checked-in with your appl
   spec.add_dependency 'jenkins_api_client', '~> 1.0.0'
   spec.add_dependency 'minitar'
   spec.add_dependency 'mixlib-shellout', '= 2.2.7' # maintaining backwards compatibility with ruby 2.1.5
-  spec.add_dependency 'nokogiri', '~> 1.10.3'
+  spec.add_dependency 'nokogiri', '>= 1.6.0'
   spec.add_dependency 'thor', '>= 0.18.0'
 
   spec.add_development_dependency 'bump'
