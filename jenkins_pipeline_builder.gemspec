@@ -18,8 +18,6 @@ automating Job & Pipeline creation from the YAML files checked-in with your appl
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ['lib']
 
-  ENV['NOKOGIRI_USE_SYSTEM_LIBRARIES'] = 'true'
-
   spec.add_dependency 'activesupport', '~> 4.2.6'
   spec.add_dependency 'jenkins_api_client', '~> 1.0.0'
   spec.add_dependency 'minitar'
@@ -28,8 +26,8 @@ automating Job & Pipeline creation from the YAML files checked-in with your appl
   spec.add_dependency 'thor', '>= 0.18.0'
 
   spec.add_development_dependency 'bump'
-  spec.add_development_dependency 'byebug'
-  spec.add_development_dependency 'equivalent-xml'
+  spec.add_development_dependency 'byebug', '= 11.0.1' # last version with compatibility with ruby 2.3.x
+  spec.add_development_dependency 'equivalent-xml', '= 0.6.0' # last version with compatibility with ruby 2.3.x
   spec.add_development_dependency 'gem-release'
   spec.add_development_dependency 'json'
   spec.add_development_dependency 'kwalify'
@@ -37,8 +35,8 @@ automating Job & Pipeline creation from the YAML files checked-in with your appl
   spec.add_development_dependency 'rake'
   spec.add_development_dependency 'rspec', '~> 3.0'
   spec.add_development_dependency 'rspec_junit_formatter'
-  spec.add_development_dependency 'rubocop'
-  spec.add_development_dependency 'simplecov'
+  spec.add_development_dependency 'rubocop', '= 0.81' # last version with compatibility with ruby 2.3.x
+  spec.add_development_dependency 'simplecov', '= 0.17.1' # last version with compatibility with ruby 2.3.x
   spec.add_development_dependency 'simplecov-rcov'
   spec.add_development_dependency 'webmock', '~> 1.0'
   spec.add_development_dependency 'yard'
