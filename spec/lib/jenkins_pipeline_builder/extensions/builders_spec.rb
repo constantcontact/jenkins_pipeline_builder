@@ -329,9 +329,9 @@ describe 'builders' do
 
       begin
         JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
-      rescue RuntimeError => boom
-        puts "Caught error #{boom}"
-        error = boom.to_s
+      rescue RuntimeError => e
+        puts "Caught error #{e}"
+        error = e.to_s
       end
       builder = @n_xml.root.children.first
       expect(builder.name).to match 'hudson.plugins.groovy.SystemGroovy'
@@ -407,8 +407,8 @@ describe 'builders' do
       )
       begin
         JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
-      rescue RuntimeError => err
-        puts 'Runtime Error: ' + err.to_s
+      rescue RuntimeError => e
+        puts 'Runtime Error: ' + e.to_s
       end
       builder = @n_xml.root.children.first
       expect(builder.name).to match 'jenkins.plugins.nodejs.NodeJsCommandInterpreter'

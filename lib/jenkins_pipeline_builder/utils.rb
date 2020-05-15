@@ -33,7 +33,7 @@ module JenkinsPipelineBuilder
     def self.symbolize_keys_deep!(to_symbolize)
       return unless to_symbolize.is_a?(Hash)
 
-      to_symbolize.keys.each do |k|
+      to_symbolize.each_key do |k|
         ks = k.respond_to?(:to_sym) ? k.to_sym : k
         to_symbolize[ks] = to_symbolize.delete k # Preserve order even when k == ks
         symbolize_keys_deep! to_symbolize[ks] if to_symbolize[ks].is_a? Hash

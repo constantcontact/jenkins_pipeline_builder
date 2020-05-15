@@ -34,7 +34,7 @@ module JenkinsPipelineBuilder
       bag = {}
       return unless item.is_a?(Hash)
 
-      item.keys.each do |k|
+      item.each_key do |k|
         val = item[k]
         next unless val.is_a? String
 

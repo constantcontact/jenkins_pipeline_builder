@@ -83,7 +83,7 @@ require 'jenkins_pipeline_builder/extensions'
 require 'jenkins_pipeline_builder/extension_dsl'
 require 'jenkins_pipeline_builder/extension_set'
 require 'jenkins_pipeline_builder/extensions/helpers/extension_helper'
-Dir[File.join(File.dirname(__FILE__), 'jenkins_pipeline_builder/extensions/helpers/**/*.rb')].each do |file|
+Dir[File.join(File.dirname(__FILE__), 'jenkins_pipeline_builder/extensions/helpers/**/*.rb')].sort.each do |file|
   require file
 end
 

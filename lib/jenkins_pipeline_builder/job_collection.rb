@@ -75,8 +75,8 @@ module JenkinsPipelineBuilder
       hash.each do |section|
         load_section section, remote
       end
-    rescue StandardError => err
-      raise CustomErrors::ParseError.new err.message, path
+    rescue StandardError => e
+      raise CustomErrors::ParseError.new e.message, path
     end
 
     def load_section(section, remote)
@@ -122,7 +122,7 @@ module JenkinsPipelineBuilder
 
       logger.info "Loading extensions from folder #{path}"
       logger.info Dir.glob("#{path}/*.rb").inspect
-      Dir.glob("#{path}/**/*.rb").each do |file|
+      Dir.glob("#{path}/**/*.rb").sort.each do |file|
         logger.info "Loaded #{file}"
         require file
       end
