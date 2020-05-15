@@ -23,10 +23,6 @@ ENV PATH $RUBY_INSTALL/bin:$PATH
 
 WORKDIR /src
 
-ADD . /src
-
-RUN bundle
-
 RUN gem install jenkins_pipeline_builder
 
 RUN mkdir -p /srv
