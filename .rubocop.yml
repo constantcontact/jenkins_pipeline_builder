@@ -15,7 +15,7 @@ Metrics/ClassLength:
 #######
 # Finalized settings
 
-Metrics/LineLength:
+Layout/LineLength:
   Max: 120
   Exclude:
     - 'spec/lib/jenkins_pipeline_builder/compiler_spec.rb'
@@ -32,7 +32,7 @@ Style/Next:
     - 'lib/jenkins_pipeline_builder/extensions/**/*'
 
 # Configuration parameters: EnforcedStyle, SupportedStyles.
-Style/VariableName:
+Naming/VariableName:
   Exclude:
     - 'lib/jenkins_pipeline_builder/extensions/**/*'
 
@@ -44,3 +44,19 @@ Style/FrozenStringLiteralComment:
 
 Style/SafeNavigation:
   Enabled: false
+
+Lint/RaiseException:
+  Enabled: true
+
+Lint/StructNewOverride:
+  Enabled: true
+
+Style/HashEachMethods:
+  Enabled: true
+
+Style/HashTransformKeys:
+  Enabled: true
+
+Style/HashTransformValues:
+  Enabled: true
+

@@ -23,7 +23,7 @@
 module JenkinsPipelineBuilder
   module CLI
     class List < Thor
-      JenkinsPipelineBuilder.registry.entries.keys.each do |entry|
+      JenkinsPipelineBuilder.registry.entries.each_key do |entry|
         desc entry, "List all #{entry}"
         define_method(entry) do
           entries = JenkinsPipelineBuilder.registry.registry[:job][entry]
