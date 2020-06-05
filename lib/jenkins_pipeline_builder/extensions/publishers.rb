@@ -408,7 +408,6 @@ publisher do
   xml do |params|
     send('hudson.plugins.sonar.SonarPublisher') do
       jdk params[:jdk] || '(Inherit From Job)'
-      branch params[:branch] || ''
       language
       mavenOpts
       jobAdditionalProperties params[:additional_properties] || ''

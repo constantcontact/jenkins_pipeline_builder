@@ -48,15 +48,15 @@ describe 'publishers' do
       expect(additional_properties_value.first.content).to match ''
     end
 
-    it 'populates branch' do
-      params = { publishers: { sonar_result: { branch: 'test' } } }
-
-      JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
-
-      sonar_nodes = @n_xml.root.children.first.children
-      branch = sonar_nodes.select { |node| node.name == 'branch' }
-      expect(branch.first.content).to match 'test'
-    end
+    # it 'populates branch' do
+    #   params = { publishers: { sonar_result: { branch: 'test' } } }
+    #
+    #   JenkinsPipelineBuilder.registry.traverse_registry_path('job', params, @n_xml)
+    #
+    #   sonar_nodes = @n_xml.root.children.first.children
+    #   branch = sonar_nodes.select { |node| node.name == 'branch' }
+    #   expect(branch.first.content).to match 'test'
+    # end
 
     it 'populates maven installation name' do
       params = { publishers: { sonar_result: { maven_installation_name: 'test' } } }
