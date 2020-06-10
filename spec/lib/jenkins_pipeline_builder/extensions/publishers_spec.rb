@@ -48,7 +48,6 @@ describe 'publishers' do
       expect(additional_properties_value.first.content).to match ''
     end
 
-
     it 'populates maven installation name' do
       params = { publishers: { sonar_result: { maven_installation_name: 'test' } } }
 
