@@ -320,6 +320,7 @@ publisher do
       groovyScript params[:groovy_script]
       behavior params[:behavior] || '0'
       runFormMatrixParent 'false'
+      sandbox params[:sandbox] || false
       params[:additional_classpaths] && params[:additional_classpaths].each do |path|
         send('org.jvnet.hudson.plugins.groovypostbuild.GroovyScriptPath') do
           path path[:path] || '/'
